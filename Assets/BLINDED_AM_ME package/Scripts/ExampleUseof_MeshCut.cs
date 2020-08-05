@@ -71,7 +71,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 			leftSide.newBoundary.Add(list[firstPointIndex].toBoundaryPoint());
 			leftSide.newBoundary.Add(list[secondPointIndex].toBoundaryPoint());
 
-			for (int i = list[firstPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Length; i++)
+			for (int i = list[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Length; i++)
 			{
 				leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
 			}
