@@ -61,8 +61,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 			first.AddComponent<CustomBoundryBox>();
 			CustomBoundryBox leftSide = first.GetComponent<CustomBoundryBox>();
 
-			int firstPointIndex = list[0]._nextBoundaryPoint < list[1]._nextBoundaryPoint ?
-								  0 : 1;
+			int firstPointIndex = list[0]._nextBoundaryPoint < list[1]._nextBoundaryPoint ? 0 : 1;
 			int secondPointIndex = 1 - firstPointIndex;
 
 			for (int i = 0; i < list[firstPointIndex]._nextBoundaryPoint; i++)

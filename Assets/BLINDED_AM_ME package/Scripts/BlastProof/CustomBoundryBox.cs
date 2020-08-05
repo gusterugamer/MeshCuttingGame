@@ -1,8 +1,4 @@
-﻿using JetBrains.Annotations;
-using Microsoft.Win32.SafeHandles;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public struct BoundaryPoint
@@ -64,9 +60,9 @@ public class CustomBoundryBox : MonoBehaviour
         m_CustomBox = new BoundaryPoint[4];
 
         m_CustomBox[0] = new BoundaryPoint(min);       
-        m_CustomBox[1] = new BoundaryPoint(new Vector3(max.x, min.y, min.z));
+        m_CustomBox[1] = new BoundaryPoint(new Vector3(min.x, max.y, min.z));
         m_CustomBox[2] = new BoundaryPoint(new Vector3(max.x, max.y, min.z));
-        m_CustomBox[3] = new BoundaryPoint(new Vector3(min.x, max.y, min.z));
+        m_CustomBox[3] = new BoundaryPoint(new Vector3(max.x, min.y, min.z));
 
         draw = true;
     }
@@ -76,18 +72,7 @@ public class CustomBoundryBox : MonoBehaviour
         int length = m_CustomBox.Length;
         for (int i= 0; i<length;i++)
         {
-            if (i + 3 < length)
-            {
-                Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 3)].m_pos, Color.red);
-            }
-            if (i + 1 < length)
-            {
-                Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1)].m_pos, Color.red);
-            }
-            if (i + 4 < length)
-            {
-                Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 4)].m_pos, Color.red);
-            }
+            Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);        
         }
     }
 
