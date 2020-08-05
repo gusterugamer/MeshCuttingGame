@@ -26,15 +26,10 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 
 	void CutStuff(Vector3 startPos, Vector3 endPos)
     {
-		RaycastHit hit;
-
-		if (Physics.Raycast(transform.position, transform.forward, out hit))
-		{
-
-			victim = hit.collider.gameObject;
-
-			GameObject[] pieces = BLINDED_AM_ME.MeshCut.Cut(victim, transform.position, transform.right, capMaterial, startPos, endPos);
+		GameObject[] pieces = BLINDED_AM_ME.MeshCut.Cut(victim, transform.position, transform.right, capMaterial, startPos, endPos);
 			list = BLINDED_AM_ME.MeshCut.intersectionPoint;
+
+		
 
 			foreach (var point in list)
             {
@@ -45,11 +40,58 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 				instanta.transform.localPosition= new Vector3(point._pos.x, point._pos.y, -0.5f);				
 			}
 
-			if (!pieces[1].GetComponent<DrawBounds>())
-				pieces[1].AddComponent<DrawBounds>();
+			getNewBoundaries();
 
-			//Destroy(pieces[1], 1);
+			if (!pieces[1].GetComponent<DrawBounds>())
+				pieces[1].AddComponent<DrawBounds>();					
+	}
+
+	public List<BoundaryPoint>[] getNewBoundaries()
+	{
+		//Algoritm impartire boundaryBox            
+		if (list.Count == 2)
+		{
+			//leftSIde
+
+			CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();	
+
+			GameObject first = GameObject.CreatePrimitive(PrimitiveType.Cube);
+			GameObject second = GameObject.CreatePrimitive(PrimitiveType.Cube);
+
+			first.AddComponent<CustomBoundryBox>();
+			CustomBoundryBox leftSide = first.GetComponent<CustomBoundryBox>();
+
+			int firstPointIndex = list[0]._nextBoundaryPoint < list[1]._nextBoundaryPoint ?
+								  0 : 1;
+			int secondPointIndex = 1 - firstPointIndex;
+
+			for (int i = 0; i < list[firstPointIndex]._nextBoundaryPoint; i++)
+			{
+				leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+			}
+			leftSide.newBoundary.Add(list[firstPointIndex].toBoundaryPoint());
+			leftSide.newBoundary.Add(list[secondPointIndex].toBoundaryPoint());
+
+			for (int i = list[firstPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Length; i++)
+			{
+				leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+			}
+			////rightside
+			int intersectionPointDistance = list[secondPointIndex]._previousBoundaryPoint - list[firstPointIndex]._nextBoundaryPoint;
+
+			second.AddComponent<CustomBoundryBox>();
+			CustomBoundryBox rightSide = second.GetComponent<CustomBoundryBox>();
+			second.GetComponent<CustomBoundryBox>().newBoundary.Add(BoundaryPoint.zero);
+			rightSide.newBoundary.Add(list[firstPointIndex].toBoundaryPoint());
+
+			for (int i = list[firstPointIndex]._nextBoundaryPoint; i < intersectionPointDistance; i++)
+			{
+				rightSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+			}
+			rightSide.newBoundary.Add(list[secondPointIndex].toBoundaryPoint());
+			return new List<BoundaryPoint>[] { leftSide.newBoundary, rightSide.newBoundary };
 		}
+		return new List<BoundaryPoint>[] { };
 	}
 
 	void GetMousePosition()
@@ -74,8 +116,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 		CutStuff(startPos, endPos);
 		Debug.Log("MousePos: " + "start: " + startPos + "end: " + endPos);
     }
-
-
+	
 	void OnDrawGizmosSelected() {
 
 		Gizmos.color = Color.green;

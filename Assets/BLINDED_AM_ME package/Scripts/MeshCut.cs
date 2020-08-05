@@ -28,6 +28,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.PackageManager;
 using JetBrains.Annotations;
+using System.Data.SqlClient;
 
 namespace BLINDED_AM_ME{
 
@@ -44,6 +45,8 @@ namespace BLINDED_AM_ME{
         private static List<Vector3>       _newVerticesCache = new List<Vector3>();
         private static bool[]              _isLeftSideCache = new bool[3];
         private static int                 _capMatSub = 1;
+
+        public static bool once = false;
 
         public static List<IntersectionPoint> intersectionPoint;
 
@@ -65,6 +68,7 @@ namespace BLINDED_AM_ME{
 			// get the victims mesh
 			_victim_mesh = victim.GetComponent<MeshFilter>().mesh;
             _boundaryBox = victim.GetComponent<CustomBoundryBox>();
+            _boundaryBox.CreateCustomBoundary();
 
             // two new meshes
             _leftSide.Clear();
@@ -184,16 +188,12 @@ namespace BLINDED_AM_ME{
 
 			// assign mats
 			leftSideObj.GetComponent<MeshRenderer>().materials = mats;
-			rightSideObj.GetComponent<MeshRenderer>().materials = mats;           
-            
-            intersectionPoint = _boundaryBox.GetIntersections(startPos, endPos);     
-            
+			rightSideObj.GetComponent<MeshRenderer>().materials = mats;
+
+            intersectionPoint = _boundaryBox.GetIntersections(startPos, endPos);
 
             return new GameObject[]{ leftSideObj, rightSideObj };
-        }
-
-       
-
+        }     
 
         #region Cutting
         // Caching

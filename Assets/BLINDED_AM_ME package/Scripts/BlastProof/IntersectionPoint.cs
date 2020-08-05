@@ -9,20 +9,23 @@ public class IntersectionPoint
 {
     public Vector2 _pos;
 
-    private BoundaryPoint _previousBoundaryPoint;
-    private BoundaryPoint _nextBoundaryPoint;
+    //TODO: find way to put them private
+    public int _previousBoundaryPoint;
+    public int _nextBoundaryPoint;
 
     public BoundaryPoint toBoundaryPoint()
     {
         return new BoundaryPoint(_pos);
     }
 
-    public IntersectionPoint(Vector2 pos)
+    public IntersectionPoint(Vector2 pos, int prevBp, int nextBp)
     {
         _pos = pos;
+        _previousBoundaryPoint = prevBp;
+        _nextBoundaryPoint = nextBp;
     }
 
-    public static IntersectionPoint zero => new IntersectionPoint(new Vector2(0.0f, 0.0f));
+    public static IntersectionPoint zero => new IntersectionPoint(new Vector2(0.0f, 0.0f), 0, 0);
 
     public static bool operator !=(IntersectionPoint point1, IntersectionPoint point2)
     {
@@ -37,5 +40,5 @@ public class IntersectionPoint
            ((obj != null) ? ReferenceEquals(this, obj) : true);
 
     public override int GetHashCode() =>
-            base.GetHashCode();
+            base.GetHashCode();    
 }

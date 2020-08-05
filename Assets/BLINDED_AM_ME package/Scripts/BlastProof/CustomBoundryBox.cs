@@ -29,26 +29,31 @@ public struct BoundaryPoint
 public class CustomBoundryBox : MonoBehaviour
 {
     [SerializeField] private GameObject m_toCutObject;
+
     public BoundaryPoint[] m_CustomBox;
     public BoundaryPoint[] m_newBoundaryPoints;
-    public List<IntersectionPoint> _intersectionPointVec;
+
+    public List<BoundaryPoint> newBoundary = new List<BoundaryPoint>();   
 
     private Transform trans;
+
+    private bool draw = false;
 
     // Start is called before the first frame update
     void Start()
     {
-        trans = m_toCutObject.GetComponent<Transform>();
-        CreateCustomBoundary();
+        m_toCutObject = gameObject;
+        trans = m_toCutObject.GetComponent<Transform>();      
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (draw)
         DrawCustomBoundary();
     }
 
-    void CreateCustomBoundary()
+    public void CreateCustomBoundary()
     {
         Vector3 center = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.center;
         Vector3 minPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.min;
@@ -62,6 +67,8 @@ public class CustomBoundryBox : MonoBehaviour
         m_CustomBox[1] = new BoundaryPoint(new Vector3(max.x, min.y, min.z));
         m_CustomBox[2] = new BoundaryPoint(new Vector3(max.x, max.y, min.z));
         m_CustomBox[3] = new BoundaryPoint(new Vector3(min.x, max.y, min.z));
+
+        draw = true;
     }
 
     void DrawCustomBoundary()
@@ -91,21 +98,18 @@ public class CustomBoundryBox : MonoBehaviour
         int length = m_CustomBox.Length;
 
         for (int i=0;i<m_CustomBox.Length;i++)
-        {            
-            Vector2 inters;
-            IntersectionPoint tempIntersectionPoint = IntersectionPoint.zero;
+        {
+            Vector3 tempStartPos = trans.transform.InverseTransformPoint(startPoint);
+            Vector3 tempEndPos = trans.transform.InverseTransformPoint(endPoint);
 
-            var tempStartPos = trans.transform.InverseTransformPoint(startPoint);
-            var tempEndPos = trans.transform.InverseTransformPoint(endPoint);
+            BoundaryPoint currentBP = m_CustomBox[i];
+            BoundaryPoint nextBP = m_CustomBox[(i + 1) % length];
 
-            bool sax = Math.LineSegmentsIntersection(tempStartPos, tempEndPos, m_CustomBox[i].m_pos, m_CustomBox[(i + 1) % length].m_pos,out inters);
-            tempIntersectionPoint._pos = inters;
-
-            if (tempIntersectionPoint != IntersectionPoint.zero)
-            {
-                pointsList.Add(tempIntersectionPoint);
+            if (Math.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
+            {                
+                pointsList.Add(new IntersectionPoint(intersPoint, i, (i + 1)));                
             }
-        }       
+        }      
         return pointsList;
-    }
+    }  
 }
