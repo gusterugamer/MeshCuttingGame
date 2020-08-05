@@ -76,14 +76,14 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 				leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
 			}
 			////rightside
-			int intersectionPointDistance = list[secondPointIndex]._previousBoundaryPoint - list[firstPointIndex]._nextBoundaryPoint;
+			int intersectionPointDistance = list[secondPointIndex]._previousBoundaryPoint - list[firstPointIndex]._previousBoundaryPoint;
 
 			second.AddComponent<CustomBoundryBox>();
 			CustomBoundryBox rightSide = second.GetComponent<CustomBoundryBox>();
-			second.GetComponent<CustomBoundryBox>().newBoundary.Add(BoundaryPoint.zero);
+			
 			rightSide.newBoundary.Add(list[firstPointIndex].toBoundaryPoint());
 
-			for (int i = list[firstPointIndex]._nextBoundaryPoint; i < intersectionPointDistance; i++)
+			for (int i = list[firstPointIndex]._nextBoundaryPoint; i < list[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
 			{
 				rightSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
 			}
