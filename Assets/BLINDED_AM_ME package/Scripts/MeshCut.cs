@@ -45,7 +45,7 @@ namespace BLINDED_AM_ME{
         private static bool[]              _isLeftSideCache = new bool[3];
         private static int                 _capMatSub = 1;
 
-        public static List<CustomBoundryBox.BoundaryPoint> intersectionPoint;
+        public static List<IntersectionPoint> intersectionPoint;
 
 
         /// <summary>
@@ -186,7 +186,8 @@ namespace BLINDED_AM_ME{
 			leftSideObj.GetComponent<MeshRenderer>().materials = mats;
 			rightSideObj.GetComponent<MeshRenderer>().materials = mats;           
             
-            intersectionPoint = _boundaryBox.GetIntersections(startPos, endPos, victim.transform);               
+            intersectionPoint = _boundaryBox.GetIntersections(startPos, endPos);     
+            
 
             return new GameObject[]{ leftSideObj, rightSideObj };
         }

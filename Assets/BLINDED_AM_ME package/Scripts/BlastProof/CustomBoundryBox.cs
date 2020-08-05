@@ -2,34 +2,43 @@
 using Microsoft.Win32.SafeHandles;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+
+public struct BoundaryPoint
+{
+    public Vector3 m_pos;
+
+    public BoundaryPoint(Vector3 pos)
+    {
+        m_pos = pos;
+    }
+    public BoundaryPoint(float x, float y)
+    {
+        m_pos = new Vector3(x, y, 0.0f);
+    }
+
+    public bool isZero()
+    {
+        return m_pos == Vector3.zero;
+    }
+
+    public static BoundaryPoint zero => new BoundaryPoint(0.0f, 0.0f);
+}
 
 public class CustomBoundryBox : MonoBehaviour
 {
-    public struct BoundaryPoint
-    {
-        public Vector3 m_pos;
-
-        public BoundaryPoint(Vector3 pos)
-        {
-            m_pos = pos;
-        }
-        public BoundaryPoint(float x, float y)
-        {
-            m_pos = new Vector3(x, y, 0.0f);
-        }
-
-        public static BoundaryPoint zero => new BoundaryPoint(0.0f,0.0f);       
-    }
-
     [SerializeField] private GameObject m_toCutObject;
     public BoundaryPoint[] m_CustomBox;
-    public BoundaryPoint[] m_newBoundaryPoints; 
+    public BoundaryPoint[] m_newBoundaryPoints;
+    public List<IntersectionPoint> _intersectionPointVec;
 
+    private Transform trans;
 
     // Start is called before the first frame update
     void Start()
     {
+        trans = m_toCutObject.GetComponent<Transform>();
         CreateCustomBoundary();
     }
 
@@ -75,20 +84,27 @@ public class CustomBoundryBox : MonoBehaviour
         }
     }
 
-    public List<BoundaryPoint> GetIntersections(Vector3 startPoint, Vector3 endPoint, Transform victim)
+    public List<IntersectionPoint> GetIntersections(Vector3 startPoint, Vector3 endPoint)
     {
-        BoundaryPoint tempIntersectionPoint = BoundaryPoint.zero;
-        List<BoundaryPoint> pointsList = new List<BoundaryPoint>();
-        int length = m_CustomBox.Length;
-        for (int i=0;i<m_CustomBox.Length;i++)
-        {
-            //tempIntersectionPoint = Math.getLineLineIntersection(startPoint, endPoint,
-            //                                                     m_CustomBox[i], m_CustomBox[(i + 1) % length], victim);
-            Vector2 inters;
-            bool sax = Math.LineSegmentsIntersection(startPoint, endPoint, m_CustomBox[i].m_pos, m_CustomBox[(i + 1) % length].m_pos,out inters);
-            tempIntersectionPoint.m_pos = inters;
+        List<IntersectionPoint> pointsList = new List<IntersectionPoint>();
 
-            pointsList.Add(tempIntersectionPoint);
+        int length = m_CustomBox.Length;
+
+        for (int i=0;i<m_CustomBox.Length;i++)
+        {            
+            Vector2 inters;
+            IntersectionPoint tempIntersectionPoint = IntersectionPoint.zero;
+
+            var tempStartPos = trans.transform.InverseTransformPoint(startPoint);
+            var tempEndPos = trans.transform.InverseTransformPoint(endPoint);
+
+            bool sax = Math.LineSegmentsIntersection(tempStartPos, tempEndPos, m_CustomBox[i].m_pos, m_CustomBox[(i + 1) % length].m_pos,out inters);
+            tempIntersectionPoint._pos = inters;
+
+            if (tempIntersectionPoint != IntersectionPoint.zero)
+            {
+                pointsList.Add(tempIntersectionPoint);
+            }
         }       
         return pointsList;
     }
