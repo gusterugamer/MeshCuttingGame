@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Boo.Lang;
+using System.Collections;
 using UnityEngine;
 
 public class Math
@@ -26,5 +27,78 @@ public class Math
         intersection.y = p1.y + u * (p2.y - p1.y);
 
         return true;
+    }
+
+    public static bool PointInPolygon(Vector2 point, BoundaryPoint[] points)
+    {
+        float f = 0f;
+        Vector2 zero = Vector2.zero;
+        Vector2 vector2 = Vector2.zero;
+        int length = points.Length;
+
+        bool isOnEdgeLine = false;
+
+        for (int i = 0; i < length; i++)
+        {
+            BoundaryPoint point2 = points[i];
+            BoundaryPoint point3 = points[(i + 1) % length];
+            zero.x = point2.m_pos.x - point.x;
+            zero.y = point2.m_pos.y - point.y;
+            vector2.x = point3.m_pos.x - point.x;
+            vector2.y = point3.m_pos.y - point.y;
+            f += Angle2D(zero.x, zero.y, vector2.x, vector2.y);
+
+            isOnEdgeLine = isPointOnLine(point, point2.m_pos, point3.m_pos);
+        }
+        return (Mathf.Abs(f) >= 3.141593f) || isOnEdgeLine;
+    }
+
+    public static bool isPointOnLine(Vector2 pointToCheck, Vector2 lineBeginPoint, Vector2 lineEndPoint)
+    {
+        //Vector2 distanceBeginPointToCheck = pointToCheck - lineBeginPoint;
+        //Vector2 distanceBeginEnd = lineEndPoint - lineBeginPoint;
+
+        //bool arePointsAligned = Vector3.Cross(distanceBeginPointToCheck, distanceBeginEnd) == Vector3.zero;
+
+        //float dotProd1 = Vector2.Dot(distanceBeginPointToCheck, distanceBeginEnd);
+        //float dotProd2 = Vector2.Dot(distanceBeginEnd, distanceBeginEnd);
+
+        //if (dotProd1 < 0 || dotProd1 > dotProd2 || !arePointsAligned)
+        //    return false;
+
+        //return true;
+
+        float crossProd = (pointToCheck.y - lineBeginPoint.y) * (lineEndPoint.x - lineBeginPoint.x) -
+                          (pointToCheck.x - lineBeginPoint.x) * (lineEndPoint.y - lineBeginPoint.y);
+
+        if (Mathf.Abs(crossProd) > Mathf.Epsilon)
+            return false;
+
+        float dotProd = (pointToCheck.x - lineBeginPoint.x) * (lineEndPoint.x - lineBeginPoint.x) +
+                        (pointToCheck.y - lineBeginPoint.y) * (lineEndPoint.y - lineBeginPoint.y);
+
+        if (dotProd < 0.0f)
+            return false;
+
+        float squaredLengthBa = (lineEndPoint.x - lineBeginPoint.x) * (lineEndPoint.x - lineBeginPoint.x) +
+                                (lineEndPoint.y - lineBeginPoint.y) * (lineEndPoint.y - lineBeginPoint.y);
+        if (dotProd > squaredLengthBa)
+            return false;
+
+        return true;
+    }
+
+    public static float Angle2D(float x1, float y1, float x2, float y2)
+    {
+        float num3 = Mathf.Atan2(y2, x2) - Mathf.Atan2(y1, x1);
+        while (num3 > 3.141593f)
+        {
+            num3 -= 6.283185f;
+        }
+        while (num3 < -3.141593f)
+        {
+            num3 += 6.283185f;
+        }
+        return (num3 * 57.29578f);
     }
 }

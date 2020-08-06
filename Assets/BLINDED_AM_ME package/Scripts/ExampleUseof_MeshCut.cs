@@ -17,6 +17,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 		mainCam = Camera.main;
 		startPos = new Vector2(1.0f, 1.0f);
 		endPos = Vector2.zero;
+		victim.GetComponent<CustomBoundryBox>().CreateCustomBoundary();
 	}
 	
 	void Update(){
@@ -38,60 +39,11 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 				cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 				GameObject instanta = Instantiate(cube, Vector3.zero, Quaternion.identity, victim.transform);
 				instanta.transform.localPosition= new Vector3(point._pos.x, point._pos.y, -0.5f);				
-			}
-
-			getNewBoundaries();
+			}			
 
 			if (!pieces[1].GetComponent<DrawBounds>())
 				pieces[1].AddComponent<DrawBounds>();					
-	}
-
-	public List<BoundaryPoint>[] getNewBoundaries()
-	{
-		//Algoritm impartire boundaryBox            
-		if (list.Count == 2)
-		{
-			//leftSIde
-
-			CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();	
-
-			GameObject first = GameObject.CreatePrimitive(PrimitiveType.Cube);
-			GameObject second = GameObject.CreatePrimitive(PrimitiveType.Cube);
-
-			first.AddComponent<CustomBoundryBox>();
-			CustomBoundryBox leftSide = first.GetComponent<CustomBoundryBox>();
-
-			int firstPointIndex = list[0]._nextBoundaryPoint < list[1]._nextBoundaryPoint ? 0 : 1;
-			int secondPointIndex = 1 - firstPointIndex;
-
-			for (int i = 0; i < list[firstPointIndex]._nextBoundaryPoint; i++)
-			{
-				leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
-			}
-			leftSide.newBoundary.Add(list[firstPointIndex].toBoundaryPoint());
-			leftSide.newBoundary.Add(list[secondPointIndex].toBoundaryPoint());
-
-			for (int i = list[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Length; i++)
-			{
-				leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
-			}
-			////rightside
-			int intersectionPointDistance = list[secondPointIndex]._previousBoundaryPoint - list[firstPointIndex]._previousBoundaryPoint;
-
-			second.AddComponent<CustomBoundryBox>();
-			CustomBoundryBox rightSide = second.GetComponent<CustomBoundryBox>();
-			
-			rightSide.newBoundary.Add(list[firstPointIndex].toBoundaryPoint());
-
-			for (int i = list[firstPointIndex]._nextBoundaryPoint; i < list[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
-			{
-				rightSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
-			}
-			rightSide.newBoundary.Add(list[secondPointIndex].toBoundaryPoint());
-			return new List<BoundaryPoint>[] { leftSide.newBoundary, rightSide.newBoundary };
-		}
-		return new List<BoundaryPoint>[] { };
-	}
+	}	
 
 	void GetMousePosition()
     {	

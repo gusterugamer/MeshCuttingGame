@@ -7,7 +7,7 @@ using UnityEngine;
 
 public class IntersectionPoint
 {
-    public Vector2 _pos;
+    public Vector3 _pos;
 
     //TODO: find way to put them private
     public int _previousBoundaryPoint;
@@ -18,14 +18,14 @@ public class IntersectionPoint
         return new BoundaryPoint(_pos);
     }
 
-    public IntersectionPoint(Vector2 pos, int prevBp, int nextBp)
+    public IntersectionPoint(Vector3 pos, int prevBp, int nextBp)
     {
         _pos = pos;
         _previousBoundaryPoint = prevBp;
         _nextBoundaryPoint = nextBp;
     }
 
-    public static IntersectionPoint zero => new IntersectionPoint(new Vector2(0.0f, 0.0f), 0, 0);
+    public static IntersectionPoint zero => new IntersectionPoint(new Vector3(0.0f, 0.0f, 0.0f), 0, 0);
 
     public static bool operator !=(IntersectionPoint point1, IntersectionPoint point2)
     {

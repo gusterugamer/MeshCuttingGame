@@ -82,10 +82,62 @@ namespace BLINDED_AM_ME{
             var mesh_uvs      = _victim_mesh.uv;
             var mesh_tangents = _victim_mesh.tangents;
             if (mesh_tangents != null && mesh_tangents.Length == 0)
-                mesh_tangents = null;
+                mesh_tangents = null;             
 
-			// go through the submeshes
-			for (int submeshIterator=0; submeshIterator<_victim_mesh.subMeshCount; submeshIterator++){
+            GameObject leftSideObj = victim;
+
+            GameObject rightSideObj = new GameObject("right side", typeof(MeshFilter), typeof(MeshRenderer));
+            rightSideObj.transform.position = victim.transform.position;
+            rightSideObj.transform.rotation = victim.transform.rotation;            
+
+            rightSideObj.transform.localScale = victim.transform.localScale;             
+
+            intersectionPoint = _boundaryBox.GetIntersections(startPos, endPos);
+
+            //Algoritm impartire boundaryBox            
+            if (intersectionPoint.Count == 2)
+            {
+                //leftSIde
+
+                CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
+                CustomBoundryBox leftSide = leftSideObj.GetComponent<CustomBoundryBox>();
+
+                int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
+                int secondPointIndex = 1 - firstPointIndex;
+
+                for (int i = 0; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint; i++)
+                {
+                    leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+                }
+                leftSide.newBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
+                leftSide.newBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+
+                for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Length; i++)
+                {
+                    leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+                }
+
+                leftSide.drawNew = true;
+
+                ////rightside
+                int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
+
+                rightSideObj.AddComponent<CustomBoundryBox>();
+                CustomBoundryBox rightSide = rightSideObj.GetComponent<CustomBoundryBox>();
+
+                rightSide.newBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
+
+                for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
+                {
+                    rightSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+                }
+                rightSide.newBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+
+                rightSide.drawNew = true;
+            }
+
+            // go through the submeshes
+            for (int submeshIterator=0; submeshIterator<_victim_mesh.subMeshCount; submeshIterator++){
 
                 // Triangles
 				var indices = _victim_mesh.GetTriangles(submeshIterator);
@@ -126,9 +178,19 @@ namespace BLINDED_AM_ME{
                     }
 
                     // which side are the vertices on
-                    _isLeftSideCache[0] = _blade.GetSide(mesh_vertices[index_1]);
-					_isLeftSideCache[1] = _blade.GetSide(mesh_vertices[index_2]);
-					_isLeftSideCache[2] = _blade.GetSide(mesh_vertices[index_3]);                    
+
+                    //OLD LOGIC
+                    //_isLeftSideCache[0] = _blade.GetSide(mesh_vertices[index_1]);
+                    //_isLeftSideCache[1] = _blade.GetSide(mesh_vertices[index_2]);
+                    //_isLeftSideCache[2] = _blade.GetSide(mesh_vertices[index_3]);
+                    //OLD LOGIC 
+
+                    CustomBoundryBox leftSide = leftSideObj.GetComponent<CustomBoundryBox>();
+
+                    _isLeftSideCache[0] = Math.PointInPolygon(mesh_vertices[index_1], leftSide.newBoundary.ToArray());
+                    _isLeftSideCache[1] = Math.PointInPolygon(mesh_vertices[index_2], leftSide.newBoundary.ToArray());
+                    _isLeftSideCache[2] = Math.PointInPolygon(mesh_vertices[index_3], leftSide.newBoundary.ToArray());
+				                
 
 					// whole triangle
 					if(_isLeftSideCache[0] == _isLeftSideCache[1] && _isLeftSideCache[0] == _isLeftSideCache[2]){
@@ -145,52 +207,38 @@ namespace BLINDED_AM_ME{
 				}
 			}
 
-			// The capping Material will be at the end
-			Material[] mats = victim.GetComponent<MeshRenderer>().sharedMaterials;
-			if(mats[mats.Length-1].name != capMaterial.name){
-				Material[] newMats = new Material[mats.Length+1];
-				mats.CopyTo(newMats, 0);
-				newMats[mats.Length] = capMaterial;
-				mats = newMats;
-			}
-			_capMatSub = mats.Length-1; // for later use
+            // The capping Material will be at the end
+            Material[] mats = victim.GetComponent<MeshRenderer>().sharedMaterials;
+            if (mats[mats.Length - 1].name != capMaterial.name)
+            {
+                Material[] newMats = new Material[mats.Length + 1];
+                mats.CopyTo(newMats, 0);
+                newMats[mats.Length] = capMaterial;
+                mats = newMats;
+            }
+            _capMatSub = mats.Length - 1; // for later use               
 
-			// cap the opennings
-			Cap_the_Cut();
+            // cap the opennings
+            Cap_the_Cut();
 
 
-			// Left Mesh
-			//Mesh left_HalfMesh = _leftSide.GetMesh();
-			//left_HalfMesh.name =  "Split Mesh Left";
+            // Left Mesh
+            Mesh left_HalfMesh = _leftSide.GetMesh();
+			left_HalfMesh.name =  "Split Mesh Left";
 
 			// Right Mesh
-			//Mesh right_HalfMesh = _rightSide.GetMesh();
-			//right_HalfMesh.name = "Split Mesh Right";
+			Mesh right_HalfMesh = _rightSide.GetMesh();
+			right_HalfMesh.name = "Split Mesh Right";
 
-			// assign the game objects
+            // assign the game objects			
 
-			victim.name = "left side";
-			//victim.GetComponent<MeshFilter>().mesh = left_HalfMesh;
+            leftSideObj.name = "left side";
+            leftSideObj.GetComponent<MeshFilter>().mesh = left_HalfMesh;
+            rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
 
-			GameObject leftSideObj = victim;
-
-			GameObject rightSideObj = new GameObject("right side", typeof(MeshFilter), typeof(MeshRenderer));
-			rightSideObj.transform.position = victim.transform.position;
-			rightSideObj.transform.rotation = victim.transform.rotation;
-			//rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
-		
-			if(victim.transform.parent != null){
-				rightSideObj.transform.parent = victim.transform.parent;
-			}
-
-			rightSideObj.transform.localScale = victim.transform.localScale;
-
-
-			// assign mats
-			leftSideObj.GetComponent<MeshRenderer>().materials = mats;
-			rightSideObj.GetComponent<MeshRenderer>().materials = mats;
-
-            intersectionPoint = _boundaryBox.GetIntersections(startPos, endPos);
+            //assign mats
+            leftSideObj.GetComponent<MeshRenderer>().materials = mats;
+            rightSideObj.GetComponent<MeshRenderer>().materials = mats;
 
             return new GameObject[]{ leftSideObj, rightSideObj };
         }     

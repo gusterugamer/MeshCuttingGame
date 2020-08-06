@@ -29,11 +29,15 @@ public class CustomBoundryBox : MonoBehaviour
     public BoundaryPoint[] m_CustomBox;
     public BoundaryPoint[] m_newBoundaryPoints;
 
+    public GameObject objectToCheckIfInside;
+
     public List<BoundaryPoint> newBoundary = new List<BoundaryPoint>();   
 
     private Transform trans;
 
     private bool draw = false;
+
+    public bool drawNew = false;
 
     // Start is called before the first frame update
     void Start()
@@ -46,7 +50,16 @@ public class CustomBoundryBox : MonoBehaviour
     void Update()
     {
         if (draw)
-        DrawCustomBoundary();
+        {
+            DrawCustomBoundary();
+           // CheckIfInside();
+        }
+        if (drawNew)
+        {
+            DrawNewCustomBoundary();
+            draw = false;
+            CheckIfInside();
+        }
     }
 
     public void CreateCustomBoundary()
@@ -76,6 +89,34 @@ public class CustomBoundryBox : MonoBehaviour
         }
     }
 
+    void DrawNewCustomBoundary()
+    {
+        int length = newBoundary.Count;
+        for (int i=0;i<length;i++)
+        {
+            Debug.DrawLine(transform.position + newBoundary[i].m_pos, transform.position + newBoundary[(i + 1) % length].m_pos, Color.red);
+        }
+    }
+
+    void CheckIfInside()
+    {
+        if (objectToCheckIfInside)
+        {
+            var invTransPos = transform.InverseTransformPoint(objectToCheckIfInside.transform.position);
+
+            //Debug.Log("RelativePos: " + invTransPos);
+
+            if (Math.PointInPolygon(new Vector2(invTransPos.x, invTransPos.y), newBoundary.ToArray()))
+            {
+                Debug.Log("inside");
+            }
+            else
+            {
+                Debug.Log("outside");
+            }
+        }
+    }
+
     public List<IntersectionPoint> GetIntersections(Vector3 startPoint, Vector3 endPoint)
     {
         List<IntersectionPoint> pointsList = new List<IntersectionPoint>();
@@ -92,7 +133,7 @@ public class CustomBoundryBox : MonoBehaviour
 
             if (Math.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
             {                
-                pointsList.Add(new IntersectionPoint(intersPoint, i, (i + 1)));                
+                pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x,intersPoint.y,-0.5f), i, (i + 1)));                
             }
         }      
         return pointsList;
