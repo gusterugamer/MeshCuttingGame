@@ -46,46 +46,61 @@ public class Math
             zero.y = point2.m_pos.y - point.y;
             vector2.x = point3.m_pos.x - point.x;
             vector2.y = point3.m_pos.y - point.y;
-            f += Angle2D(zero.x, zero.y, vector2.x, vector2.y);
+            f += Angle2D(zero.x, zero.y, vector2.x, vector2.y);        
 
-            isOnEdgeLine = isPointOnLine(point, point2.m_pos, point3.m_pos);
+            isOnEdgeLine = isPointOnLine(point, point2.m_pos, point3.m_pos); 
         }
         return (Mathf.Abs(f) >= 3.141593f) || isOnEdgeLine;
     }
 
     public static bool isPointOnLine(Vector2 pointToCheck, Vector2 lineBeginPoint, Vector2 lineEndPoint)
     {
-        //Vector2 distanceBeginPointToCheck = pointToCheck - lineBeginPoint;
-        //Vector2 distanceBeginEnd = lineEndPoint - lineBeginPoint;
+        float segmentDistanceToPointToCheck = Vector2.Distance(lineBeginPoint, pointToCheck);
+        float segmentDistanceFromPointToCheck = Vector2.Distance(pointToCheck, lineEndPoint);
+        float totalDistance = Vector2.Distance(lineBeginPoint, lineEndPoint);
 
-        //bool arePointsAligned = Vector3.Cross(distanceBeginPointToCheck, distanceBeginEnd) == Vector3.zero;
+        if (segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck == totalDistance)
+            return true;
 
-        //float dotProd1 = Vector2.Dot(distanceBeginPointToCheck, distanceBeginEnd);
-        //float dotProd2 = Vector2.Dot(distanceBeginEnd, distanceBeginEnd);
+        return false;
 
-        //if (dotProd1 < 0 || dotProd1 > dotProd2 || !arePointsAligned)
+
+
+
+       //Vector2 distanceBeginPointToCheck = pointToCheck - lineBeginPoint;
+       //Vector2 distanceBeginEnd = lineEndPoint - lineBeginPoint;
+
+       //Vector3 crossProdAlignedPoints = Vector3.Cross(distanceBeginPointToCheck, distanceBeginEnd);
+
+       //bool arePointsAligned = crossProdAlignedPoints.x <= Mathf.Epsilon &&
+       //                         crossProdAlignedPoints.y <= Mathf.Epsilon;                               
+
+       //float dotProd1 = Vector2.Dot(distanceBeginPointToCheck, distanceBeginEnd);
+       //float dotProd2 = Vector2.Dot(distanceBeginEnd, distanceBeginEnd);
+
+       //if (dotProd1 < 0 || dotProd1 > dotProd2 || !arePointsAligned)
+       //    return false;
+
+       //return true;
+
+        //float crossProd = (pointToCheck.y - lineBeginPoint.y) * (lineEndPoint.x - lineBeginPoint.x) -
+        //                  (pointToCheck.x - lineBeginPoint.x) * (lineEndPoint.y - lineBeginPoint.y);
+
+        //if (Mathf.Abs(crossProd) > Mathf.Epsilon)
+        //    return false;
+
+        //float dotProd = (pointToCheck.x - lineBeginPoint.x) * (lineEndPoint.x - lineBeginPoint.x) +
+        //                (pointToCheck.y - lineBeginPoint.y) * (lineEndPoint.y - lineBeginPoint.y);
+
+        //if (dotProd < 0.0f)
+        //    return false;
+
+        //float squaredLengthBa = (lineEndPoint.x - lineBeginPoint.x) * (lineEndPoint.x - lineBeginPoint.x) +
+        //                        (lineEndPoint.y - lineBeginPoint.y) * (lineEndPoint.y - lineBeginPoint.y);
+        //if (dotProd > squaredLengthBa)
         //    return false;
 
         //return true;
-
-        float crossProd = (pointToCheck.y - lineBeginPoint.y) * (lineEndPoint.x - lineBeginPoint.x) -
-                          (pointToCheck.x - lineBeginPoint.x) * (lineEndPoint.y - lineBeginPoint.y);
-
-        if (Mathf.Abs(crossProd) > Mathf.Epsilon)
-            return false;
-
-        float dotProd = (pointToCheck.x - lineBeginPoint.x) * (lineEndPoint.x - lineBeginPoint.x) +
-                        (pointToCheck.y - lineBeginPoint.y) * (lineEndPoint.y - lineBeginPoint.y);
-
-        if (dotProd < 0.0f)
-            return false;
-
-        float squaredLengthBa = (lineEndPoint.x - lineBeginPoint.x) * (lineEndPoint.x - lineBeginPoint.x) +
-                                (lineEndPoint.y - lineBeginPoint.y) * (lineEndPoint.y - lineBeginPoint.y);
-        if (dotProd > squaredLengthBa)
-            return false;
-
-        return true;
     }
 
     public static float Angle2D(float x1, float y1, float x2, float y2)

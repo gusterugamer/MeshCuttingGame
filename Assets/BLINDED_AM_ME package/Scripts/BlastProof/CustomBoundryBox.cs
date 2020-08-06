@@ -35,15 +35,22 @@ public class CustomBoundryBox : MonoBehaviour
 
     private Transform trans;
 
+    //TEST ONLY
     private bool draw = false;
 
     public bool drawNew = false;
+
+    public bool oneTime = true;
+   
+    int i = -1;
+
+    //TEST ONLY
 
     // Start is called before the first frame update
     void Start()
     {
         m_toCutObject = gameObject;
-        trans = m_toCutObject.GetComponent<Transform>();      
+        trans = m_toCutObject.GetComponent<Transform>();          
     }
 
     // Update is called once per frame
@@ -56,9 +63,15 @@ public class CustomBoundryBox : MonoBehaviour
         }
         if (drawNew)
         {
+            MOVETHISFUCKERFORTEST();
             DrawNewCustomBoundary();
             draw = false;
             CheckIfInside();
+            if (oneTime == false && objectToCheckIfInside)
+            {
+                objectToCheckIfInside.transform.position = transform.TransformPoint(newBoundary[0].m_pos) + transform.TransformPoint(new Vector3(0.0f, 0.0f, -0.5f));
+                oneTime = true;
+            }
         }
     }
 
@@ -114,6 +127,16 @@ public class CustomBoundryBox : MonoBehaviour
             {
                 Debug.Log("outside");
             }
+        }
+    }
+
+    void MOVETHISFUCKERFORTEST()
+    {
+        if (objectToCheckIfInside)
+        {
+            objectToCheckIfInside.transform.position = Vector3.MoveTowards(objectToCheckIfInside.transform.position, transform.TransformPoint(newBoundary[(i + 1) % newBoundary.Count].m_pos), Time.deltaTime* 0.1f);
+            if (objectToCheckIfInside.transform.position == transform.TransformPoint(newBoundary[(i + 1) % newBoundary.Count].m_pos))
+                i++;
         }
     }
 

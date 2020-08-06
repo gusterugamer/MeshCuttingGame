@@ -28,9 +28,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 	void CutStuff(Vector3 startPos, Vector3 endPos)
     {
 		GameObject[] pieces = BLINDED_AM_ME.MeshCut.Cut(victim, transform.position, transform.right, capMaterial, startPos, endPos);
-			list = BLINDED_AM_ME.MeshCut.intersectionPoint;
-
-		
+			list = BLINDED_AM_ME.MeshCut.intersectionPoint;	
 
 			foreach (var point in list)
             {
@@ -39,7 +37,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 				cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 				GameObject instanta = Instantiate(cube, Vector3.zero, Quaternion.identity, victim.transform);
 				instanta.transform.localPosition= new Vector3(point._pos.x, point._pos.y, -0.5f);				
-			}			
+			}
 
 			if (!pieces[1].GetComponent<DrawBounds>())
 				pieces[1].AddComponent<DrawBounds>();					

@@ -322,6 +322,7 @@ MonoBehaviour:
   m_toCutObject: {fileID: 575691202}
   objectToCheckIfInside: {fileID: 1918201035}
   drawNew: 0
+  oneTime: 1
 --- !u!1 &950396717
 GameObject:
   m_ObjectHideFlags: 0
