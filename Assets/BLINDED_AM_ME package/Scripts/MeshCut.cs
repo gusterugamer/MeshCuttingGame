@@ -39,6 +39,9 @@ namespace BLINDED_AM_ME{
         private static CustomBoundryBox _boundaryBox;
         private static CustomBoundryBox leftSide;
 
+        private static List<BoundaryPoint> newRightBoundary;
+        private static List<BoundaryPoint> newLeftBoundary;
+
         // Caching
         private static Mesh_Maker _leftSide = new Mesh_Maker();
 		private static Mesh_Maker _rightSide = new Mesh_Maker();
@@ -64,8 +67,8 @@ namespace BLINDED_AM_ME{
            
 			// get the victims mesh
 			_victim_mesh = victim.GetComponent<MeshFilter>().mesh;
-            _boundaryBox = victim.GetComponent<CustomBoundryBox>();
-            _boundaryBox.CreateCustomBoundary();
+            _boundaryBox = victim.GetComponent<CustomBoundryBox>();            
+            //_boundaryBox.CreateCustomBoundary();
 
             // two new meshes
             _leftSide.Clear();
@@ -103,20 +106,25 @@ namespace BLINDED_AM_ME{
                 CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
                 CustomBoundryBox leftSide = leftSideObj.GetComponent<CustomBoundryBox>();
 
+                newLeftBoundary = new List<BoundaryPoint>();
+                newRightBoundary = new List<BoundaryPoint>();
+
                 int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
                 int secondPointIndex = 1 - firstPointIndex;
 
                 for (int i = 0; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint; i++)
                 {
-                    leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+                    newLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
                 }
-                leftSide.newBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
-                leftSide.newBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+                newLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
+                newLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
 
-                for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Length; i++)
+                for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Count; i++)
                 {
-                    leftSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+                    newLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
                 }
+
+              
 
                 leftSide.drawNew = true;
 
@@ -126,13 +134,16 @@ namespace BLINDED_AM_ME{
                 rightSideObj.AddComponent<CustomBoundryBox>();
                 CustomBoundryBox rightSide = rightSideObj.GetComponent<CustomBoundryBox>();
 
-                rightSide.newBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
+                newRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
 
                 for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
                 {
-                    rightSide.newBoundary.Add(_boundaryBox.m_CustomBox[i]);
+                    newRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
                 }
-                rightSide.newBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+                newRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+
+                rightSide.m_CustomBox = newRightBoundary;
+                leftSide.m_CustomBox = newLeftBoundary;
 
                 rightSide.drawNew = true;
             }
@@ -188,9 +199,9 @@ namespace BLINDED_AM_ME{
 
                     leftSide = leftSideObj.GetComponent<CustomBoundryBox>();
 
-                    _isLeftSideCache[0] = Math.PointInPolygon(mesh_vertices[index_1], leftSide.newBoundary.ToArray());
-                    _isLeftSideCache[1] = Math.PointInPolygon(mesh_vertices[index_2], leftSide.newBoundary.ToArray());
-                    _isLeftSideCache[2] = Math.PointInPolygon(mesh_vertices[index_3], leftSide.newBoundary.ToArray());
+                    _isLeftSideCache[0] = Math.PointInPolygon(mesh_vertices[index_1], newLeftBoundary.ToArray());
+                    _isLeftSideCache[1] = Math.PointInPolygon(mesh_vertices[index_2], newLeftBoundary.ToArray());
+                    _isLeftSideCache[2] = Math.PointInPolygon(mesh_vertices[index_3], newLeftBoundary.ToArray());
 				                
 
 					// whole triangle
@@ -220,7 +231,7 @@ namespace BLINDED_AM_ME{
             _capMatSub = mats.Length - 1; // for later use               
 
             // cap the opennings
-            Cap_the_Cut();
+            //Cap_the_Cut();
 
 
             // Left Mesh
@@ -258,9 +269,9 @@ namespace BLINDED_AM_ME{
             //_isLeftSideCache[2] = _blade.GetSide(triangle.vertices[2]);
             //OLD LOGIC
 
-            _isLeftSideCache[0] = Math.PointInPolygon(triangle.vertices[0], leftSide.newBoundary.ToArray());
-            _isLeftSideCache[1] = Math.PointInPolygon(triangle.vertices[1], leftSide.newBoundary.ToArray());
-            _isLeftSideCache[2] = Math.PointInPolygon(triangle.vertices[2], leftSide.newBoundary.ToArray());
+            _isLeftSideCache[0] = Math.PointInPolygon(triangle.vertices[0], newLeftBoundary.ToArray());
+            _isLeftSideCache[1] = Math.PointInPolygon(triangle.vertices[1], newLeftBoundary.ToArray());
+            _isLeftSideCache[2] = Math.PointInPolygon(triangle.vertices[2], newLeftBoundary.ToArray());
 
 
             int leftCount = 0;
@@ -329,10 +340,7 @@ namespace BLINDED_AM_ME{
                 _triangleCache.tangents[2] = _leftTriangleCache.tangents[1];
             }
 
-            // now to find the intersection points between the solo point and the others
-           
-           
-           
+            // now to find the intersection points between the solo point and the others          
 
             Vector3 edgeVector = _triangleCache.vertices[1] - _triangleCache.vertices[0];  // contains edge length and direction
             _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out float distance);

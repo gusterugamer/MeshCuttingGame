@@ -26,12 +26,9 @@ public class CustomBoundryBox : MonoBehaviour
 {
     [SerializeField] private GameObject m_toCutObject;
 
-    public BoundaryPoint[] m_CustomBox;
-    public BoundaryPoint[] m_newBoundaryPoints;
+    public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();     
 
-    public GameObject objectToCheckIfInside;
-
-    public List<BoundaryPoint> newBoundary = new List<BoundaryPoint>();   
+    public GameObject objectToCheckIfInside;   
 
     private Transform trans;
 
@@ -74,21 +71,19 @@ public class CustomBoundryBox : MonoBehaviour
         Vector3 minPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.min;
         Vector3 maxPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.max;
         Vector3 min = center + minPrime;
-        Vector3 max = center + maxPrime;
+        Vector3 max = center + maxPrime;     
 
-        m_CustomBox = new BoundaryPoint[4];
-
-        m_CustomBox[0] = new BoundaryPoint(min);       
-        m_CustomBox[1] = new BoundaryPoint(new Vector3(min.x, max.y, min.z));
-        m_CustomBox[2] = new BoundaryPoint(new Vector3(max.x, max.y, min.z));
-        m_CustomBox[3] = new BoundaryPoint(new Vector3(max.x, min.y, min.z));
+        m_CustomBox.Add(new BoundaryPoint(min));       
+        m_CustomBox.Add(new BoundaryPoint(new Vector3(min.x, max.y, min.z)));
+        m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, max.y, min.z)));
+        m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, min.y, min.z)));
 
         draw = true;
     }
 
     void DrawCustomBoundary()
     {
-        int length = m_CustomBox.Length;
+        int length = m_CustomBox.Count;
         for (int i= 0; i<length;i++)
         {
             Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);        
@@ -97,10 +92,10 @@ public class CustomBoundryBox : MonoBehaviour
 
     void DrawNewCustomBoundary()
     {
-        int length = newBoundary.Count;
+        int length = m_CustomBox.Count;
         for (int i=0;i<length;i++)
         {
-            Debug.DrawLine(transform.position + newBoundary[i].m_pos, transform.position + newBoundary[(i + 1) % length].m_pos, Color.red);
+            Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);
         }
     }
 
@@ -112,7 +107,7 @@ public class CustomBoundryBox : MonoBehaviour
 
             //Debug.Log("RelativePos: " + invTransPos);
 
-            if (Math.PointInPolygon(new Vector2(invTransPos.x, invTransPos.y), newBoundary.ToArray()))
+            if (Math.PointInPolygon(new Vector2(invTransPos.x, invTransPos.y), m_CustomBox.ToArray()))
             {
                 Debug.Log("inside");
             }
@@ -127,8 +122,8 @@ public class CustomBoundryBox : MonoBehaviour
     {
         if (objectToCheckIfInside)
         {
-            objectToCheckIfInside.transform.position = Vector3.MoveTowards(objectToCheckIfInside.transform.position, transform.TransformPoint(newBoundary[(i + 1) % newBoundary.Count].m_pos), Time.deltaTime* 0.1f);
-            if (objectToCheckIfInside.transform.position == transform.TransformPoint(newBoundary[(i + 1) % newBoundary.Count].m_pos))
+            objectToCheckIfInside.transform.position = Vector3.MoveTowards(objectToCheckIfInside.transform.position, transform.TransformPoint(m_CustomBox[(i + 1) % m_CustomBox.Count].m_pos), Time.deltaTime* 0.1f);
+            if (objectToCheckIfInside.transform.position == transform.TransformPoint(m_CustomBox[(i + 1) % m_CustomBox.Count].m_pos))
                 i++;
         }
     }
@@ -137,9 +132,9 @@ public class CustomBoundryBox : MonoBehaviour
     {
         List<IntersectionPoint> pointsList = new List<IntersectionPoint>();
 
-        int length = m_CustomBox.Length;
+        int length = m_CustomBox.Count;
 
-        for (int i=0;i<m_CustomBox.Length;i++)
+        for (int i=0;i<m_CustomBox.Count;i++)
         {
             Vector3 tempStartPos = trans.transform.InverseTransformPoint(startPoint);
             Vector3 tempEndPos = trans.transform.InverseTransformPoint(endPoint);
