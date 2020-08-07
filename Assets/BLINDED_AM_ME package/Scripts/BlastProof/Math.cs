@@ -48,7 +48,7 @@ public class Math
             vector2.y = point3.m_pos.y - point.y;
             f += Angle2D(zero.x, zero.y, vector2.x, vector2.y);        
 
-            isOnEdgeLine = isPointOnLine(point, point2.m_pos, point3.m_pos); 
+            isOnEdgeLine = isPointOnLine(point, point2.m_pos, point3.m_pos) || isOnEdgeLine; 
         }
         return (Mathf.Abs(f) >= 3.141593f) || isOnEdgeLine;
     }
@@ -59,7 +59,7 @@ public class Math
         float segmentDistanceFromPointToCheck = Vector2.Distance(pointToCheck, lineEndPoint);
         float totalDistance = Vector2.Distance(lineBeginPoint, lineEndPoint);
 
-        if (segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck == totalDistance)
+        if (Mathf.Abs(segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck - totalDistance) <= Mathf.Epsilon)
             return true;
 
         return false;
@@ -101,6 +101,15 @@ public class Math
         //    return false;
 
         //return true;
+    }
+
+    public static Plane MakeSlicePlane(Vector2 point1, Vector2 point2, float distance)
+    {
+        Vector3 a = new Vector3(point1.x, point1.y, distance);
+        Vector3 c = new Vector3(point2.x, point2.y, distance);
+        Vector3 b = (a + c) / 2f;
+        b.z = (a.z + c.z) * 0.75f;
+        return new Plane(a, b, c);
     }
 
     public static float Angle2D(float x1, float y1, float x2, float y2)

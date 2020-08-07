@@ -39,8 +39,6 @@ public class CustomBoundryBox : MonoBehaviour
     private bool draw = false;
 
     public bool drawNew = false;
-
-    public bool oneTime = true;
    
     int i = -1;
 
@@ -65,13 +63,8 @@ public class CustomBoundryBox : MonoBehaviour
         {
             MOVETHISFUCKERFORTEST();
             DrawNewCustomBoundary();
-            draw = false;
             CheckIfInside();
-            if (oneTime == false && objectToCheckIfInside)
-            {
-                objectToCheckIfInside.transform.position = transform.TransformPoint(newBoundary[0].m_pos) + transform.TransformPoint(new Vector3(0.0f, 0.0f, -0.5f));
-                oneTime = true;
-            }
+            draw = false;          
         }
     }
 
@@ -126,7 +119,7 @@ public class CustomBoundryBox : MonoBehaviour
             else
             {
                 Debug.Log("outside");
-            }
+            }            
         }
     }
 

@@ -37,6 +37,7 @@ namespace BLINDED_AM_ME{
 		private static Plane _blade;
 		private static Mesh  _victim_mesh;
         private static CustomBoundryBox _boundaryBox;
+        private static CustomBoundryBox leftSide;
 
         // Caching
         private static Mesh_Maker _leftSide = new Mesh_Maker();
@@ -61,10 +62,6 @@ namespace BLINDED_AM_ME{
         /// <returns></returns>
         public static GameObject[] Cut(GameObject victim, Vector3 anchorPoint, Vector3 normalDirection, Material capMaterial, Vector3 startPos, Vector3 endPos){
            
-			// set the blade relative to victim
-			_blade = new Plane(victim.transform.InverseTransformDirection(-normalDirection),
-				victim.transform.InverseTransformPoint(anchorPoint));
-
 			// get the victims mesh
 			_victim_mesh = victim.GetComponent<MeshFilter>().mesh;
             _boundaryBox = victim.GetComponent<CustomBoundryBox>();
@@ -97,6 +94,10 @@ namespace BLINDED_AM_ME{
             //Algoritm impartire boundaryBox            
             if (intersectionPoint.Count == 2)
             {
+                float distanceIntersectionPoints = Vector2.Distance(intersectionPoint[0]._pos, intersectionPoint[1]._pos);
+                // set the blade relative to victim
+                _blade = Math.MakeSlicePlane(intersectionPoint[0]._pos, intersectionPoint[1]._pos, distanceIntersectionPoints);
+
                 //leftSIde
 
                 CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
@@ -185,7 +186,7 @@ namespace BLINDED_AM_ME{
                     //_isLeftSideCache[2] = _blade.GetSide(mesh_vertices[index_3]);
                     //OLD LOGIC 
 
-                    CustomBoundryBox leftSide = leftSideObj.GetComponent<CustomBoundryBox>();
+                    leftSide = leftSideObj.GetComponent<CustomBoundryBox>();
 
                     _isLeftSideCache[0] = Math.PointInPolygon(mesh_vertices[index_1], leftSide.newBoundary.ToArray());
                     _isLeftSideCache[1] = Math.PointInPolygon(mesh_vertices[index_2], leftSide.newBoundary.ToArray());
@@ -202,7 +203,7 @@ namespace BLINDED_AM_ME{
 
 					}else{ // cut the triangle
 						
-						//Cut_this_Face(ref _triangleCache, submeshIterator);
+						Cut_this_Face(ref _triangleCache, submeshIterator);
 					}
 				}
 			}
@@ -250,11 +251,16 @@ namespace BLINDED_AM_ME{
         private static Mesh_Maker.Triangle _newTriangleCache  = new Mesh_Maker.Triangle(new Vector3[3], new Vector2[3], new Vector3[3], new Vector4[3]);
         // Functions
         private static void Cut_this_Face(ref Mesh_Maker.Triangle triangle, int submesh)
-        {
+        {           
+            //OLD LOGIC
+            //_isLeftSideCache[0] = _blade.GetSide(triangle.vertices[0]); 
+            //_isLeftSideCache[1] = _blade.GetSide(triangle.vertices[1]);
+            //_isLeftSideCache[2] = _blade.GetSide(triangle.vertices[2]);
+            //OLD LOGIC
 
-            _isLeftSideCache[0] = _blade.GetSide(triangle.vertices[0]); // true = left
-            _isLeftSideCache[1] = _blade.GetSide(triangle.vertices[1]);
-            _isLeftSideCache[2] = _blade.GetSide(triangle.vertices[2]);
+            _isLeftSideCache[0] = Math.PointInPolygon(triangle.vertices[0], leftSide.newBoundary.ToArray());
+            _isLeftSideCache[1] = Math.PointInPolygon(triangle.vertices[1], leftSide.newBoundary.ToArray());
+            _isLeftSideCache[2] = Math.PointInPolygon(triangle.vertices[2], leftSide.newBoundary.ToArray());
 
 
             int leftCount = 0;
@@ -324,14 +330,14 @@ namespace BLINDED_AM_ME{
             }
 
             // now to find the intersection points between the solo point and the others
-            float distance = 0;
-            float normalizedDistance = 0.0f;
-            Vector3 edgeVector = Vector3.zero; // contains edge length and direction
+           
+           
+           
 
-            edgeVector = _triangleCache.vertices[1] - _triangleCache.vertices[0];
-            _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out distance);
+            Vector3 edgeVector = _triangleCache.vertices[1] - _triangleCache.vertices[0];  // contains edge length and direction
+            _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out float distance);
 
-            normalizedDistance = distance / edgeVector.magnitude;
+            float normalizedDistance = distance / edgeVector.magnitude;
             _newTriangleCache.vertices[0] = Vector3.Lerp(_triangleCache.vertices[0], _triangleCache.vertices[1], normalizedDistance);
             _newTriangleCache.uvs[0]      = Vector2.Lerp(_triangleCache.uvs[0],      _triangleCache.uvs[1],      normalizedDistance);
             _newTriangleCache.normals[0]  = Vector3.Lerp(_triangleCache.normals[0],  _triangleCache.normals[1],  normalizedDistance);
