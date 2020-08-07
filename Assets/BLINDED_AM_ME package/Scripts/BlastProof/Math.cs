@@ -109,7 +109,7 @@ public class Math
         Vector3 c = new Vector3(point2.x, point2.y, distance);
         Vector3 b = (a + c) / 2f;
         b.z = (a.z + c.z) * 0.75f;
-        return new Plane(a, b, c);
+        return new Plane(a, -b, c);
     }
 
     public static float Angle2D(float x1, float y1, float x2, float y2)

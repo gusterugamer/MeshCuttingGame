@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using UnityEditor.PackageManager;
 using JetBrains.Annotations;
 using System.Data.SqlClient;
+using System;
 
 namespace BLINDED_AM_ME{
 
@@ -99,7 +100,7 @@ namespace BLINDED_AM_ME{
             {
                 float distanceIntersectionPoints = Vector2.Distance(intersectionPoint[0]._pos, intersectionPoint[1]._pos);
                 // set the blade relative to victim
-                _blade = Math.MakeSlicePlane(intersectionPoint[0]._pos, intersectionPoint[1]._pos, distanceIntersectionPoints);
+                _blade = Math.MakeSlicePlane(intersectionPoint[0]._pos, intersectionPoint[1]._pos, 100.0f);
 
                 //leftSIde
 
@@ -207,10 +208,21 @@ namespace BLINDED_AM_ME{
 					// whole triangle
 					if(_isLeftSideCache[0] == _isLeftSideCache[1] && _isLeftSideCache[0] == _isLeftSideCache[2]){
 
-						if(_isLeftSideCache[0]) // left side
-							_leftSide.AddTriangle( _triangleCache, submeshIterator);
-						else // right side
-							_rightSide.AddTriangle(_triangleCache, submeshIterator);
+                        if (_isLeftSideCache[0])// left side                        
+                            _leftSide.AddTriangle(_triangleCache, submeshIterator);
+                        else // right side
+                        {
+                            _rightSide.AddTriangle(_triangleCache, submeshIterator);
+
+                            for (int j = 0; j < _triangleCache.vertices.Length; j++)
+                            {
+                                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                                cube.name = "Vertex";
+                                cube.transform.parent = rightSideObj.transform;
+                                cube.transform.localPosition = _triangleCache.vertices[j];
+                                cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);                              
+                            }
+                        }
 
 					}else{ // cut the triangle
 						
@@ -231,7 +243,7 @@ namespace BLINDED_AM_ME{
             _capMatSub = mats.Length - 1; // for later use               
 
             // cap the opennings
-            //Cap_the_Cut();
+            Cap_the_Cut();
 
 
             // Left Mesh
@@ -253,7 +265,7 @@ namespace BLINDED_AM_ME{
             rightSideObj.GetComponent<MeshRenderer>().materials = mats;
 
             return new GameObject[]{ leftSideObj, rightSideObj };
-        }     
+        }   
 
         #region Cutting
         // Caching
