@@ -59,7 +59,9 @@ public class Math
         float segmentDistanceFromPointToCheck = Vector2.Distance(pointToCheck, lineEndPoint);
         float totalDistance = Vector2.Distance(lineBeginPoint, lineEndPoint);
 
-        if (Mathf.Abs(segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck - totalDistance) <= Mathf.Epsilon)
+        if (Mathf.Abs(segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck - totalDistance) <= Mathf.Epsilon ||
+            pointToCheck == lineBeginPoint || pointToCheck == lineEndPoint
+            )
             return true;
 
         return false;
@@ -105,10 +107,10 @@ public class Math
 
     public static Plane MakeSlicePlane(Vector2 point1, Vector2 point2, float distance)
     {
-        Vector3 a = new Vector3(point1.x, point1.y, distance);
-        Vector3 c = new Vector3(point2.x, point2.y, distance);
-        Vector3 b = (a + c) / 2f;
-        b.z = (a.z + c.z) * 0.75f;
+        Vector3 a = new Vector3(point1.x, point1.y, distance).normalized;
+        Vector3 c = new Vector3(point2.x, point2.y, distance).normalized;
+        Vector3 b = ((a + c) / 2f).normalized;
+        b.z = (a.z + c.z);
         return new Plane(a, -b, c);
     }
 
@@ -124,5 +126,5 @@ public class Math
             num3 += 6.283185f;
         }
         return (num3 * 57.29578f);
-    }
+    }    
 }

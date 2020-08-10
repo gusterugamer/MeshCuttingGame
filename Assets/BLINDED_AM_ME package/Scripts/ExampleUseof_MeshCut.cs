@@ -36,7 +36,8 @@ public class ExampleUseof_MeshCut : MonoBehaviour {
 				GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
 				cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
 				GameObject instanta = Instantiate(cube, Vector3.zero, Quaternion.identity, victim.transform);
-				instanta.transform.localPosition= new Vector3(point._pos.x, point._pos.y, -0.5f);				
+				instanta.transform.localPosition= new Vector3(point._pos.x, point._pos.y, -0.5f);
+				Destroy(instanta.GetComponent<BoxCollider>());
 			}
 
 			if (!pieces[1].GetComponent<DrawBounds>())
