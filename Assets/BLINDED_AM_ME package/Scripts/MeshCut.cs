@@ -30,7 +30,6 @@ using UnityEditor.PackageManager;
 using JetBrains.Annotations;
 using System.Data.SqlClient;
 using System;
-using UnityEditor;
 
 namespace BLINDED_AM_ME{
 
@@ -65,8 +64,6 @@ namespace BLINDED_AM_ME{
         /// <param name="normalDirection">blade right direction</param>
         /// <param name="capMaterial">Meat</param>
         /// <returns></returns>
-        ///       
-
         public static GameObject[] Cut(GameObject victim, Vector3 anchorPoint, Vector3 normalDirection, Material capMaterial, Vector3 startPos, Vector3 endPos){
            
 			// get the victims mesh
@@ -101,24 +98,9 @@ namespace BLINDED_AM_ME{
             //Algoritm impartire boundaryBox            
             if (intersectionPoint.Count == 2)
             {
-
-                int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
-                int secondPointIndex = 1 - firstPointIndex;
-
-                Vector3 tangent = (intersectionPoint[secondPointIndex]._pos - intersectionPoint[firstPointIndex]._pos);
-                
-                Vector3 depth = (intersectionPoint[firstPointIndex]._pos + victim.transform.InverseTransformVector(new Vector3(0.0f, 0.0f, 1.0f)));                
-               
-                Vector3 normal = (Vector3.Cross(tangent, depth));
-
-                normal.z = 0.0f;
-
-                Debug.DrawLine(intersectionPoint[firstPointIndex]._pos, normal, Color.cyan);             
-
-                _blade = new Plane(normal, (intersectionPoint[secondPointIndex]._pos + intersectionPoint[firstPointIndex]._pos)/2.0f);
-
+                float distanceIntersectionPoints = Vector2.Distance(intersectionPoint[0]._pos, intersectionPoint[1]._pos);
                 // set the blade relative to victim
-                // _blade = Math.MakeSlicePlane(victim.transform.TransformPoint(intersectionPoint[secondPointIndex]._pos), victim.transform.TransformPoint(intersectionPoint[firstPointIndex]._pos), 1.0f);
+                _blade = Math.MakeSlicePlane(intersectionPoint[0]._pos, intersectionPoint[1]._pos, 100.0f);
 
                 //leftSIde
 
@@ -127,6 +109,9 @@ namespace BLINDED_AM_ME{
 
                 newLeftBoundary = new List<BoundaryPoint>();
                 newRightBoundary = new List<BoundaryPoint>();
+
+                int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
+                int secondPointIndex = 1 - firstPointIndex;
 
                 for (int i = 0; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint; i++)
                 {
@@ -227,7 +212,16 @@ namespace BLINDED_AM_ME{
                             _leftSide.AddTriangle(_triangleCache, submeshIterator);
                         else // right side
                         {
-                            _rightSide.AddTriangle(_triangleCache, submeshIterator);                          
+                            _rightSide.AddTriangle(_triangleCache, submeshIterator);
+
+                            for (int j = 0; j < _triangleCache.vertices.Length; j++)
+                            {
+                                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                                cube.name = "Vertex";
+                                cube.transform.parent = rightSideObj.transform;
+                                cube.transform.localPosition = _triangleCache.vertices[j];
+                                cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);                              
+                            }
                         }
 
 					}else{ // cut the triangle
@@ -364,7 +358,6 @@ namespace BLINDED_AM_ME{
             _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out float distance);
 
             float normalizedDistance = distance / edgeVector.magnitude;
-
             _newTriangleCache.vertices[0] = Vector3.Lerp(_triangleCache.vertices[0], _triangleCache.vertices[1], normalizedDistance);
             _newTriangleCache.uvs[0]      = Vector2.Lerp(_triangleCache.uvs[0],      _triangleCache.uvs[1],      normalizedDistance);
             _newTriangleCache.normals[0]  = Vector3.Lerp(_triangleCache.normals[0],  _triangleCache.normals[1],  normalizedDistance);
