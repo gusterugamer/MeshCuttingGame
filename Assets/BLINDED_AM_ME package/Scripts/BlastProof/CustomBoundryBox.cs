@@ -81,6 +81,7 @@ public class CustomBoundryBox : MonoBehaviour
         draw = true;
     }
 
+    //TEST ONLY
     void DrawCustomBoundary()
     {
         int length = m_CustomBox.Count;
@@ -128,6 +129,7 @@ public class CustomBoundryBox : MonoBehaviour
         }
     }
 
+    //TEST ONLY
     public List<IntersectionPoint> GetIntersections(Vector3 startPoint, Vector3 endPoint)
     {
         List<IntersectionPoint> pointsList = new List<IntersectionPoint>();

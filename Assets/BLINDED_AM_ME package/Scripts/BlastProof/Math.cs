@@ -1,12 +1,11 @@
-﻿using Boo.Lang;
-using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Math
 {
-    public static bool LineSegmentsIntersection(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, out Vector2 intersection)
+    //Verifies is 2 lines intersect and returns the intersection point in intersectionPoint parameter
+    public static bool LineSegmentsIntersection(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, out Vector2 intersectionPoint)
     {
-        intersection = Vector2.zero;
+        intersectionPoint = Vector2.zero;
 
         var d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x);
 
@@ -23,13 +22,14 @@ public class Math
             return false;
         }
 
-        intersection.x = p1.x + u * (p2.x - p1.x);
-        intersection.y = p1.y + u * (p2.y - p1.y);
+        intersectionPoint.x = p1.x + u * (p2.x - p1.x);
+        intersectionPoint.y = p1.y + u * (p2.y - p1.y);
 
         return true;
     }
 
-    public static bool PointInPolygon(Vector2 point, BoundaryPoint[] points)
+    //Verifies if the point is in polygon including it's edges
+    public static bool PointInPolygon(Vector2 point, in BoundaryPoint[] points)
     {
         float f = 0f;
         Vector2 zero = Vector2.zero;
@@ -48,11 +48,13 @@ public class Math
             vector2.y = point3.m_pos.y - point.y;
             f += Angle2D(zero.x, zero.y, vector2.x, vector2.y);        
 
+            //Checks if intersects one of the boundary lines
             isOnEdgeLine = isPointOnLine(point, point2.m_pos, point3.m_pos) || isOnEdgeLine; 
         }
         return (Mathf.Abs(f) >= 3.141593f) || isOnEdgeLine;
     }
 
+    //Verifies if a point on a line including the begin and end point of the line
     public static bool isPointOnLine(Vector2 pointToCheck, Vector2 lineBeginPoint, Vector2 lineEndPoint)
     {
         float segmentDistanceToPointToCheck = Vector2.Distance(lineBeginPoint, pointToCheck);
@@ -105,13 +107,18 @@ public class Math
         //return true;
     }
 
-    public static Plane MakeSlicePlane(Vector2 point1, Vector2 point2, float distance)
+    //Creates plane based on the line made by first and second intersection point and depth
+    public static Plane CreateSlicePlane(Vector3 firstPoint, Vector3 secondPoint)
     {
-        Vector3 a = new Vector3(point1.x, point1.y, distance).normalized;
-        Vector3 c = new Vector3(point2.x, point2.y, distance).normalized;
-        Vector3 b = ((a + c) / 2f).normalized;
-        b.z = (a.z + c.z);
-        return new Plane(a, -b, c);
+        Vector3 tangent = (secondPoint - firstPoint);
+        Vector3 depth = (firstPoint + (new Vector3(0.0f, 0.0f, 1.0f)));
+        Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
+        Vector3 middleOfCuttingLine = (firstPoint + secondPoint) / 2.0f;
+
+        //Plane needs to cut from a 2D perspective
+        normal.z = 0.0f;        
+
+        return new Plane(normal, middleOfCuttingLine);
     }
 
     public static float Angle2D(float x1, float y1, float x2, float y2)

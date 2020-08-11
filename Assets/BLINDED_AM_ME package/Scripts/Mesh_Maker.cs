@@ -24,12 +24,7 @@
 //    SOFTWARE.
 
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
-
-
-namespace BLINDED_AM_ME{
-	
+using System.Collections.Generic;	
 	public class Mesh_Maker{
 
 		// Mesh Values
@@ -255,4 +250,3 @@ namespace BLINDED_AM_ME{
         }
         
 	}
-}
