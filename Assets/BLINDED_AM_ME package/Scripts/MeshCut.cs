@@ -112,7 +112,7 @@ public static class MeshCut
     private static void CreateNewBoundary(in GameObject victim, in GameObject leftSideObj, in GameObject rightSideObj, ref List<IntersectionPoint> intersectionPoint)
     {
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
-        int secondPointIndex = 1 - firstPointIndex;
+        int secondPointIndex = 1 - firstPointIndex;       
 
         //Plane that helps to create the new indicies
         _blade = Math.CreateSlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos);
@@ -574,7 +574,7 @@ public static class MeshCut
                     _capPolygonIndicesCache.Add(_capPolygonIndicesCache[0]);
 
                 // cap
-                FillCap_Method1(_capPolygonIndicesCache, ref _leftSideMesh, ref _rightSideMesh);
+                FillCap_Method2(_capPolygonIndicesCache, ref _leftSideMesh, ref _rightSideMesh);
             }
         }
     }

@@ -32,35 +32,46 @@ public class ExampleUseof_MeshCut : MonoBehaviour
     {
         GameObject[] pieces = MeshCut.Cut(victim, capMaterial, startPos, endPos);
         list = MeshCut.intersectionPoint;
-        
+
         //TEST ONLY
-        foreach (var point in list)
+        if (list != null)
         {
-            Debug.Log("Point: " + point._pos);
-            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-            GameObject instanta = Instantiate(cube, Vector3.zero, Quaternion.identity, victim.transform);
-            instanta.transform.localPosition = new Vector3(point._pos.x, point._pos.y, -0.5f);
-            Destroy(instanta.GetComponent<BoxCollider>());
+            foreach (var point in list)
+            {
+                Debug.Log("Point: " + point._pos);
+                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+                GameObject instanta = Instantiate(cube, Vector3.zero, Quaternion.identity, victim.transform);
+                instanta.transform.localPosition = new Vector3(point._pos.x, point._pos.y, -0.5f);
+                Destroy(instanta.GetComponent<BoxCollider>());
+            }
         }
         //TEST ONLY
-        if (!pieces[1].GetComponent<DrawBounds>())
-            pieces[1].AddComponent<DrawBounds>();
+        if (pieces != null)
+        {
+            if (!pieces[1].GetComponent<DrawBounds>())
+                pieces[1].AddComponent<DrawBounds>();
+        }
     }
 
     void GetMousePosition()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            startPos = Input.mousePosition;
-            startPos.z = Mathf.Abs(victim.transform.position.z - mainCam.transform.position.z);
-            startPos = mainCam.ScreenToWorldPoint(startPos);
+            startPos = Input.mousePosition;       
+            Ray startRay = mainCam.ScreenPointToRay(startPos);           
+            RaycastHit hit;
+            Physics.Raycast(startRay, out hit, Mathf.Infinity);          
+            startPos = hit.point;
         }
         if (Input.GetMouseButtonUp(0))
         {
             endPos = Input.mousePosition;
-            endPos.z = Mathf.Abs(victim.transform.position.z - mainCam.transform.position.z);
-            endPos = mainCam.ScreenToWorldPoint(endPos);
+            Ray endRay = mainCam.ScreenPointToRay(endPos);
+            RaycastHit hit;
+            Physics.Raycast(endRay, out hit, Mathf.Infinity);
+            endPos = hit.point;            
+
             mousePosToWorld();
         }
     }

@@ -181,9 +181,9 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 30.1
   orthographic: 0
-  orthographic size: 5
+  orthographic size: 0.7
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -207,7 +207,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 415228206}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.5, y: 0.3, z: -11.11}
+  m_LocalPosition: {x: 0.5, y: 0.3, z: -14.492}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -280,10 +280,10 @@ BoxCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 575691202}
   m_Material: {fileID: 0}
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 100, y: 100, z: 100}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!33 &575691205
 MeshFilter:
@@ -322,7 +322,6 @@ MonoBehaviour:
   m_toCutObject: {fileID: 575691202}
   objectToCheckIfInside: {fileID: 1918201035}
   drawNew: 0
-  oneTime: 1
 --- !u!1 &950396717
 GameObject:
   m_ObjectHideFlags: 0
