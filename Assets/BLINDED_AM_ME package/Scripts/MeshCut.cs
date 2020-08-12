@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
-
+using UnityEngine.Rendering;
 
 public static class MeshCut
 {
@@ -8,6 +8,8 @@ public static class MeshCut
 
     private static List<BoundaryPoint> _newRightBoundary;
     private static List<BoundaryPoint> _newLeftBoundary;
+
+    private static HashSet<Vector3> isDuplicate;
 
     // Caching 
     private static Mesh_Maker.Triangle _triangleCache = new Mesh_Maker.Triangle(new Vector3[3], new Vector2[3], new Vector3[3], new Vector4[3]);
@@ -18,16 +20,21 @@ public static class MeshCut
 
     // TEST ONLY
     public static List<IntersectionPoint> intersectionPoint;
-    //TEST ONLY
 
+    //TEST ONLY
     public static GameObject[] Cut(GameObject victim, Material capMaterial, Vector3 startPos, Vector3 endPos)
     {
         CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
-        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);      
+        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
 
         if (intersectionPoints.Count == 2)
         {
+
+            //TEST
             intersectionPoint = intersectionPoints;
+
+            //TEST
+            
             //CHACHE
 
             // get the victims mesh
@@ -112,7 +119,7 @@ public static class MeshCut
     private static void CreateNewBoundary(in GameObject victim, in GameObject leftSideObj, in GameObject rightSideObj, ref List<IntersectionPoint> intersectionPoint)
     {
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
-        int secondPointIndex = 1 - firstPointIndex;       
+        int secondPointIndex = 1 - firstPointIndex;
 
         //Plane that helps to create the new indicies
         _blade = Math.CreateSlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos);
@@ -142,7 +149,7 @@ public static class MeshCut
         int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
 
         rightSideObj.AddComponent<CustomBoundryBox>();
-        rightSideObj.AddComponent<Rigidbody>();
+        //rightSideObj.AddComponent<Rigidbody>();
         CustomBoundryBox rightSide = rightSideObj.GetComponent<CustomBoundryBox>();
 
         _newRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
@@ -240,10 +247,23 @@ public static class MeshCut
     private static void Cut_this_Face(ref Mesh_Maker.Triangle triangle, int submesh, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
     {
         bool[] _isLeftSideCache = new bool[3];
+        bool[] _isRightSideCache = new bool[3];
 
         _isLeftSideCache[0] = Math.PointInPolygon(triangle.vertices[0], _newLeftBoundary.ToArray());
         _isLeftSideCache[1] = Math.PointInPolygon(triangle.vertices[1], _newLeftBoundary.ToArray());
         _isLeftSideCache[2] = Math.PointInPolygon(triangle.vertices[2], _newLeftBoundary.ToArray());
+
+        _isRightSideCache[0] = Math.PointInPolygon(triangle.vertices[0], _newRightBoundary.ToArray());
+        _isRightSideCache[1] = Math.PointInPolygon(triangle.vertices[1], _newRightBoundary.ToArray());
+        _isRightSideCache[2] = Math.PointInPolygon(triangle.vertices[2], _newRightBoundary.ToArray());
+
+        if (_isRightSideCache[0] == _isLeftSideCache[0])
+            Debug.Log("This is 0");
+        if (_isRightSideCache[1] == _isLeftSideCache[1])
+            Debug.Log("This is 1");
+        if (_isRightSideCache[2] == _isLeftSideCache[2])
+            Debug.Log("This is 2");
+
 
         int leftCount = 0;
         int rightCount = 0;
@@ -332,6 +352,8 @@ public static class MeshCut
         _newTriangleCache.normals[1] = Vector3.Lerp(_triangleCache.normals[0], _triangleCache.normals[2], normalizedDistance);
         _newTriangleCache.tangents[1] = Vector4.Lerp(_triangleCache.tangents[0], _triangleCache.tangents[2], normalizedDistance);
 
+        //Check if vertex us duplicat
+
         if (_newTriangleCache.vertices[0] != _newTriangleCache.vertices[1])
         {
             //tracking newly created points
@@ -408,7 +430,7 @@ public static class MeshCut
             NormalCheck(ref _triangleCache);
 
             // add it
-            _rightSideMesh.AddTriangle(_triangleCache, submesh);
+            _rightSideMesh.AddTriangle(_triangleCache, submesh);          
         }
         else
         {
@@ -477,7 +499,7 @@ public static class MeshCut
             NormalCheck(ref _triangleCache);
 
             // add it
-            _leftSideMesh.AddTriangle(_triangleCache, submesh);
+            _leftSideMesh.AddTriangle(_triangleCache, submesh);     
         }
 
     }
@@ -574,7 +596,7 @@ public static class MeshCut
                     _capPolygonIndicesCache.Add(_capPolygonIndicesCache[0]);
 
                 // cap
-                FillCap_Method2(_capPolygonIndicesCache, ref _leftSideMesh, ref _rightSideMesh);
+                FillCap_Method1(_capPolygonIndicesCache, ref _leftSideMesh, ref _rightSideMesh);
             }
         }
     }
@@ -774,4 +796,5 @@ public static class MeshCut
 
     }
     #endregion
+
 }

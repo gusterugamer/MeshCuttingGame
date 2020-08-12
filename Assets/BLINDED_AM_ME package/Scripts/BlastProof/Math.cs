@@ -110,12 +110,22 @@ public class Math
     //Creates plane based on the line made by first and second intersection point and depth
     public static Plane CreateSlicePlane(Vector3 firstPoint, Vector3 secondPoint)
     {
-        float distance = Mathf.Abs(Camera.main.transform.position.z);
-        Vector3 a = new Vector3(firstPoint.x, firstPoint.y, distance);
-        Vector3 c = new Vector3(secondPoint.x, secondPoint.y, distance);
-        Vector3 b = (a + c) / 2f;
-        b.z = (a.z + c.z) * 0.75f;
-        return new Plane(a, b, c);
+        //float distance = Mathf.Abs(Camera.main.transform.position.z);
+        //Vector3 a = new Vector3(firstPoint.x, firstPoint.y, distance);
+        //Vector3 c = new Vector3(secondPoint.x, secondPoint.y, distance);
+        //Vector3 b = (a + c) / 2f;
+        //b.z = (a.z + c.z) * 0.75f;
+        //return new Plane(a, b, c);
+
+        Vector3 tangent = (secondPoint - firstPoint);
+        Vector3 depth = (firstPoint + (new Vector3(0.0f, 0.0f, 1.0f)));
+        Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
+        Vector3 middleOfCuttingLine = (firstPoint + secondPoint) / 2.0f;
+
+        //Plane needs to cut from a 2D perspective
+        normal.z = 0.0f;
+
+        return new Plane(normal, middleOfCuttingLine);
     }
 
     public static float Angle2D(float x1, float y1, float x2, float y2)

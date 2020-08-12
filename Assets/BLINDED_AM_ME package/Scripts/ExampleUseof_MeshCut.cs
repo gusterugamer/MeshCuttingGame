@@ -34,18 +34,18 @@ public class ExampleUseof_MeshCut : MonoBehaviour
         list = MeshCut.intersectionPoint;
 
         //TEST ONLY
-        if (list != null)
-        {
-            foreach (var point in list)
-            {
-                Debug.Log("Point: " + point._pos);
-                GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-                GameObject instanta = Instantiate(cube, Vector3.zero, Quaternion.identity, victim.transform);
-                instanta.transform.localPosition = new Vector3(point._pos.x, point._pos.y, -0.5f);
-                Destroy(instanta.GetComponent<BoxCollider>());
-            }
-        }
+        //if (list != null)
+        //{
+        //    foreach (var point in list)
+        //    {
+        //        Debug.Log("Point: " + point._pos);
+        //        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        //        cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        //        GameObject instanta = Instantiate(cube, Vector3.zero, Quaternion.identity, victim.transform);
+        //        instanta.transform.localPosition = new Vector3(point._pos.x, point._pos.y, -0.5f);
+        //        Destroy(instanta.GetComponent<BoxCollider>());
+        //    }
+        //}
         //TEST ONLY
         if (pieces != null)
         {
@@ -56,6 +56,15 @@ public class ExampleUseof_MeshCut : MonoBehaviour
 
     void GetMousePosition()
     {
+        if (Input.GetMouseButton(0))
+        {
+            endPos = Input.mousePosition;
+            Ray endRay = mainCam.ScreenPointToRay(endPos);
+            RaycastHit hit;
+            Physics.Raycast(endRay, out hit, Mathf.Infinity);
+            endPos = hit.point;
+        }
+
         if (Input.GetMouseButtonDown(0))
         {
             startPos = Input.mousePosition;       
@@ -70,8 +79,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour
             Ray endRay = mainCam.ScreenPointToRay(endPos);
             RaycastHit hit;
             Physics.Raycast(endRay, out hit, Mathf.Infinity);
-            endPos = hit.point;            
-
+            endPos = hit.point;         
             mousePosToWorld();
         }
     }

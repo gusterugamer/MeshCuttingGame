@@ -54,7 +54,7 @@ public class CustomBoundryBox : MonoBehaviour
         if (draw)
         {
             DrawCustomBoundary();
-           // CheckIfInside();
+            CheckIfInside();
         }
         if (drawNew)
         {
@@ -67,16 +67,21 @@ public class CustomBoundryBox : MonoBehaviour
 
     public void CreateCustomBoundary()
     {
-        Vector3 center = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.center;
-        Vector3 minPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.min;
-        Vector3 maxPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.max;
-        Vector3 min = center + minPrime;
-        Vector3 max = center + maxPrime;     
+        //Vector3 center = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.center;
+        //Vector3 minPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.min;
+        //Vector3 maxPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.max;
+        //Vector3 min = center + minPrime;
+        //Vector3 max = center + maxPrime;     
 
-        m_CustomBox.Add(new BoundaryPoint(min));       
-        m_CustomBox.Add(new BoundaryPoint(new Vector3(min.x, max.y, min.z)));
-        m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, max.y, min.z)));
-        m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, min.y, min.z)));
+        //m_CustomBox.Add(new BoundaryPoint(min));       
+        //m_CustomBox.Add(new BoundaryPoint(new Vector3(min.x, max.y, min.z)));
+        //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, max.y, min.z)));
+        //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, min.y, min.z)));
+
+       foreach (Transform child in transform)
+       {
+           m_CustomBox.Add(new BoundaryPoint(child.localPosition));
+       }
 
         draw = true;
     }
@@ -87,7 +92,7 @@ public class CustomBoundryBox : MonoBehaviour
         int length = m_CustomBox.Count;
         for (int i= 0; i<length;i++)
         {
-            Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);        
+            Debug.DrawLine((transform.position + m_CustomBox[i].m_pos) * transform.localScale.x, (transform.position + m_CustomBox[(i + 1) % length].m_pos) * transform.localScale.x, Color.red);        
         }
     }
 
