@@ -5,6 +5,7 @@ using UnityEngine.Rendering;
 public static class MeshCut
 {
     private static Plane _blade;
+  //  private static PrimitivesPro.Utils.Plane _blade;
 
     private static List<BoundaryPoint> _newRightBoundary;
     private static List<BoundaryPoint> _newLeftBoundary;
@@ -122,7 +123,13 @@ public static class MeshCut
         int secondPointIndex = 1 - firstPointIndex;
 
         //Plane that helps to create the new indicies
-        _blade = Math.CreateSlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos);
+        _blade = Mathematics.CreateSlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos);
+
+        //Vector3 worldIntersectionPoint1 = victim.transform.TransformPoint(intersectionPoint[firstPointIndex]._pos);
+        //Vector3 worldIntersectionPoint2 = victim.transform.TransformPoint(intersectionPoint[secondPointIndex]._pos);
+        //Vector3 depth = worldIntersectionPoint1 + new Vector3(0.0f, 0.0f, 1.0f);
+
+       
 
         //leftSIde
         CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
@@ -149,7 +156,7 @@ public static class MeshCut
         int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
 
         rightSideObj.AddComponent<CustomBoundryBox>();
-        //rightSideObj.AddComponent<Rigidbody>();
+        rightSideObj.AddComponent<Rigidbody>();
         CustomBoundryBox rightSide = rightSideObj.GetComponent<CustomBoundryBox>();
 
         _newRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
@@ -172,6 +179,7 @@ public static class MeshCut
         {
             //Triangles flag
             bool[] _isLeftSideCache = new bool[3];
+            bool[] _isRightSideCache = new bool[3];
 
             // Triangles
             int[] indices = _victim_mesh.GetTriangles(submeshIterator);
@@ -210,12 +218,16 @@ public static class MeshCut
                     _triangleCache.tangents[0] = Vector4.zero;
                     _triangleCache.tangents[1] = Vector4.zero;
                     _triangleCache.tangents[2] = Vector4.zero;
-                }
+                }               
 
                 // which side are the vertices on
-                _isLeftSideCache[0] = Math.PointInPolygon(mp.mesh_vertices[index_1], _newLeftBoundary.ToArray());
-                _isLeftSideCache[1] = Math.PointInPolygon(mp.mesh_vertices[index_2], _newLeftBoundary.ToArray());
-                _isLeftSideCache[2] = Math.PointInPolygon(mp.mesh_vertices[index_3], _newLeftBoundary.ToArray());
+                _isLeftSideCache[0] = Mathematics.PointInPolygon(mp.mesh_vertices[index_1], _newLeftBoundary.ToArray());
+                _isLeftSideCache[1] = Mathematics.PointInPolygon(mp.mesh_vertices[index_2], _newLeftBoundary.ToArray());
+                _isLeftSideCache[2] = Mathematics.PointInPolygon(mp.mesh_vertices[index_3], _newLeftBoundary.ToArray());
+
+                _isRightSideCache[0] = Mathematics.PointInPolygon(mp.mesh_vertices[index_1], _newRightBoundary.ToArray());
+                _isRightSideCache[1] = Mathematics.PointInPolygon(mp.mesh_vertices[index_2], _newRightBoundary.ToArray());
+                _isRightSideCache[2] = Mathematics.PointInPolygon(mp.mesh_vertices[index_3], _newRightBoundary.ToArray());             
 
                 // whole triangle
                 if (_isLeftSideCache[0] == _isLeftSideCache[1] && _isLeftSideCache[0] == _isLeftSideCache[2])
@@ -232,7 +244,7 @@ public static class MeshCut
                 else
                 { // cut the triangle
 
-                    Cut_this_Face(ref _triangleCache, submeshIterator, ref leftSideMesh, ref rightSideMesh);
+                  //  Cut_this_Face(ref _triangleCache, submeshIterator, ref leftSideMesh, ref rightSideMesh);
                 }
             }
         }
@@ -249,20 +261,20 @@ public static class MeshCut
         bool[] _isLeftSideCache = new bool[3];
         bool[] _isRightSideCache = new bool[3];
 
-        _isLeftSideCache[0] = Math.PointInPolygon(triangle.vertices[0], _newLeftBoundary.ToArray());
-        _isLeftSideCache[1] = Math.PointInPolygon(triangle.vertices[1], _newLeftBoundary.ToArray());
-        _isLeftSideCache[2] = Math.PointInPolygon(triangle.vertices[2], _newLeftBoundary.ToArray());
+        _isLeftSideCache[0] = Mathematics.PointInPolygon(triangle.vertices[0], _newLeftBoundary.ToArray());
+        _isLeftSideCache[1] = Mathematics.PointInPolygon(triangle.vertices[1], _newLeftBoundary.ToArray());
+        _isLeftSideCache[2] = Mathematics.PointInPolygon(triangle.vertices[2], _newLeftBoundary.ToArray());
 
-        _isRightSideCache[0] = Math.PointInPolygon(triangle.vertices[0], _newRightBoundary.ToArray());
-        _isRightSideCache[1] = Math.PointInPolygon(triangle.vertices[1], _newRightBoundary.ToArray());
-        _isRightSideCache[2] = Math.PointInPolygon(triangle.vertices[2], _newRightBoundary.ToArray());
+        _isRightSideCache[0] = Mathematics.PointInPolygon(triangle.vertices[0], _newRightBoundary.ToArray());
+        _isRightSideCache[1] = Mathematics.PointInPolygon(triangle.vertices[1], _newRightBoundary.ToArray());
+        _isRightSideCache[2] = Mathematics.PointInPolygon(triangle.vertices[2], _newRightBoundary.ToArray());
 
         if (_isRightSideCache[0] == _isLeftSideCache[0])
             Debug.Log("This is 0");
         if (_isRightSideCache[1] == _isLeftSideCache[1])
             Debug.Log("This is 1");
         if (_isRightSideCache[2] == _isLeftSideCache[2])
-            Debug.Log("This is 2");
+            Debug.Log("This is 2");      
 
 
         int leftCount = 0;
@@ -331,9 +343,12 @@ public static class MeshCut
             _triangleCache.tangents[2] = _leftTriangleCache.tangents[1];
         }
 
-        // now to find the intersection points between the solo point and the others 
+        // now to find the intersection points between the solo point and the others        
         Vector3 edgeVector = _triangleCache.vertices[1] - _triangleCache.vertices[0];  // contains edge length and direction
         _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out float distance);
+
+        //_blade.IntersectSegment()
+
 
         float normalizedDistance = distance / edgeVector.magnitude;
 

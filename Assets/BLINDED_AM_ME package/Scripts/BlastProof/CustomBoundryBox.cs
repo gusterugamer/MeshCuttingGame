@@ -113,7 +113,7 @@ public class CustomBoundryBox : MonoBehaviour
 
             //Debug.Log("RelativePos: " + invTransPos);
 
-            if (Math.PointInPolygon(new Vector2(invTransPos.x, invTransPos.y), m_CustomBox.ToArray()))
+            if (Mathematics.PointInPolygon(new Vector2(invTransPos.x, invTransPos.y), m_CustomBox.ToArray()))
             {
                 Debug.Log("inside");
             }
@@ -149,7 +149,7 @@ public class CustomBoundryBox : MonoBehaviour
             BoundaryPoint currentBP = m_CustomBox[i];
             BoundaryPoint nextBP = m_CustomBox[(i + 1) % length];
 
-            if (Math.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
+            if (Mathematics.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
             {                
                 pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x,intersPoint.y,-0.5f), i, (i + 1)));                
             }
