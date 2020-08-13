@@ -4,8 +4,8 @@ using UnityEngine.Rendering;
 
 public static class MeshCut
 {
-    private static Plane _blade;
-   // private static PrimitivesPro.Utils.Plane _blade;
+    //private static Plane _blade;
+    private static PrimitivesPro.Utils.Plane _blade;
 
     private static List<BoundaryPoint> _newRightBoundary;
     private static List<BoundaryPoint> _newLeftBoundary;
@@ -35,6 +35,10 @@ public static class MeshCut
 
         if (intersectionPoints.Count == 2)
         {
+            Vector3 depth = startPos + victim.transform.forward;         
+
+            _blade = new PrimitivesPro.Utils.Plane(startPos, endPos, depth);
+            _blade.InverseTransform(victim.transform);
 
             //TEST
             intersectionPoint = intersectionPoints;
@@ -129,14 +133,7 @@ public static class MeshCut
 
         //Plane that helps to create the new indicies
       // _blade = Mathematics.CreateSlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos);
-      
-
-        Vector3 worldIntersectionPoint1 = victim.transform.TransformPoint(intersectionPoint[firstPointIndex]._pos);
-        Vector3 worldIntersectionPoint2 = victim.transform.TransformPoint(intersectionPoint[secondPointIndex]._pos);
-        Vector3 depth = worldIntersectionPoint1 + victim.transform.TransformPoint(new Vector3(0.0f, 0.0f, 1.0f));
-
-        _blade = Mathematics.CreateSlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos);
-
+              
         //leftSIde
         CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
         CustomBoundryBox _leftSideBoundary = leftSideObj.GetComponent<CustomBoundryBox>();
@@ -338,18 +335,18 @@ public static class MeshCut
 
         // now to find the intersection points between the solo point and the others        
         Vector3 edgeVector = _triangleCache.vertices[1] - _triangleCache.vertices[0];  // contains edge length and direction
-        _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out float distance);    
+                                                                                       // _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out float distance);   
+        float t;
+        Vector3 pos;
+
+        _blade.IntersectSegment(_triangleCache.vertices[0], _triangleCache.vertices[1], out t, out pos);
 
         
         //_blade.IntersectSegment(_triangleCache.vertices[1], _triangleCache.vertices[0], out t, out pos);
 
-        float normalizedDistance = distance / edgeVector.magnitude;
+       // float normalizedDistance = distance / edgeVector.magnitude;
 
-        Vector3 pos = Vector3.Lerp(_triangleCache.vertices[0], _triangleCache.vertices[1], normalizedDistance);
-
-        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        cube.transform.position = pos;
-        cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+       // Vector3 pos = Vector3.Lerp(_triangleCache.vertices[0], _triangleCache.vertices[1], normalizedDistance);      
 
         //Create new vertex
         Vector3 baryCoord = PrimitivesPro.MeshUtils.ComputeBarycentricCoordinates(_triangleCache.vertices[0], _triangleCache.vertices[1], _triangleCache.vertices[2], pos);
@@ -373,11 +370,13 @@ public static class MeshCut
         /********************************************************************************************************************************/
 
         edgeVector = _triangleCache.vertices[2] - _triangleCache.vertices[0];
-        _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out distance);
+        // _blade.Raycast(new Ray(_triangleCache.vertices[0], edgeVector.normalized), out distance);
 
-        normalizedDistance = distance / edgeVector.magnitude;
+        //normalizedDistance = distance / edgeVector.magnitude;
 
-        pos = Vector3.Lerp(_triangleCache.vertices[0], _triangleCache.vertices[2], normalizedDistance);
+        // pos = Vector3.Lerp(_triangleCache.vertices[0], _triangleCache.vertices[2], normalizedDistance);
+
+        _blade.IntersectSegment(_triangleCache.vertices[0], _triangleCache.vertices[2], out t, out pos);
 
         baryCoord = PrimitivesPro.MeshUtils.ComputeBarycentricCoordinates(_triangleCache.vertices[0], _triangleCache.vertices[1], _triangleCache.vertices[2], pos);     
 

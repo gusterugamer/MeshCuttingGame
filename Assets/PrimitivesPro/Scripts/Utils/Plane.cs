@@ -173,9 +173,15 @@ namespace PrimitivesPro.Utils
             t = (Distance - Vector3.Dot(Normal, a)) / Vector3.Dot(Normal, ab);
 
             // If t in [0..1] compute and return intersection point
-          
-             q = a + t * ab;
-            return true;          
+            if (t >= 0.0f - epsylon && t <= 1.0f + epsylon)
+            {
+                q = a + t * ab;
+                return true;
+            }
+
+            MeshUtils.Log("IntersectSegment failed: " + t);
+            q = Vector3.zero;
+            return false;
         }
 
         /// <summary>
