@@ -61,50 +61,28 @@ public class Mathematics
         float segmentDistanceFromPointToCheck = Vector2.Distance(pointToCheck, lineEndPoint);
         float totalDistance = Vector2.Distance(lineBeginPoint, lineEndPoint);
 
-        if (Mathf.Abs(segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck - totalDistance) <= Mathf.Epsilon ||
+        if (Mathf.Approximately(segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck - totalDistance, 0) ||
             pointToCheck == lineBeginPoint || pointToCheck == lineEndPoint
             )
             return true;
 
         return false;
 
+        //Vector2 distanceBeginPointToCheck = pointToCheck + lineBeginPoint;
+        //Vector2 distanceBeginEnd = lineEndPoint + lineBeginPoint;
 
+        //Vector3 crossProdAlignedPoints = Vector3.Cross(distanceBeginPointToCheck, distanceBeginEnd);
 
+        //bool arePointsAligned = crossProdAlignedPoints.x <= Mathf.Epsilon &&
+        //                         crossProdAlignedPoints.y <= Mathf.Epsilon;                               
 
-       //Vector2 distanceBeginPointToCheck = pointToCheck - lineBeginPoint;
-       //Vector2 distanceBeginEnd = lineEndPoint - lineBeginPoint;
+        //float dotProd1 = Vector2.Dot(distanceBeginPointToCheck, distanceBeginEnd);
+        //float dotProd2 = Vector2.Dot(distanceBeginEnd, distanceBeginEnd);
 
-       //Vector3 crossProdAlignedPoints = Vector3.Cross(distanceBeginPointToCheck, distanceBeginEnd);
-
-       //bool arePointsAligned = crossProdAlignedPoints.x <= Mathf.Epsilon &&
-       //                         crossProdAlignedPoints.y <= Mathf.Epsilon;                               
-
-       //float dotProd1 = Vector2.Dot(distanceBeginPointToCheck, distanceBeginEnd);
-       //float dotProd2 = Vector2.Dot(distanceBeginEnd, distanceBeginEnd);
-
-       //if (dotProd1 < 0 || dotProd1 > dotProd2 || !arePointsAligned)
-       //    return false;
-
-       //return true;
-
-        //float crossProd = (pointToCheck.y - lineBeginPoint.y) * (lineEndPoint.x - lineBeginPoint.x) -
-        //                  (pointToCheck.x - lineBeginPoint.x) * (lineEndPoint.y - lineBeginPoint.y);
-
-        //if (Mathf.Abs(crossProd) > Mathf.Epsilon)
+        //if (dotProd1 < 0 || dotProd1 > dotProd2 || !arePointsAligned)
         //    return false;
 
-        //float dotProd = (pointToCheck.x - lineBeginPoint.x) * (lineEndPoint.x - lineBeginPoint.x) +
-        //                (pointToCheck.y - lineBeginPoint.y) * (lineEndPoint.y - lineBeginPoint.y);
-
-        //if (dotProd < 0.0f)
-        //    return false;
-
-        //float squaredLengthBa = (lineEndPoint.x - lineBeginPoint.x) * (lineEndPoint.x - lineBeginPoint.x) +
-        //                        (lineEndPoint.y - lineBeginPoint.y) * (lineEndPoint.y - lineBeginPoint.y);
-        //if (dotProd > squaredLengthBa)
-        //    return false;
-
-        //return true;
+        //return true;    
     }
 
     //Creates plane based on the line made by first and second intersection point and depth

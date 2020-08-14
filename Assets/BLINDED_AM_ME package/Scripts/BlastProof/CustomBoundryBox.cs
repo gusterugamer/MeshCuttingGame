@@ -58,7 +58,7 @@ public class CustomBoundryBox : MonoBehaviour
         }
         if (drawNew)
         {
-            MOVETHISFUCKERFORTEST();
+          //  MOVETHISFUCKERFORTEST();
             DrawNewCustomBoundary();
             CheckIfInside();
             draw = false;          
@@ -92,7 +92,7 @@ public class CustomBoundryBox : MonoBehaviour
         int length = m_CustomBox.Count;
         for (int i= 0; i<length;i++)
         {
-            Debug.DrawLine((transform.position + m_CustomBox[i].m_pos) * transform.localScale.x, (transform.position + m_CustomBox[(i + 1) % length].m_pos) * transform.localScale.x, Color.red);        
+            Debug.DrawLine((transform.position + m_CustomBox[i].m_pos ) * transform.localScale.x, (transform.position + m_CustomBox[(i + 1) % length].m_pos) * transform.localScale.x, Color.red);        
         }
     }
 
@@ -101,6 +101,7 @@ public class CustomBoundryBox : MonoBehaviour
         int length = m_CustomBox.Count;
         for (int i=0;i<length;i++)
         {
+            //Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);        
             Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);
         }
     }
@@ -151,7 +152,7 @@ public class CustomBoundryBox : MonoBehaviour
 
             if (Mathematics.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
             {                
-                pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x,intersPoint.y,-0.5f), i, (i + 1)));                
+                pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x,intersPoint.y, -36.659f), i, (i + 1)));                
             }
         }      
         return pointsList;
