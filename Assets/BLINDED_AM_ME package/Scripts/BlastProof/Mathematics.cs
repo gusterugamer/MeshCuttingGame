@@ -96,12 +96,11 @@ public class Mathematics
         //return new Plane(a, b, c);
 
         Vector3 tangent = (secondPoint - firstPoint);
-        Vector3 depth = (firstPoint + (new Vector3(0.0f, 0.0f, 1.0f)));
+        Vector3 depth = new Vector3(0.0f, 0.0f, 1.0f);
         Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
         Vector3 middleOfCuttingLine = (firstPoint + secondPoint) / 2.0f;
 
-        //Plane needs to cut from a 2D perspective
-        normal.z = 0.0f;
+        //Plane needs to cut from a 2D perspective        
 
         return new Plane(normal, middleOfCuttingLine);
     }

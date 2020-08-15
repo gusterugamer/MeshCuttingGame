@@ -247,6 +247,14 @@ using System.Collections.Generic;
                 this.normals  = normals;
                 this.tangents = tangents;
             }
-        }
+
+		public Triangle(Triangle triang)
+		{
+			this.vertices = triang.vertices;
+			this.uvs = triang.uvs;
+			this.normals = triang.normals;
+			this.tangents = triang.tangents;
+		}
+	}
         
 	}
