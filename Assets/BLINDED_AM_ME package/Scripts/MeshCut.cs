@@ -5,8 +5,8 @@ using System;
 
 public static class MeshCut
 {
-    private static Plane _blade;
-    //private static PrimitivesPro.Utils.Plane _blade;
+    //private static Plane _blade;
+    private static PrimitivesPro.Utils.Plane _blade;
 
     private static List<BoundaryPoint> _newRightBoundary;
     private static List<BoundaryPoint> _newLeftBoundary;
@@ -41,10 +41,43 @@ public static class MeshCut
 
         if (intersectionPoints.Count == 2)
         {
-            Vector3 depth = startPos + victim.transform.forward;
+            //Vector3 depth = startPos + victim.transform.forward;
 
             //_blade = new PrimitivesPro.Utils.Plane((startPos + endPos) / 2.0f, endPos, depth);
+            //_blade = new PrimitivesPro.Utils.Plane((startPos + endPos) / 2.0f, endPos, depth);
             //_blade.InverseTransform(victim.transform);
+
+            Vector3 tangent = (endPos - startPos);
+
+            Vector3 depth = Camera.main.transform.forward;
+
+            Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
+
+            normal.z = 0.0f;
+
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.position = startPos;
+            cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            cube.name = "start";
+
+            GameObject cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube1.transform.position = endPos;
+            cube1.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            cube1.name = "end";
+
+            GameObject cube2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube2.transform.position = startPos + Camera.main.transform.forward;
+            cube2.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            cube2.name = "depth";
+
+            GameObject cube3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube3.transform.position = startPos + normal;
+            cube3.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            cube3.name = "normala";
+
+
+            _blade = new PrimitivesPro.Utils.Plane(normal, startPos);
+            _blade.InverseTransform(victim.transform);
 
             //TEST
             intersectionPoint = intersectionPoints;
@@ -138,13 +171,7 @@ public static class MeshCut
         int secondPointIndex = 1 - firstPointIndex;
 
         //Plane that helps to create the new indicies
-        Vector3 tangent = (intersectionPoint[secondPointIndex]._pos - intersectionPoint[firstPointIndex]._pos);
-
-        Vector3 depth = (intersectionPoint[firstPointIndex]._pos + victim.transform.forward);
-
-        Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;        
-
-        _blade = new Plane(normal, (intersectionPoint[secondPointIndex]._pos + intersectionPoint[firstPointIndex]._pos) / 2.0f);
+       
 
         //leftSIde
         CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
@@ -183,8 +210,17 @@ public static class MeshCut
         }
         _newRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
 
-        rightSide.m_CustomBox = _newRightBoundary;
-        _leftSideBoundary.m_CustomBox = _newLeftBoundary;
+        if (_blade.GetSide(_boundaryBox.m_CustomBox[intersectionPoint[firstPointIndex]._previousBoundaryPoint].m_pos))
+        {
+            rightSide.m_CustomBox = _newRightBoundary;
+            _leftSideBoundary.m_CustomBox = _newLeftBoundary;
+        }
+        else
+        {
+            _leftSideBoundary.m_CustomBox = _newRightBoundary;
+            rightSide.m_CustomBox = _newLeftBoundary;
+        }
+        
 
         rightSide.drawNew = true;
     }
@@ -237,13 +273,14 @@ public static class MeshCut
                 }
 
                 // which side are the vertices on
-                _isLeftSideCache[0] = Mathematics.PointInPolygon(mp.mesh_vertices[index_1], _newLeftBoundary.ToArray());
-                _isLeftSideCache[1] = Mathematics.PointInPolygon(mp.mesh_vertices[index_2], _newLeftBoundary.ToArray());
-                _isLeftSideCache[2] = Mathematics.PointInPolygon(mp.mesh_vertices[index_3], _newLeftBoundary.ToArray());
 
-                _isRightSideCache[0] = Mathematics.PointInPolygon(mp.mesh_vertices[index_1], _newRightBoundary.ToArray());
-                _isRightSideCache[1] = Mathematics.PointInPolygon(mp.mesh_vertices[index_2], _newRightBoundary.ToArray());
-                _isRightSideCache[2] = Mathematics.PointInPolygon(mp.mesh_vertices[index_3], _newRightBoundary.ToArray());
+                _isLeftSideCache[0] = _blade.GetSideFix(ref mp.mesh_vertices[index_1]);
+                _isLeftSideCache[1] = _blade.GetSideFix(ref mp.mesh_vertices[index_2]);
+                _isLeftSideCache[2] = _blade.GetSideFix(ref mp.mesh_vertices[index_3]);
+
+                _isRightSideCache[0] = _blade.GetSideFix(ref mp.mesh_vertices[index_1]);
+                _isRightSideCache[1] = _blade.GetSideFix(ref mp.mesh_vertices[index_2]);
+                _isRightSideCache[2] = _blade.GetSideFix(ref mp.mesh_vertices[index_3]);
 
 
 
@@ -252,14 +289,14 @@ public static class MeshCut
                 {
                     leftSideMesh.AddTriangle(_triangleCache, submeshIterator);
                 }
-                else if (_isRightSideCache[0] == _isRightSideCache[1] && _isRightSideCache[0] == _isRightSideCache[2] && _isRightSideCache[0])
+                else if (_isRightSideCache[0] == _isRightSideCache[1] && _isRightSideCache[0] == _isRightSideCache[2] && !_isRightSideCache[0])
                 {
                     rightSideMesh.AddTriangle(_triangleCache, submeshIterator);
                 }
                 else
                 {
                     // cut the triangle
-                    Cut_this_Face(_triangleCache, submeshIterator, ref leftSideMesh, ref rightSideMesh);
+                   Cut_this_Face(_triangleCache, submeshIterator, ref leftSideMesh, ref rightSideMesh);
                 }
             }
         }
@@ -274,57 +311,47 @@ public static class MeshCut
     private static void Cut_this_Face(Mesh_Maker.Triangle triangle, int submesh, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
     {
         bool[] _isLeftSideCache = new bool[3];
-        bool[] _isRightSideCache = new bool[3];
+        bool[] _isLeftSideBoundaryCache = new bool[3];
 
         _isLeftSideCache[0] = Mathematics.PointInPolygon(triangle.vertices[0], _newLeftBoundary.ToArray());
         _isLeftSideCache[1] = Mathematics.PointInPolygon(triangle.vertices[1], _newLeftBoundary.ToArray());
-        _isLeftSideCache[2] = Mathematics.PointInPolygon(triangle.vertices[2], _newLeftBoundary.ToArray());
+        _isLeftSideCache[2] = Mathematics.PointInPolygon(triangle.vertices[2], _newLeftBoundary.ToArray());   
 
-        _isRightSideCache[0] = Mathematics.PointInPolygon(triangle.vertices[0], _newRightBoundary.ToArray());
-        _isRightSideCache[1] = Mathematics.PointInPolygon(triangle.vertices[1], _newRightBoundary.ToArray());
-        _isRightSideCache[2] = Mathematics.PointInPolygon(triangle.vertices[2], _newRightBoundary.ToArray());       
-
-        if (_isLeftSideCache[0] == false && _isRightSideCache[0] != true)
-        {
-            Debug.Log("WRONG!");
-        }
-        if (_isLeftSideCache[1] == false && _isRightSideCache[1] != true)
-        {
-            Debug.Log("WRONG!");
-        }
-        if (_isLeftSideCache[2] == false && _isRightSideCache[2] != true)
-        {
-            Debug.Log("WRONG!");
-        }
+       _isLeftSideBoundaryCache[0] = Mathematics.PointInPolygon(triangle.vertices[0], _newLeftBoundary.ToArray());
+       _isLeftSideBoundaryCache[1] = Mathematics.PointInPolygon(triangle.vertices[1], _newLeftBoundary.ToArray());
+       _isLeftSideBoundaryCache[2] = Mathematics.PointInPolygon(triangle.vertices[2], _newLeftBoundary.ToArray());
 
 
+        //_isLeftSideCache[0] = _blade.GetSideFix(ref triangle.vertices[0]);
+        //_isLeftSideCache[1] = _blade.GetSideFix(ref triangle.vertices[1]);
+        //_isLeftSideCache[2] = _blade.GetSideFix(ref triangle.vertices[2]);
 
-        if (_isLeftSideCache[0] && _isLeftSideCache[1])
+    
+        if (_isLeftSideCache[0] == _isLeftSideCache[1])        
         {
             float t0, t1;
             Vector3 s0, s1;
 
-            //bool newPoint1 = _blade.IntersectSegment(triangle.vertices[2], triangle.vertices[0], out t0, out s0);
-            //bool newPoint2 = _blade.IntersectSegment(triangle.vertices[2], triangle.vertices[1], out t1, out s1);
+            bool newPoint1 = _blade.IntersectSegment(triangle.vertices[2], triangle.vertices[0], out t0, out s0);
+            bool newPoint2 = _blade.IntersectSegment(triangle.vertices[2], triangle.vertices[1], out t1, out s1);   
+            
+            if (_isLeftSideCache[0])
+            {
+               var a = Mathematics.PointInPolygon(s0, _newLeftBoundary.ToArray());
+               var b = Mathematics.PointInPolygon(s0, _newLeftBoundary.ToArray());
+               var c = Mathematics.PointInPolygon(s1, _newRightBoundary.ToArray());
+               var d = Mathematics.PointInPolygon(s1, _newRightBoundary.ToArray());
+            }
+            else
+            {
+               var a = Mathematics.PointInPolygon(s0, _newRightBoundary.ToArray());
+               var b = Mathematics.PointInPolygon(s1, _newRightBoundary.ToArray());
+            }
 
-            Vector3 edgeVector1 = triangle.vertices[1] - triangle.vertices[2];  // contains edge length and direction
-            _blade.Raycast(new Ray(triangle.vertices[2], edgeVector1.normalized), out float distance1);
-
-            float normalizedDistance1 = distance1 / edgeVector1.magnitude;
-
-            s0 = Vector3.Lerp(triangle.vertices[2], triangle.vertices[1], normalizedDistance1);
-
-            Vector3 edgeVector2 = triangle.vertices[0] - triangle.vertices[2];  // contains edge length and direction
-            _blade.Raycast(new Ray(triangle.vertices[2], edgeVector2.normalized), out float distance2);
-
-            float normalizedDistance2 = distance2 / edgeVector2.magnitude;
-
-            s1 = Vector3.Lerp(triangle.vertices[2], triangle.vertices[0], normalizedDistance2);
-
-            //if (newPoint1 != newPoint2)
-            //{
-            //    Debug.Log("One of the points can't be projected on the plane");
-            //}
+            if (newPoint1 != newPoint2)
+            {
+                Debug.Log("One of the points can't be projected on the plane");
+            }
 
             VertexProperties vp0left = GeneratePoint(s0, triangle);
             VertexProperties vp1left = GeneratePoint(s1, triangle);
@@ -342,7 +369,16 @@ public static class MeshCut
             _leftTriangleCache.uvs[2] = vp1left.uv;
             _leftTriangleCache.normals[2] = vp1left.normal;
 
-            _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            NormalCheck(ref _leftTriangleCache);
+
+            if (_isLeftSideCache[1])
+            {
+                _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);               
+            }
+            else
+            {
+                _rightSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
 
             _leftTriangleCache.vertices[0] = triangle.vertices[0];
             _leftTriangleCache.uvs[0] =      triangle.uvs[0];
@@ -356,7 +392,16 @@ public static class MeshCut
             _leftTriangleCache.uvs[2] = vp1left.uv;
             _leftTriangleCache.normals[2] = vp1left.normal;
 
-            _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            NormalCheck(ref _leftTriangleCache);
+
+            if (_isLeftSideCache[1])
+            {
+                _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
+            else
+            {
+                _rightSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
 
             //right side
 
@@ -378,36 +423,29 @@ public static class MeshCut
             _rightTriangleCache.uvs[2] = triangle.uvs[2];
             _rightTriangleCache.normals[2] = triangle.normals[2];
 
-            _rightSideMesh.AddTriangle(_rightTriangleCache, submesh);
+            NormalCheck(ref _leftTriangleCache);
 
-
-        }
-        else if (_isLeftSideCache[0] && _isLeftSideCache[2])
+            if (_isLeftSideCache[1])
+            {
+                _rightSideMesh.AddTriangle(_rightTriangleCache, submesh);
+            }
+            else
+            {
+                _leftSideMesh.AddTriangle(_rightTriangleCache, submesh);
+            }
+        }      
+        else if (_isLeftSideCache[0] == _isLeftSideCache[2])
         {
             float t0, t1;
             Vector3 s0, s1;
 
-            //bool newPoint1 = _blade.IntersectSegment(triangle.vertices[1], triangle.vertices[0], out t0, out s0);
-            //bool newPoint2 = _blade.IntersectSegment(triangle.vertices[1], triangle.vertices[2], out t1, out s1);
+            bool newPoint1 = _blade.IntersectSegment(triangle.vertices[1], triangle.vertices[0], out t0, out s0);
+            bool newPoint2 = _blade.IntersectSegment(triangle.vertices[1], triangle.vertices[2], out t1, out s1);
 
-            //if (newPoint1 != newPoint2)
-            //{
-            //    Debug.Log("One of the points can't be projected on the plane");
-            //}
-
-            Vector3 edgeVector1 = triangle.vertices[2] - triangle.vertices[1];  // contains edge length and direction
-            _blade.Raycast(new Ray(triangle.vertices[1], edgeVector1.normalized), out float distance1);
-
-            float normalizedDistance1 = distance1 / edgeVector1.magnitude;
-
-            s0 = Vector3.Lerp(triangle.vertices[1], triangle.vertices[2], normalizedDistance1);
-
-            Vector3 edgeVector2 = triangle.vertices[0] - triangle.vertices[1];  // contains edge length and direction
-            _blade.Raycast(new Ray(triangle.vertices[1], edgeVector2.normalized), out float distance2);
-
-            float normalizedDistance2 = distance2 / edgeVector2.magnitude;
-
-            s1 = Vector3.Lerp(triangle.vertices[1], triangle.vertices[0], normalizedDistance2);
+            if (newPoint1 != newPoint2)
+            {
+                Debug.Log("One of the points can't be projected on the plane");
+            }        
 
             VertexProperties vp0left = GeneratePoint(s0, triangle);
             VertexProperties vp1left = GeneratePoint(s1, triangle);
@@ -426,7 +464,16 @@ public static class MeshCut
             _leftTriangleCache.uvs[2] = vp1left.uv;
             _leftTriangleCache.normals[2] = vp1left.normal;
 
-            _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            NormalCheck(ref _leftTriangleCache);
+
+            if (_isLeftSideCache[2])
+            {
+                _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
+            else
+            {
+                _rightSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
 
             _leftTriangleCache.vertices[0] = triangle.vertices[0];
             _leftTriangleCache.uvs[0] = triangle.uvs[0];
@@ -440,7 +487,16 @@ public static class MeshCut
             _leftTriangleCache.uvs[2] = vp1left.uv;
             _leftTriangleCache.normals[2] = vp1left.normal;
 
-            _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            NormalCheck(ref _leftTriangleCache);
+
+            if (_isLeftSideCache[2])
+            {
+                _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
+            else
+            {
+                _rightSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
 
             //right side
 
@@ -459,34 +515,29 @@ public static class MeshCut
             _rightTriangleCache.uvs[2] = triangle.uvs[1];
             _rightTriangleCache.normals[2] = triangle.normals[1];
 
-            _rightSideMesh.AddTriangle(_rightTriangleCache, submesh);
-        }
-        else
+            NormalCheck(ref _rightTriangleCache);
+
+            if (_isLeftSideCache[2])
+            {
+                _rightSideMesh.AddTriangle(_rightTriangleCache, submesh);
+            }
+            else
+            {
+                _leftSideMesh.AddTriangle(_rightTriangleCache, submesh);
+            }
+        }  
+        else if (_isLeftSideCache[1] == _isLeftSideCache[2])
         {
             float t0, t1;
             Vector3 s0, s1;
 
-            //bool newPoint1 = _blade.IntersectSegment(_triangleCache.vertices[0], triangle.vertices[1], out t0, out s0);
-            //bool newPoint2 = _blade.IntersectSegment(_triangleCache.vertices[0], triangle.vertices[2], out t1, out s1);
+            bool newPoint1 = _blade.IntersectSegment(_triangleCache.vertices[0], triangle.vertices[1], out t0, out s0);
+            bool newPoint2 = _blade.IntersectSegment(_triangleCache.vertices[0], triangle.vertices[2], out t1, out s1);
 
-            //if (newPoint1 != newPoint2)
-            //{
-            //    Debug.Log("One of the points can't be projected on the plane");
-            //}
-
-            Vector3 edgeVector1 = triangle.vertices[1] - triangle.vertices[0];  // contains edge length and direction
-            _blade.Raycast(new Ray(triangle.vertices[0], edgeVector1.normalized), out float distance1);
-
-            float normalizedDistance1 = distance1 / edgeVector1.magnitude;
-
-            s0 = Vector3.Lerp(triangle.vertices[0], triangle.vertices[1], normalizedDistance1);
-
-            Vector3 edgeVector2 = triangle.vertices[2] - triangle.vertices[0];  // contains edge length and direction
-            _blade.Raycast(new Ray(triangle.vertices[0], edgeVector2.normalized), out float distance2);
-
-            float normalizedDistance2 = distance2 / edgeVector2.magnitude;
-
-            s1 = Vector3.Lerp(triangle.vertices[0], triangle.vertices[2], normalizedDistance2);
+            if (newPoint1 != newPoint2)
+            {
+                Debug.Log("One of the points can't be projected on the plane");
+            }    
 
             VertexProperties vp0left = GeneratePoint(s0, triangle);
             VertexProperties vp1left = GeneratePoint(s1, triangle);
@@ -505,7 +556,16 @@ public static class MeshCut
             _leftTriangleCache.uvs[2] = vp1left.uv;
             _leftTriangleCache.normals[2] = vp1left.normal;
 
-            _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            NormalCheck(ref _leftTriangleCache);
+
+            if (_isLeftSideCache[1])
+            {
+                _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
+            else
+            {
+                _rightSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
 
             _leftTriangleCache.vertices[0] = triangle.vertices[1];
             _leftTriangleCache.uvs[0] = triangle.uvs[1];
@@ -519,7 +579,16 @@ public static class MeshCut
             _leftTriangleCache.uvs[2] = vp1left.uv;
             _leftTriangleCache.normals[2] = vp1left.normal;
 
-            _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            NormalCheck(ref _leftTriangleCache);
+
+            if (_isLeftSideCache[1])
+            {
+                _leftSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
+            else
+            {
+                _rightSideMesh.AddTriangle(_leftTriangleCache, submesh);
+            }
 
             //right side
 
@@ -540,7 +609,20 @@ public static class MeshCut
             _rightTriangleCache.uvs[2] = triangle.uvs[0];
             _rightTriangleCache.normals[2] = triangle.normals[0];
 
-            _rightSideMesh.AddTriangle(_rightTriangleCache, submesh);
+            NormalCheck(ref _rightTriangleCache);
+
+            if (_isLeftSideCache[1])
+            {
+                _rightSideMesh.AddTriangle(_rightTriangleCache, submesh);
+            }
+            else
+            {
+                _leftSideMesh.AddTriangle(_rightTriangleCache, submesh);
+            }
+        }
+        else
+        {
+            Debug.Log("Something is wrong with the plane!");
         }
     }
 

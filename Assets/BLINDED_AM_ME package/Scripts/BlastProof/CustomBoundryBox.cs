@@ -26,6 +26,7 @@ public class CustomBoundryBox : MonoBehaviour
 {
     [SerializeField] private GameObject m_toCutObject;
 
+    
     public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();     
 
     public GameObject objectToCheckIfInside;   
@@ -50,7 +51,7 @@ public class CustomBoundryBox : MonoBehaviour
 
     // Update is called once per frame
     void Update()
-    {
+    {       
         if (draw)
         {
             DrawCustomBoundary();
