@@ -79,22 +79,34 @@ public class CustomBoundryBox : MonoBehaviour
         //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, max.y, min.z)));
         //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, min.y, min.z)));
 
-       foreach (Transform child in transform)
-       {
-           m_CustomBox.Add(new BoundaryPoint(child.localPosition));
-       }
+        foreach (Transform child in transform)
+        {
+            m_CustomBox.Add(new BoundaryPoint(child.localPosition));
+        }
 
         draw = true;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        List<BoundaryPoint> m_CustomBox2 = new List<BoundaryPoint>();
+
+        foreach (Transform child in transform)
+        {
+            m_CustomBox2.Add(new BoundaryPoint(child.localPosition));
+        }
+
+        int length = m_CustomBox2.Count;
+        for (int i = 0; i < length; i++)
+        {
+            Debug.DrawLine((transform.position + m_CustomBox2[i].m_pos) * transform.localScale.x, (transform.position + m_CustomBox2[(i + 1) % length].m_pos) * transform.localScale.x, Color.red);
+        }
     }
 
     //TEST ONLY
     void DrawCustomBoundary()
     {
-        int length = m_CustomBox.Count;
-        for (int i= 0; i<length;i++)
-        {
-            Debug.DrawLine((transform.position + m_CustomBox[i].m_pos ) * transform.localScale.x, (transform.position + m_CustomBox[(i + 1) % length].m_pos) * transform.localScale.x, Color.red);        
-        }
+       
     }
 
     void DrawNewCustomBoundary()

@@ -61,7 +61,7 @@ public class Mathematics
         float segmentDistanceFromPointToCheck = Vector2.Distance(pointToCheck, lineEndPoint);
         float totalDistance = Vector2.Distance(lineBeginPoint, lineEndPoint);
 
-        if (Mathf.Approximately(segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck - totalDistance, 0) ||
+        if (Mathf.Approximately(segmentDistanceToPointToCheck + segmentDistanceFromPointToCheck - totalDistance, 0.0f) ||
             pointToCheck == lineBeginPoint || pointToCheck == lineEndPoint
             )
             return true;
@@ -117,5 +117,72 @@ public class Mathematics
             num3 += 6.283185f;
         }
         return (num3 * 57.29578f);
-    }    
+    }
+
+    public static float DistancePointLine2D(Vector2 point, Vector2 lineStart, Vector2 lineEnd)
+    {
+        return (ProjectPointLine2D(point, lineStart, lineEnd) - point).magnitude;
+    }
+    public static Vector2 ProjectPointLine2D(Vector2 point, Vector2 lineStart, Vector2 lineEnd)
+    {
+        Vector2 rhs = point - lineStart;
+        Vector2 vector2 = lineEnd - lineStart;
+        float magnitude = vector2.magnitude;
+        Vector2 lhs = vector2;
+        if (magnitude > 1E-06f)
+        {
+            lhs = (Vector2)(lhs / magnitude);
+        }
+        float num2 = Mathf.Clamp(Vector2.Dot(lhs, rhs), 0f, magnitude);
+        return (lineStart + ((Vector2)(lhs * num2)));
+    }
+
+
+    public static float ClosestDistanceToPolygon(Vector2[] verts, Vector2 point)
+    {
+        int nvert = verts.Length;
+        int i, j = 0;
+        float minDistance = Mathf.Infinity;
+        for (i = 0, j = nvert - 1; i < nvert; j = i++)
+        {
+            float distance = DistancePointLine2D(point, verts[i], verts[j]);
+            minDistance = Mathf.Min(minDistance, distance);
+        }
+
+        return minDistance;
+    }
+
+    public static bool IsInsidePolygon(Vector2[] vertices, Vector2 checkPoint, float margin = 0.001f)
+    {
+        if (ClosestDistanceToPolygon(vertices, checkPoint) < margin)
+        {
+            return true;
+        }
+
+        float[] vertX = new float[vertices.Length];
+        float[] vertY = new float[vertices.Length];
+        for (int i = 0; i < vertices.Length; i++)
+        {
+            vertX[i] = vertices[i].x;
+            vertY[i] = vertices[i].y;
+        }
+
+        return IsInsidePolygon(vertices.Length, vertX, vertY, checkPoint.x, checkPoint.y);
+    }
+
+    public static bool IsInsidePolygon(int nvert, float[] vertx, float[] verty, float testx, float testy)
+    {
+        bool c = false;
+        int i, j = 0;
+        for (i = 0, j = nvert - 1; i < nvert; j = i++)
+        {
+            if ((((verty[i] <= testy) && (testy < verty[j])) ||
+
+                 ((verty[j] <= testy) && (testy < verty[i]))) &&
+
+                (testx < (vertx[j] - vertx[i]) * (testy - verty[i]) / (verty[j] - verty[i]) + vertx[i]))
+                c = !c;
+        }
+        return c;
+    }
 }
