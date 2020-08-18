@@ -127,8 +127,8 @@ public class CustomBoundryBox : MonoBehaviour
 
             //Debug.Log("RelativePos: " + invTransPos);
 
-            if (Mathematics.PointInPolygon(new Vector2(invTransPos.x, invTransPos.y), m_CustomBox.ToArray()))
-            {
+            if (Mathematics.IsInsidePolygon(m_CustomBox, new Vector2(invTransPos.x, invTransPos.y)))
+            {              
                 Debug.Log("inside");
             }
             else

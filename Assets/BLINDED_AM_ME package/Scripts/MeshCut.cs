@@ -6,28 +6,15 @@ using System;
 public static class MeshCut
 {
     //private static Plane _blade;
-    private static PrimitivesPro.Utils.Plane _blade;
-
-    private static EPPZ.Geometry.Model.Polygon poly1;
-    private static EPPZ.Geometry.Model.Polygon poly2;
+    private static PrimitivesPro.Utils.Plane _blade; 
 
     private static List<BoundaryPoint> _newRightBoundary;
-    private static List<BoundaryPoint> _newLeftBoundary;
+    private static List<BoundaryPoint> _newLeftBoundary;  
 
-    private static Dictionary<Vector3, VertexProperties> generatedVertices = new Dictionary<Vector3, VertexProperties>();
-
-    private static Vector3 _startPos;
-    private static Vector3 _endPos;
-
-    private static GameObject victima;
     // Caching
-
     private static List<Vector3> _newVerticesCache = new List<Vector3>();
 
-
-
     private static int _capMatSub = 1;
-
     // TEST ONLY
     public static List<IntersectionPoint> intersectionPoint;
 
@@ -35,48 +22,15 @@ public static class MeshCut
     public static GameObject[] Cut(GameObject victim, Material capMaterial, Vector3 startPos, Vector3 endPos)
     {
         CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
-        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
-        victima = victim;
-
-        _startPos = startPos;
-        _endPos = endPos;
+        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);     
 
         if (intersectionPoints.Count == 2)
         {
-            //Vector3 depth = startPos + victim.transform.forward;
-
-            //_blade = new PrimitivesPro.Utils.Plane((startPos + endPos) / 2.0f, endPos, depth);
-            //_blade = new PrimitivesPro.Utils.Plane((startPos + endPos) / 2.0f, endPos, depth);
-            //_blade.InverseTransform(victim.transform);
-
             Vector3 tangent = (endPos - startPos);
-
             Vector3 depth = Camera.main.transform.forward;
-
             Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
 
             normal.z = 0.0f;
-
-            //GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            //cube.transform.position = startPos;
-            //cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-            //cube.name = "start";
-
-            //GameObject cube1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            //cube1.transform.position = endPos;
-            //cube1.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-            //cube1.name = "end";
-
-            //GameObject cube2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            //cube2.transform.position = startPos + Camera.main.transform.forward;
-            //cube2.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-            //cube2.name = "depth";
-
-            //GameObject cube3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            //cube3.transform.position = startPos + normal;
-            //cube3.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-            //cube3.name = "normala";
-
 
             _blade = new PrimitivesPro.Utils.Plane(normal, startPos);
             _blade.InverseTransform(victim.transform);
@@ -102,7 +56,6 @@ public static class MeshCut
             _leftSideMesh.Clear();
             _rightSideMesh.Clear();
             _newVerticesCache.Clear();
-
 
             mp.mesh_vertices = _victim_mesh.vertices;
             mp.mesh_normals = _victim_mesh.normals;
@@ -169,56 +122,17 @@ public static class MeshCut
 
     private static void CreateNewBoundary(in GameObject victim, in GameObject leftSideObj, in GameObject rightSideObj, ref List<IntersectionPoint> intersectionPoint)
     {
+        //picking first and second intersection point indicies by looking who is closest to the start of the ppolygon
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
         int secondPointIndex = 1 - firstPointIndex;
 
-        //Plane that helps to create the new indicies
-
-        //Correct Intersections
-
-        //Correct Intersections
-
-
-
         //leftSIde
         CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
-        CustomBoundryBox _leftSideBoundary = leftSideObj.GetComponent<CustomBoundryBox>();
+        CustomBoundryBox _leftSideBoundary = leftSideObj.GetComponent<CustomBoundryBox>();     
 
-
-
-        ////////////////////////////////////////////////////////////////////////////////
-
-        Vector3 pos;
-
-        if (!_blade.IntersectSegment(_boundaryBox.m_CustomBox[intersectionPoint[firstPointIndex]._previousBoundaryPoint % _boundaryBox.m_CustomBox.Count].m_pos,
-                                _boundaryBox.m_CustomBox[intersectionPoint[firstPointIndex]._nextBoundaryPoint % _boundaryBox.m_CustomBox.Count].m_pos, out float t, out pos))
-        {
-            Debug.Log("ERROR OCCURED IN POSITION CORRECTION!");
-        }
-        else
-        {
-           
-                intersectionPoint[firstPointIndex]._pos.x = pos.x;
-                intersectionPoint[firstPointIndex]._pos.y = pos.y;
-        }
-
-
-        Vector3 pos2;
-
-        if (!_blade.IntersectSegment(_boundaryBox.m_CustomBox[intersectionPoint[secondPointIndex]._previousBoundaryPoint % _boundaryBox.m_CustomBox.Count].m_pos,
-                                 _boundaryBox.m_CustomBox[intersectionPoint[secondPointIndex]._nextBoundaryPoint % _boundaryBox.m_CustomBox.Count].m_pos, out float t2, out pos2))
-        {
-            Debug.Log("ERROR OCCURED IN POSITION CORRECTION!");
-        }
-        else
-        {
-          
-                intersectionPoint[secondPointIndex]._pos.x = pos2.x;
-                intersectionPoint[secondPointIndex]._pos.y = pos2.y;
-          
-        }
-
-        //////////////////////////////////////////////////////////////////////
+        //Correcting intersection points so they match perfectly the cutting plane
+        intersectionPoint[firstPointIndex] = CorrectIntersections(_boundaryBox.m_CustomBox, intersectionPoint[firstPointIndex]);
+        intersectionPoint[secondPointIndex] = CorrectIntersections(_boundaryBox.m_CustomBox, intersectionPoint[secondPointIndex]);
 
         _newLeftBoundary = new List<BoundaryPoint>();
         _newRightBoundary = new List<BoundaryPoint>();
@@ -270,7 +184,7 @@ public static class MeshCut
         rightSide.drawNew = true;
     }
 
-    private static void FilterWholeTriangles(in MeshProperties mp, in UnityEngine.Mesh _victim_mesh, ref Mesh_Maker leftSideMesh, ref Mesh_Maker rightSideMesh)
+    private static void FilterWholeTriangles(in MeshProperties mp, in Mesh _victim_mesh, ref Mesh_Maker leftSideMesh, ref Mesh_Maker rightSideMesh)
     {
 
         Mesh_Maker.Triangle _triangleCache = new Mesh_Maker.Triangle(new Vector3[3], new Vector2[3], new Vector3[3], new Vector4[3]);
@@ -356,19 +270,17 @@ public static class MeshCut
                 else
                 {
                     // cut the triangle
-                    Cut_this_Face(_triangleCache, submeshIterator, ref leftSideMesh, ref rightSideMesh);
+                    CutTriangleInHalf(_triangleCache, submeshIterator, ref leftSideMesh, ref rightSideMesh);
                 }
             }
         }
     }
 
-    #region Cutting   
-    static int vtx = 0;
+    #region Cutting       
     // Functions
-    private static void Cut_this_Face(Mesh_Maker.Triangle triangle, int submesh, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
+    private static void CutTriangleInHalf(Mesh_Maker.Triangle triangle, int submesh, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
     {
-        bool[] _isLeftSideCache = new bool[3];
-        bool[] _isRightSideCache = new bool[3];
+        bool[] _isLeftSideCache = new bool[3];      
 
         Vector2[] boundryArr = new Vector2[_newLeftBoundary.Count];
 
@@ -379,11 +291,7 @@ public static class MeshCut
 
         _isLeftSideCache[0] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[0]);
         _isLeftSideCache[1] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[1]);
-        _isLeftSideCache[2] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[2]);     
-
-        //_isRightSideCache[0] = Mathematics.PointInPolygon(triangle.vertices[0], _newRightBoundary.ToArray());
-        //_isRightSideCache[1] = Mathematics.PointInPolygon(triangle.vertices[1], _newRightBoundary.ToArray());
-        //_isRightSideCache[2] = Mathematics.PointInPolygon(triangle.vertices[2], _newRightBoundary.ToArray());  
+        _isLeftSideCache[2] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[2]);       
 
         if (_isLeftSideCache[0] == _isLeftSideCache[1])
         {
@@ -697,8 +605,22 @@ public static class MeshCut
         //TODO TAGENTS;
         return vp;
     }
-
     #endregion
+
+    private static IntersectionPoint CorrectIntersections(in List<BoundaryPoint> bp, in IntersectionPoint ip)
+    {
+        if (!_blade.IntersectSegment(bp[ip._previousBoundaryPoint % bp.Count].m_pos,
+                                    bp[ip._nextBoundaryPoint %bp.Count].m_pos, 
+                                    out float t, out Vector3 pos))
+        {
+            Debug.Log("ERROR OCCURED IN POSITION CORRECTION!");
+            return null;
+        }
+        else
+        {
+            return new IntersectionPoint(pos, ip._previousBoundaryPoint, ip._nextBoundaryPoint);
+        }
+    }
 
     #region Capping
     // Caching
