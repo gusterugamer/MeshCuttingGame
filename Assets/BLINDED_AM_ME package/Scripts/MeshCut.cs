@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
+using PrimitivesPro.MeshCutting;
+using UnityScript.Steps;
 
 public static class MeshCut
 {
@@ -9,7 +11,9 @@ public static class MeshCut
     private static PrimitivesPro.Utils.Plane _blade; 
 
     private static List<BoundaryPoint> _newRightBoundary;
-    private static List<BoundaryPoint> _newLeftBoundary;  
+    private static List<BoundaryPoint> _newLeftBoundary;
+
+    private static readonly float threshold = 1e-6f;
 
     // Caching
     private static List<Vector3> _newVerticesCache = new List<Vector3>();
@@ -92,7 +96,7 @@ public static class MeshCut
             _capMatSub = mats.Length - 1; // for later use               
 
             // cap the opennings
-            //Cap_the_Cut(ref _leftSideMesh, ref _rightSideMesh);
+            Cap_the_Cut(ref _leftSideMesh, ref _rightSideMesh);
 
             // Left Mesh
             UnityEngine.Mesh left_HalfMesh = _leftSideMesh.GetMesh();
@@ -234,29 +238,15 @@ public static class MeshCut
                     _triangleCache.tangents[2] = Vector4.zero;
                 }
 
-                // which side are the vertices on
+                // which side are the vertices on            
 
-                Vector2[] boundryArr = new Vector2[_newLeftBoundary.Count];
-
-                for (int j = 0; j < _newLeftBoundary.Count; j++)
-                {
-                    boundryArr[j] = new Vector2(_newLeftBoundary[j].m_pos.x, _newLeftBoundary[j].m_pos.y);
-                }
-
-                _isLeftSideCache[0] = Mathematics.IsInsidePolygon(boundryArr, _triangleCache.vertices[0]);
-                _isLeftSideCache[1] = Mathematics.IsInsidePolygon(boundryArr, _triangleCache.vertices[1]);
-                _isLeftSideCache[2] = Mathematics.IsInsidePolygon(boundryArr, _triangleCache.vertices[2]);
-
-                Vector2[] boundryArr2 = new Vector2[_newRightBoundary.Count];
-
-                for (int j = 0; j < _newRightBoundary.Count; j++)
-                {
-                    boundryArr2[j] = new Vector2(_newRightBoundary[j].m_pos.x, _newRightBoundary[j].m_pos.y);
-                }
-
-                _isRightSideCache[0] = Mathematics.IsInsidePolygon(boundryArr2, _triangleCache.vertices[0]);
-                _isRightSideCache[1] = Mathematics.IsInsidePolygon(boundryArr2, _triangleCache.vertices[1]);
-                _isRightSideCache[2] = Mathematics.IsInsidePolygon(boundryArr2, _triangleCache.vertices[2]);
+                _isLeftSideCache[0] = Mathematics.IsInsidePolygon(_newLeftBoundary, _triangleCache.vertices[0]);
+                _isLeftSideCache[1] = Mathematics.IsInsidePolygon(_newLeftBoundary, _triangleCache.vertices[1]);
+                _isLeftSideCache[2] = Mathematics.IsInsidePolygon(_newLeftBoundary, _triangleCache.vertices[2]);
+                
+                _isRightSideCache[0] = Mathematics.IsInsidePolygon(_newRightBoundary, _triangleCache.vertices[0]);
+                _isRightSideCache[1] = Mathematics.IsInsidePolygon(_newRightBoundary, _triangleCache.vertices[1]);
+                _isRightSideCache[2] = Mathematics.IsInsidePolygon(_newRightBoundary, _triangleCache.vertices[2]);
 
                 // whole triangle
                 if (_isLeftSideCache[0] == _isLeftSideCache[1] && _isLeftSideCache[0] == _isLeftSideCache[2] && _isLeftSideCache[0])
@@ -280,18 +270,11 @@ public static class MeshCut
     // Functions
     private static void CutTriangleInHalf(Mesh_Maker.Triangle triangle, int submesh, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
     {
-        bool[] _isLeftSideCache = new bool[3];      
+        bool[] _isLeftSideCache = new bool[3];        
 
-        Vector2[] boundryArr = new Vector2[_newLeftBoundary.Count];
-
-        for (int i=0;i<_newLeftBoundary.Count;i++)
-        {
-            boundryArr[i] = new Vector2(_newLeftBoundary[i].m_pos.x, _newLeftBoundary[i].m_pos.y);
-        }
-
-        _isLeftSideCache[0] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[0]);
-        _isLeftSideCache[1] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[1]);
-        _isLeftSideCache[2] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[2]);       
+        _isLeftSideCache[0] = Mathematics.IsInsidePolygon(_newLeftBoundary, triangle.vertices[0]);
+        _isLeftSideCache[1] = Mathematics.IsInsidePolygon(_newLeftBoundary, triangle.vertices[1]);
+        _isLeftSideCache[2] = Mathematics.IsInsidePolygon(_newLeftBoundary, triangle.vertices[2]);       
 
         if (_isLeftSideCache[0] == _isLeftSideCache[1])
         {
@@ -303,13 +286,17 @@ public static class MeshCut
             bool newPoint1 = _blade.IntersectSegment(triangle.vertices[2], triangle.vertices[0], out t0, out s0);
             bool newPoint2 = _blade.IntersectSegment(triangle.vertices[2], triangle.vertices[1], out t1, out s1);
 
+            _newVerticesCache.Add(s0);
+            _newVerticesCache.Add(s1);
+
             if (newPoint1 != newPoint2)
             {
                 Debug.Log("One of the points can't be projected on the plane");
             }
 
             VertexProperties vp0left = GeneratePoint(s0, triangle);
-            VertexProperties vp1left = GeneratePoint(s1, triangle);         
+            VertexProperties vp1left = GeneratePoint(s1, triangle);     
+            
 
             //triangle left side
             _leftTriangleCache.vertices[0] = vp0left.position;
@@ -361,7 +348,7 @@ public static class MeshCut
             //right side
 
             VertexProperties vp0Right = GeneratePoint(s0, triangle);
-            VertexProperties vp1Right = GeneratePoint(s1, triangle);          
+            VertexProperties vp1Right = GeneratePoint(s1, triangle);
 
             // since 0 and 1 are on the same side number 2 is the solo vertex that is on the right side
 
@@ -399,13 +386,16 @@ public static class MeshCut
             bool newPoint1 = _blade.IntersectSegment(triangle.vertices[1], triangle.vertices[0], out t0, out s0);
             bool newPoint2 = _blade.IntersectSegment(triangle.vertices[1], triangle.vertices[2], out t1, out s1);
 
+            _newVerticesCache.Add(s0);
+            _newVerticesCache.Add(s1);
+
             if (newPoint1 != newPoint2)
             {
                 Debug.Log("One of the points can't be projected on the plane");
             }
 
             VertexProperties vp0left = GeneratePoint(s0, triangle);
-            VertexProperties vp1left = GeneratePoint(s1, triangle);         
+            VertexProperties vp1left = GeneratePoint(s1, triangle);          
 
             //triangle left side           
 
@@ -458,7 +448,7 @@ public static class MeshCut
             //right side
 
             VertexProperties vp0Right = GeneratePoint(s0, triangle);
-            VertexProperties vp1Right = GeneratePoint(s1, triangle);
+            VertexProperties vp1Right = GeneratePoint(s1, triangle);           
 
             _rightTriangleCache.vertices[0] = vp0Right.position;
             _rightTriangleCache.uvs[0] = vp0Right.uv;
@@ -492,6 +482,9 @@ public static class MeshCut
 
             bool newPoint1 = _blade.IntersectSegment(triangle.vertices[0], triangle.vertices[1], out t0, out s0);
             bool newPoint2 = _blade.IntersectSegment(triangle.vertices[0], triangle.vertices[2], out t1, out s1);
+
+            _newVerticesCache.Add(s0);
+            _newVerticesCache.Add(s1);
 
             if (newPoint1 != newPoint2)
             {
@@ -583,6 +576,9 @@ public static class MeshCut
         {
             Debug.Log("Something is wrong with the plane!");
         }
+
+        _leftSideMesh.RemoveDoubles();
+        _rightSideMesh.RemoveDoubles();
     }
 
     private static VertexProperties GeneratePoint(Vector3 position, Mesh_Maker.Triangle triangleToSplit)
@@ -626,8 +622,79 @@ public static class MeshCut
     // Caching
 
     private static List<int> _capUsedIndicesCache = new List<int>();
-    private static List<int> _capPolygonIndicesCache = new List<int>();
-    // Functions
+    private static List<int> _capPolygonIndicesCache = new List<int>(); 
+
+    //private static void CapCut(ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh, int submesh)
+    //{
+    //    var m = _blade.GetPlaneMatrix();
+    //    var mInv = m.inverse;
+
+    //    float zValue = 0.0f;
+
+    //    Vector2[] polyPoints = new Vector2[_newVerticesCache.Count];
+        
+    //    for(int i=0;i<_newVerticesCache.Count;i++)
+    //    {
+    //        Vector4 p = mInv * _newVerticesCache[i];
+    //        polyPoints[i] = p;
+
+    //        zValue = p.z;
+    //    }      
+
+    //    Polygon newVertPoly = new Polygon(polyPoints);
+
+    //    var polyTriangleIndicies = newVertPoly.Triangulate();
+
+    //    float min = Mathf.Min(newVertPoly.Min.x, newVertPoly.Min.y);
+    //    float max = Mathf.Max(newVertPoly.Max.x, newVertPoly.Max.y);
+    //    var polygonSize = min - max;
+
+    //    for(int i=0;i<polyTriangleIndicies.Count;i+=3)
+    //    {
+    //        Vector3[] verts = new Vector3[3];
+    //        Vector3[] normalsLeft = new Vector3[3];
+    //        Vector3[] normalsRight = new Vector3[3];
+
+    //        Vector2[] uvLeft = new Vector2[3];
+    //        Vector2[] uvRight = new Vector2[3];
+
+    //        var p = newVertPoly.Points[polyTriangleIndicies[i]];
+    //        var p1 = newVertPoly.Points[polyTriangleIndicies[i + 1]];
+    //        var p2 = newVertPoly.Points[polyTriangleIndicies[i + 2]];
+
+    //        verts[0] = m * new Vector3(p.x, p.y, zValue);
+    //        verts[1] = m * new Vector3(p1.x, p1.y, zValue);
+    //        verts[2] = m * new Vector3(p2.x, p2.y, zValue);
+
+    //        normalsLeft[0] = _blade.Normal;
+    //        normalsLeft[1] = _blade.Normal;
+    //        normalsLeft[2] = _blade.Normal;
+
+    //        normalsRight[0]= -_blade.Normal;
+    //        normalsRight[1]= -_blade.Normal;
+    //        normalsRight[2]= -_blade.Normal;
+
+    //        uvLeft[0] = new Vector2((p.x - min) / polygonSize, (p.y - min) / polygonSize);
+    //        uvLeft[1] = new Vector2((p1.x - min) / polygonSize, (p1.y - min) / polygonSize);
+    //        uvLeft[2] = new Vector2((p2.x - min) / polygonSize, (p2.y - min) / polygonSize);
+
+    //        uvRight[0] = new Vector2((p.x - min) / polygonSize, (p.y - min) / polygonSize);
+    //        uvRight[1] = new Vector2((p1.x - min) / polygonSize, (p1.y - min) / polygonSize);
+    //        uvRight[2] = new Vector2((p2.x - min) / polygonSize, (p2.y - min) / polygonSize);
+
+    //        Mesh_Maker.Triangle leftTriangle = new Mesh_Maker.Triangle(verts, uvLeft, normalsLeft,new Vector4[3]);
+    //        Mesh_Maker.Triangle rightTriangle = new Mesh_Maker.Triangle(verts, uvRight, normalsRight, new Vector4[3]);
+
+    //        NormalCheck(ref leftTriangle);
+    //        NormalCheck(ref rightTriangle);
+
+    //        _leftSideMesh.AddTriangle(leftTriangle, submesh);
+    //        _rightSideMesh.AddTriangle(rightTriangle, submesh);
+    //    }
+    //}
+
+
+    //Functions
 
     private static void Cap_the_Cut(ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
     {
@@ -713,179 +780,178 @@ public static class MeshCut
                     _capPolygonIndicesCache.Add(_capPolygonIndicesCache[0]);
 
                 // cap
-                //FillCap_Method1(_capPolygonIndicesCache, ref _leftSideMesh, ref _rightSideMesh);
+                FillCap_Method1(_capPolygonIndicesCache, ref _leftSideMesh, ref _rightSideMesh);
             }
         }
     }
 
-    //TEMP DISABLED
+    private static void FillCap_Method1(List<int> indices, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
+    {
+        Mesh_Maker.Triangle _newTriangleCache = new Mesh_Maker.Triangle(new Vector3[3], new Vector2[3], new Vector3[3], new Vector4[3]);
+        // center of the cap
+        Vector3 center = Vector3.zero;
+        foreach (int index in indices)
+        {
+            center += _newVerticesCache[index];
+        }
 
-    //private static void FillCap_Method1(List<int> indices, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
-    //{
-    //    // center of the cap
-    //    Vector3 center = Vector3.zero;
-    //    foreach (int index in indices)
-    //    {
-    //        center += _newVerticesCache[index];
-    //    }
+        center = center / indices.Count;
 
-    //    center = center / indices.Count;
+        // you need an axis based on the cap
+        Vector3 upward = Vector3.zero;
+        // 90 degree turn
+        upward.x = _blade.Normal.y;
+        upward.y = -_blade.Normal.x;
+        upward.z = _blade.Normal.z;
+        Vector3 left = Vector3.Cross(_blade.Normal, upward);
 
-    //    // you need an axis based on the cap
-    //    Vector3 upward = Vector3.zero;
-    //    // 90 degree turn
-    //    upward.x = _blade.normal.y;
-    //    upward.y = -_blade.normal.x;
-    //    upward.z = _blade.normal.z;
-    //    Vector3 left = Vector3.Cross(_blade.normal, upward);
+        Vector3 displacement = Vector3.zero;
+        Vector2 newUV1 = Vector2.zero;
+        Vector2 newUV2 = Vector2.zero;
+        Vector2 newUV3 = Vector2.zero;
 
-    //    Vector3 displacement = Vector3.zero;
-    //    Vector2 newUV1 = Vector2.zero;
-    //    Vector2 newUV2 = Vector2.zero;
-    //    Vector2 newUV3 = Vector2.zero;
+        // indices should be in order like a closed chain
 
-    //    // indices should be in order like a closed chain
+        // go through edges and eliminate by creating triangles with connected edges
+        // each new triangle removes 2 edges but creates 1 new edge
+        // keep the chain in order
+        int iterator = 0;
+        while (indices.Count > 2)
+        {
 
-    //    // go through edges and eliminate by creating triangles with connected edges
-    //    // each new triangle removes 2 edges but creates 1 new edge
-    //    // keep the chain in order
-    //    int iterator = 0;
-    //    while (indices.Count > 2)
-    //    {
+            Vector3 link1 = _newVerticesCache[indices[iterator]];
+            Vector3 link2 = _newVerticesCache[indices[(iterator + 1) % indices.Count]];
+            Vector3 link3 = _newVerticesCache[indices[(iterator + 2) % indices.Count]];
 
-    //        Vector3 link1 = _newVerticesCache[indices[iterator]];
-    //        Vector3 link2 = _newVerticesCache[indices[(iterator + 1) % indices.Count]];
-    //        Vector3 link3 = _newVerticesCache[indices[(iterator + 2) % indices.Count]];
+            displacement = link1 - center;
+            newUV1 = Vector3.zero;
+            newUV1.x = 0.5f + Vector3.Dot(displacement, left);
+            newUV1.y = 0.5f + Vector3.Dot(displacement, upward);
+            //newUV1.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
 
-    //        displacement = link1 - center;
-    //        newUV1 = Vector3.zero;
-    //        newUV1.x = 0.5f + Vector3.Dot(displacement, left);
-    //        newUV1.y = 0.5f + Vector3.Dot(displacement, upward);
-    //        //newUV1.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
+            displacement = link2 - center;
+            newUV2 = Vector3.zero;
+            newUV2.x = 0.5f + Vector3.Dot(displacement, left);
+            newUV2.y = 0.5f + Vector3.Dot(displacement, upward);
+            //newUV2.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
 
-    //        displacement = link2 - center;
-    //        newUV2 = Vector3.zero;
-    //        newUV2.x = 0.5f + Vector3.Dot(displacement, left);
-    //        newUV2.y = 0.5f + Vector3.Dot(displacement, upward);
-    //        //newUV2.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
-
-    //        displacement = link3 - center;
-    //        newUV3 = Vector3.zero;
-    //        newUV3.x = 0.5f + Vector3.Dot(displacement, left);
-    //        newUV3.y = 0.5f + Vector3.Dot(displacement, upward);
-    //        //newUV2.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
-
-
-    //        // add triangle
-    //        _newTriangleCache.vertices[0] = link1;
-    //        _newTriangleCache.uvs[0] = newUV1;
-    //        _newTriangleCache.normals[0] = -_blade.normal;
-    //        _newTriangleCache.tangents[0] = Vector4.zero;
-
-    //        _newTriangleCache.vertices[1] = link2;
-    //        _newTriangleCache.uvs[1] = newUV2;
-    //        _newTriangleCache.normals[1] = -_blade.normal;
-    //        _newTriangleCache.tangents[1] = Vector4.zero;
-
-    //        _newTriangleCache.vertices[2] = link3;
-    //        _newTriangleCache.uvs[2] = newUV3;
-    //        _newTriangleCache.normals[2] = -_blade.normal;
-    //        _newTriangleCache.tangents[2] = Vector4.zero;
-
-    //        // add to left side
-    //        NormalCheck(ref _newTriangleCache);
-
-    //        _leftSideMesh.AddTriangle(_newTriangleCache, _capMatSub);
-
-    //        // add to right side
-    //        _newTriangleCache.normals[0] = _blade.normal;
-    //        _newTriangleCache.normals[1] = _blade.normal;
-    //        _newTriangleCache.normals[2] = _blade.normal;
-
-    //        NormalCheck(ref _newTriangleCache);
-
-    //        _rightSideMesh.AddTriangle(_newTriangleCache, _capMatSub);
+            displacement = link3 - center;
+            newUV3 = Vector3.zero;
+            newUV3.x = 0.5f + Vector3.Dot(displacement, left);
+            newUV3.y = 0.5f + Vector3.Dot(displacement, upward);
+            //newUV2.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
 
 
-    //        // adjust indices by removing the middle link
-    //        indices.RemoveAt((iterator + 1) % indices.Count);
+            // add triangle
+            _newTriangleCache.vertices[0] = link1;
+            _newTriangleCache.uvs[0] = newUV1;
+            _newTriangleCache.normals[0] = -_blade.Normal;
+            _newTriangleCache.tangents[0] = Vector4.zero;
 
-    //        // move on
-    //        iterator = (iterator + 1) % indices.Count;
-    //    }
+            _newTriangleCache.vertices[1] = link2;
+            _newTriangleCache.uvs[1] = newUV2;
+            _newTriangleCache.normals[1] = -_blade.Normal;
+            _newTriangleCache.tangents[1] = Vector4.zero;
 
-    //}
+            _newTriangleCache.vertices[2] = link3;
+            _newTriangleCache.uvs[2] = newUV3;
+            _newTriangleCache.normals[2] = -_blade.Normal;
+            _newTriangleCache.tangents[2] = Vector4.zero;
 
-    //private static void FillCap_Method2(List<int> indices, ref Mesh_Maker _rightSideMesh, ref Mesh_Maker _leftSideMesh)
-    //{
+            // add to left side
+            NormalCheck(ref _newTriangleCache);
 
-    //    // center of the cap
-    //    Vector3 center = Vector3.zero;
-    //    foreach (var index in indices)
-    //        center += _newVerticesCache[index];
+            _leftSideMesh.AddTriangle(_newTriangleCache, _capMatSub);
 
-    //    center = center / indices.Count;
+            // add to right side
+            _newTriangleCache.normals[0] = _blade.Normal;
+            _newTriangleCache.normals[1] = _blade.Normal;
+            _newTriangleCache.normals[2] = _blade.Normal;
 
-    //    // you need an axis based on the cap
-    //    Vector3 upward = Vector3.zero;
-    //    // 90 degree turn
-    //    upward.x = _blade.normal.y;
-    //    upward.y = -_blade.normal.x;
-    //    upward.z = _blade.normal.z;
-    //    Vector3 left = Vector3.Cross(_blade.normal, upward);
+            NormalCheck(ref _newTriangleCache);
 
-    //    Vector3 displacement = Vector3.zero;
-    //    Vector2 newUV1 = Vector2.zero;
-    //    Vector2 newUV2 = Vector2.zero;
-
-    //    for (int i = 0; i < indices.Count - 1; i++)
-    //    {
-
-    //        displacement = _newVerticesCache[indices[i]] - center;
-    //        newUV1 = Vector3.zero;
-    //        newUV1.x = 0.5f + Vector3.Dot(displacement, left);
-    //        newUV1.y = 0.5f + Vector3.Dot(displacement, upward);
-    //        //newUV1.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
-
-    //        displacement = _newVerticesCache[indices[i + 1]] - center;
-    //        newUV2 = Vector3.zero;
-    //        newUV2.x = 0.5f + Vector3.Dot(displacement, left);
-    //        newUV2.y = 0.5f + Vector3.Dot(displacement, upward);
-    //        //newUV2.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
+            _rightSideMesh.AddTriangle(_newTriangleCache, _capMatSub);
 
 
+            // adjust indices by removing the middle link
+            indices.RemoveAt((iterator + 1) % indices.Count);
 
-    //        _newTriangleCache.vertices[0] = _newVerticesCache[indices[i]];
-    //        _newTriangleCache.uvs[0] = newUV1;
-    //        _newTriangleCache.normals[0] = -_blade.normal;
-    //        _newTriangleCache.tangents[0] = Vector4.zero;
+            // move on
+            iterator = (iterator + 1) % indices.Count;
+        }
 
-    //        _newTriangleCache.vertices[1] = _newVerticesCache[indices[i + 1]];
-    //        _newTriangleCache.uvs[1] = newUV2;
-    //        _newTriangleCache.normals[1] = -_blade.normal;
-    //        _newTriangleCache.tangents[1] = Vector4.zero;
+    }
 
-    //        _newTriangleCache.vertices[2] = center;
-    //        _newTriangleCache.uvs[2] = new Vector2(0.5f, 0.5f);
-    //        _newTriangleCache.normals[2] = -_blade.normal;
-    //        _newTriangleCache.tangents[2] = Vector4.zero;
+    private static void FillCap_Method2(List<int> indices, ref Mesh_Maker _rightSideMesh, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker.Triangle _newTriangleCache)
+    {
+
+        // center of the cap
+        Vector3 center = Vector3.zero;
+        foreach (var index in indices)
+            center += _newVerticesCache[index];
+
+        center = center / indices.Count;
+
+        // you need an axis based on the cap
+        Vector3 upward = Vector3.zero;
+        // 90 degree turn
+        upward.x = _blade.Normal.y;
+        upward.y = -_blade.Normal.x;
+        upward.z = _blade.Normal.z;
+        Vector3 left = Vector3.Cross(_blade.Normal, upward);
+
+        Vector3 displacement = Vector3.zero;
+        Vector2 newUV1 = Vector2.zero;
+        Vector2 newUV2 = Vector2.zero;
+
+        for (int i = 0; i < indices.Count - 1; i++)
+        {
+
+            displacement = _newVerticesCache[indices[i]] - center;
+            newUV1 = Vector3.zero;
+            newUV1.x = 0.5f + Vector3.Dot(displacement, left);
+            newUV1.y = 0.5f + Vector3.Dot(displacement, upward);
+            //newUV1.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
+
+            displacement = _newVerticesCache[indices[i + 1]] - center;
+            newUV2 = Vector3.zero;
+            newUV2.x = 0.5f + Vector3.Dot(displacement, left);
+            newUV2.y = 0.5f + Vector3.Dot(displacement, upward);
+            //newUV2.z = 0.5f + Vector3.Dot(displacement, _blade.normal);
 
 
-    //        NormalCheck(ref _newTriangleCache);
 
-    //        _leftSideMesh.AddTriangle(_newTriangleCache, _capMatSub);
+            _newTriangleCache.vertices[0] = _newVerticesCache[indices[i]];
+            _newTriangleCache.uvs[0] = newUV1;
+            _newTriangleCache.normals[0] = -_blade.Normal;
+            _newTriangleCache.tangents[0] = Vector4.zero;
 
-    //        _newTriangleCache.normals[0] = _blade.normal;
-    //        _newTriangleCache.normals[1] = _blade.normal;
-    //        _newTriangleCache.normals[2] = _blade.normal;
+            _newTriangleCache.vertices[1] = _newVerticesCache[indices[i + 1]];
+            _newTriangleCache.uvs[1] = newUV2;
+            _newTriangleCache.normals[1] = -_blade.Normal;
+            _newTriangleCache.tangents[1] = Vector4.zero;
 
-    //        NormalCheck(ref _newTriangleCache);
+            _newTriangleCache.vertices[2] = center;
+            _newTriangleCache.uvs[2] = new Vector2(0.5f, 0.5f);
+            _newTriangleCache.normals[2] = -_blade.Normal;
+            _newTriangleCache.tangents[2] = Vector4.zero;
 
-    //        _rightSideMesh.AddTriangle(_newTriangleCache, _capMatSub);
 
-    //    }
+            NormalCheck(ref _newTriangleCache);
 
-    //}
+            _leftSideMesh.AddTriangle(_newTriangleCache, _capMatSub);
+
+            _newTriangleCache.normals[0] = _blade.Normal;
+            _newTriangleCache.normals[1] = _blade.Normal;
+            _newTriangleCache.normals[2] = _blade.Normal;
+
+            NormalCheck(ref _newTriangleCache);
+
+            _rightSideMesh.AddTriangle(_newTriangleCache, _capMatSub);
+
+        }
+
+    }
     #endregion
 
     #region Misc.
@@ -907,10 +973,12 @@ public static class MeshCut
             Vector2 temp2 = triangle.uvs[2];
             triangle.uvs[2] = triangle.uvs[0];
             triangle.uvs[0] = temp2;
-
-            Vector4 temp3 = triangle.tangents[2];
-            triangle.tangents[2] = triangle.tangents[0];
-            triangle.tangents[0] = temp3;
+            if (triangle.tangents != null)
+            {
+                Vector4 temp3 = triangle.tangents[2];
+                triangle.tangents[2] = triangle.tangents[0];
+                triangle.tangents[0] = temp3;
+            }
         }
 
     }
