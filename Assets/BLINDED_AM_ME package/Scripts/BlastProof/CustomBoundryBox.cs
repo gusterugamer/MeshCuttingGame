@@ -25,22 +25,10 @@ public struct BoundaryPoint
 public class CustomBoundryBox : MonoBehaviour
 {
     [SerializeField] private GameObject m_toCutObject;
-
     
-    public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();     
-
-    public GameObject objectToCheckIfInside;   
+    public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();    
 
     private Transform trans;
-
-    //TEST ONLY
-    private bool draw = false;
-
-    public bool drawNew = false;
-   
-    int i = -1;
-
-    //TEST ONLY
 
     // Start is called before the first frame update
     void Start()
@@ -48,43 +36,13 @@ public class CustomBoundryBox : MonoBehaviour
         m_toCutObject = gameObject;
         trans = m_toCutObject.GetComponent<Transform>();          
     }
-
-    // Update is called once per frame
-    void Update()
-    {       
-        if (draw)
-        {
-            DrawCustomBoundary();
-            CheckIfInside();
-        }
-        if (drawNew)
-        {
-          //  MOVETHISFUCKERFORTEST();
-            DrawNewCustomBoundary();
-            CheckIfInside();
-            draw = false;          
-        }
-    }
-
+   
     public void CreateCustomBoundary()
     {
-        //Vector3 center = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.center;
-        //Vector3 minPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.min;
-        //Vector3 maxPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.max;
-        //Vector3 min = center + minPrime;
-        //Vector3 max = center + maxPrime;     
-
-        //m_CustomBox.Add(new BoundaryPoint(min));       
-        //m_CustomBox.Add(new BoundaryPoint(new Vector3(min.x, max.y, min.z)));
-        //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, max.y, min.z)));
-        //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, min.y, min.z)));
-
         foreach (Transform child in transform)
         {
             m_CustomBox.Add(new BoundaryPoint(child.localPosition));
-        }
-
-        draw = true;
+        }        
     }
 
     private void OnDrawGizmosSelected()
@@ -102,53 +60,7 @@ public class CustomBoundryBox : MonoBehaviour
             Debug.DrawLine((transform.position + m_CustomBox2[i].m_pos) * transform.localScale.x, (transform.position + m_CustomBox2[(i + 1) % length].m_pos) * transform.localScale.x, Color.red);
         }
     }
-
-    //TEST ONLY
-    void DrawCustomBoundary()
-    {
-       
-    }
-
-    void DrawNewCustomBoundary()
-    {
-        int length = m_CustomBox.Count;
-        for (int i=0;i<length;i++)
-        {
-            //Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);        
-            Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);
-        }
-    }
-
-    void CheckIfInside()
-    {
-        if (objectToCheckIfInside)
-        {
-            var invTransPos = transform.InverseTransformPoint(objectToCheckIfInside.transform.position);
-
-            //Debug.Log("RelativePos: " + invTransPos);
-
-            if (Mathematics.IsInsidePolygon(m_CustomBox, new Vector2(invTransPos.x, invTransPos.y)))
-            {              
-                Debug.Log("inside");
-            }
-            else
-            {
-                Debug.Log("outside");
-            }            
-        }
-    }
-
-    void MOVETHISFUCKERFORTEST()
-    {
-        if (objectToCheckIfInside)
-        {
-            objectToCheckIfInside.transform.position = Vector3.MoveTowards(objectToCheckIfInside.transform.position, transform.TransformPoint(m_CustomBox[(i + 1) % m_CustomBox.Count].m_pos), Time.deltaTime* 0.1f);
-            if (objectToCheckIfInside.transform.position == transform.TransformPoint(m_CustomBox[(i + 1) % m_CustomBox.Count].m_pos))
-                i++;
-        }
-    }
-
-    //TEST ONLY
+    
     public List<IntersectionPoint> GetIntersections(Vector3 startPoint, Vector3 endPoint)
     {
         List<IntersectionPoint> pointsList = new List<IntersectionPoint>();

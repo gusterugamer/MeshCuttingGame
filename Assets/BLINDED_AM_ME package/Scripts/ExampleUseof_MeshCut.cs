@@ -18,8 +18,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour
     {
         mainCam = Camera.main;
         startPos = new Vector2(1.0f, 1.0f);
-        endPos = Vector2.zero;
-        victim.GetComponent<CustomBoundryBox>().CreateCustomBoundary();
+        endPos = Vector2.zero;        
     }
 
     void Update()
@@ -30,8 +29,8 @@ public class ExampleUseof_MeshCut : MonoBehaviour
 
     void CutStuff(Vector3 startPos, Vector3 endPos)
     {
-        GameObject[] pieces = MeshCut.Cut(victim, capMaterial, startPos, endPos);
-        list = MeshCut.intersectionPoint;
+        //GameObject[] pieces = MeshCut.Cut(victim, capMaterial, startPos, endPos);
+        //list = MeshCut.intersectionPoint;
 
         //TEST ONLY
         //if (list != null)
@@ -47,11 +46,11 @@ public class ExampleUseof_MeshCut : MonoBehaviour
         //    }
         //}
         //TEST ONLY
-        if (pieces != null)
-        {
-            if (!pieces[1].GetComponent<DrawBounds>())
-                pieces[1].AddComponent<DrawBounds>();
-        }
+        //if (pieces != null)
+        //{
+        //    if (!pieces[1].GetComponent<DrawBounds>())
+        //        pieces[1].AddComponent<DrawBounds>();
+        //}
     }
 
     void GetMousePosition()
