@@ -103,5 +103,10 @@ public class CustomBoundryBox : MonoBehaviour
             }
         }      
         return pointsList;
-    }  
+    }
+
+    private void OnBecameInvisible()
+    {
+        Destroy(gameObject);
+    }
 }

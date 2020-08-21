@@ -10,19 +10,11 @@ public  class MeshCut : MonoBehaviour
     public Material capMaterial;
 
     private  List<BoundaryPoint> _newRightBoundary;
-    private  List<BoundaryPoint> _newLeftBoundary;
-
-    private Vector3 startPos;
-    private Vector3 endPos;
-
-    int intersect = 0;
-
-    private Camera mainCam;   
+    private  List<BoundaryPoint> _newLeftBoundary;   
 
     private void Start()
     {
-        Application.targetFrameRate = 60;
-        mainCam = Camera.main;
+        Application.targetFrameRate = 60;       
         GetComponent<CustomBoundryBox>().CreateCustomBoundary();
     }
 
@@ -85,7 +77,7 @@ public  class MeshCut : MonoBehaviour
                 leftSideObj.name = "left side";
                 leftSideObj.GetComponent<MeshFilter>().mesh = left_HalfMesh;     
                 leftSideObj.GetComponent<MeshRenderer>().materials = mats;
-            }
+            }           
             if (_rightSideMesh != null)
             {
                 Mesh right_HalfMesh = _rightSideMesh;
@@ -93,6 +85,10 @@ public  class MeshCut : MonoBehaviour
                 rightSideObj.name = "right side";
                 rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
                 rightSideObj.GetComponent<MeshRenderer>().materials = mats;
+            }
+            else
+            {
+                Destroy(rightSideObj);
             }
         }        
     }     
@@ -105,11 +101,7 @@ public  class MeshCut : MonoBehaviour
         int secondPointIndex = 1 - firstPointIndex;
 
         //leftSIde     
-        CustomBoundryBox _leftSideBoundary = leftSideObj.GetComponent<CustomBoundryBox>();     
-
-        //Correcting intersection points so they match perfectly the cutting plane
-       // intersectionPoint[firstPointIndex] = CorrectIntersections(_boundaryBox.m_CustomBox, intersectionPoint[firstPointIndex]);
-       // intersectionPoint[secondPointIndex] = CorrectIntersections(_boundaryBox.m_CustomBox, intersectionPoint[secondPointIndex]);
+        CustomBoundryBox _leftSideBoundary = leftSideObj.GetComponent<CustomBoundryBox>();           
 
         _newLeftBoundary = new List<BoundaryPoint>();
         _newRightBoundary = new List<BoundaryPoint>();
@@ -157,6 +149,5 @@ public  class MeshCut : MonoBehaviour
         //}    
 
         _leftSideBoundary.UpdateCustomBoundary();      
-    }         
-
+    }
 }
