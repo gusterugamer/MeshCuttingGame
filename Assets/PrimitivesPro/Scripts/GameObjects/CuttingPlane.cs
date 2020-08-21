@@ -120,7 +120,7 @@ namespace PrimitivesPro.GameObjects
                 cut0.AddComponent<DefaultObject>();
                 cut1.AddComponent<DefaultObject>();
             }
-        }
+        }   
 
         public void Cut()
         {
@@ -149,6 +149,6 @@ namespace PrimitivesPro.GameObjects
         public override void GenerateGeometry()
         {
             GenerateGeometry(size);
-        }
+        }        
     }
 }
