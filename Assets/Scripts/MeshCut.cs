@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using System;
 using PrimitivesPro.MeshCutting;
 
-public  class MeshCut : MonoBehaviour
+public class MeshCut : MonoBehaviour
 {
     //private  Plane _blade;
-    private  PrimitivesPro.Utils.Plane _blade;
+    private PrimitivesPro.Utils.Plane _blade;
     public Material capMaterial;
 
-    private  List<BoundaryPoint> _newRightBoundary;
-    private  List<BoundaryPoint> _newLeftBoundary;   
+    private List<BoundaryPoint> _newRightBoundary;
+    private List<BoundaryPoint> _newLeftBoundary;
+
+    private int cutCount = 0;
 
     private void Start()
     {
-        Application.targetFrameRate = 60;       
+        Application.targetFrameRate = 60;
         GetComponent<CustomBoundryBox>().CreateCustomBoundary();
     }
 
@@ -26,17 +28,17 @@ public  class MeshCut : MonoBehaviour
     public void Cut(in GameObject victim, in Material capMaterial, Vector3 startPos, Vector3 endPos)
     {
         CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
-        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);     
+        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
 
         if (intersectionPoints.Count == 2)
-        {         
+        {
 
-            MeshCutterWithBoundary mc = new MeshCutterWithBoundary();             
+            MeshCutterWithBoundary mc = new MeshCutterWithBoundary();
 
             //CHACHE
 
             // get the victims mesh
-            Mesh _victim_mesh = victim.GetComponent<MeshFilter>().mesh;        
+            Mesh _victim_mesh = victim.GetComponent<MeshFilter>().mesh;
 
             //New objects creation          
 
@@ -45,9 +47,9 @@ public  class MeshCut : MonoBehaviour
             GameObject rightSideObj = new GameObject("right side", typeof(MeshFilter), typeof(MeshRenderer));
             rightSideObj.transform.position = victim.transform.position;
             rightSideObj.transform.rotation = victim.transform.rotation;
-            rightSideObj.transform.localScale = victim.transform.localScale;     
+            rightSideObj.transform.localScale = victim.transform.localScale;
             //BOUNDARY CUT      
-            CreateNewBoundary(victim.GetComponent<CustomBoundryBox>(), leftSideObj, rightSideObj, ref intersectionPoints);       
+            CreateNewBoundary(victim.GetComponent<CustomBoundryBox>(), leftSideObj, rightSideObj, ref intersectionPoints);
 
             //MeshCut
             mc.Cut(_victim_mesh, transform, _blade, false, new Vector4(0.0f, 0.0f, 1.0f, 1.0f), out Mesh _leftSideMesh, out Mesh _rightSideMesh, _boundaryBox.m_CustomBox);
@@ -55,6 +57,7 @@ public  class MeshCut : MonoBehaviour
 
             // The capping Material will be at the end
             Material[] mats = victim.GetComponent<MeshRenderer>().sharedMaterials;
+
             if (mats[mats.Length - 1].name != capMaterial.name)
             {
                 Material[] newMats = new Material[mats.Length + 1];
@@ -62,26 +65,25 @@ public  class MeshCut : MonoBehaviour
                 newMats[mats.Length] = capMaterial;
                 mats = newMats;
             }
-            if (_leftSideMesh != null)
-            {
-                // Left Mesh
-                Mesh left_HalfMesh = _leftSideMesh;
-                left_HalfMesh.name = "Split Mesh Left";
-                leftSideObj.name = "left side";
-                leftSideObj.GetComponent<MeshFilter>().mesh = left_HalfMesh;     
-                leftSideObj.GetComponent<MeshRenderer>().materials = mats;
-            }           
-            if (_rightSideMesh != null)
-            {
-                Mesh right_HalfMesh = _rightSideMesh;
-                right_HalfMesh.name = "Split Mesh Right";
-                rightSideObj.name = "right side";
-                rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
-                rightSideObj.GetComponent<MeshRenderer>().materials = mats;
-            }          
-        }        
-    }    
-    private  void CreateNewBoundary(in CustomBoundryBox _boundaryBox, in GameObject leftSideObj, in GameObject rightSideObj, ref List<IntersectionPoint> intersectionPoint)
+            // Left Mesh          
+
+            Mesh left_HalfMesh = _leftSideMesh;
+            left_HalfMesh.name = "Split Mesh Left" + cutCount;
+            leftSideObj.name = "left side" + cutCount;
+            leftSideObj.GetComponent<MeshFilter>().mesh = left_HalfMesh;
+            leftSideObj.GetComponent<MeshRenderer>().materials = mats;
+
+            Mesh right_HalfMesh = _rightSideMesh;
+            right_HalfMesh.name = "Split Mesh Right" + cutCount;
+            rightSideObj.name = "right side" + cutCount;
+            rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
+            rightSideObj.GetComponent<MeshRenderer>().materials = mats;
+
+            cutCount++;
+
+        }
+    }
+    private void CreateNewBoundary(in CustomBoundryBox _boundaryBox, in GameObject leftSideObj, in GameObject rightSideObj, ref List<IntersectionPoint> intersectionPoint)
     {
         //picking first and second intersection point indicies by looking who is closest to the start of the ppolygon
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
@@ -91,7 +93,7 @@ public  class MeshCut : MonoBehaviour
         Vector2 intersectPct2 = transform.TransformPoint(intersectionPoint[secondPointIndex]._pos);
 
         Vector3 tangent = intersectPct2 - intersectPct;
-        
+
         Vector3 depth = Camera.main.transform.forward;
         Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
 
@@ -100,7 +102,7 @@ public  class MeshCut : MonoBehaviour
         _blade = new PrimitivesPro.Utils.Plane(normal, intersectPct);
 
         //leftSIde     
-        CustomBoundryBox _leftSideBoundary = leftSideObj.GetComponent<CustomBoundryBox>();           
+        CustomBoundryBox _leftSideBoundary = leftSideObj.GetComponent<CustomBoundryBox>();
 
         _newLeftBoundary = new List<BoundaryPoint>();
         _newRightBoundary = new List<BoundaryPoint>();
@@ -116,7 +118,7 @@ public  class MeshCut : MonoBehaviour
         for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Count; i++)
         {
             _newLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
-        }        
+        }
 
         //rightside
         int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
@@ -145,8 +147,8 @@ public  class MeshCut : MonoBehaviour
         {
             _leftSideBoundary.m_CustomBox = _newRightBoundary;
             rightSide.m_CustomBox = _newLeftBoundary;
-        }    
+        }
 
-        _leftSideBoundary.UpdateCustomBoundary();      
+        _leftSideBoundary.UpdateCustomBoundary();
     }
 }

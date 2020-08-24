@@ -806,13 +806,7 @@ namespace PrimitivesPro.MeshCutting
                 var v0 = meshVertices[meshTriangles[i]];
                 var v1 = meshVertices[meshTriangles[i + 1]];
                 var v2 = meshVertices[meshTriangles[i + 2]];
-
-                /////TEST
-                //var side0 = plane.GetSideFix(ref v0);
-                //var side1 = plane.GetSideFix(ref v1);
-                //var side2 = plane.GetSideFix(ref v2);
-                ///TEST
-                ///
+           
                 Vector2[] vertsToCheck = { v0, v1, v2 };
 
                 var side = Mathematics.IsInsidePolygon(bp, vertsToCheck); 
@@ -907,14 +901,31 @@ namespace PrimitivesPro.MeshCutting
             MeasureIt.End("CutCycleFirstPass");
             MeasureIt.Begin("CutCycleSecondPass");
 #endif
-            mesh0 = null;
-            mesh1 = null;
+         
+
             centroid0 = centroid[0];
             centroid1 = centroid[1];
             intersectionData = null;
 
+            mesh0 = null;
+            mesh1 = null;
+
             if (cutTris.Count < 1)
             {
+                mesh0 = new Mesh();
+
+                mesh0.vertices = vertices[0].ToArray();
+                mesh0.normals = normals[0].ToArray();
+                mesh0.uv = uvs[0].ToArray();
+                mesh0.triangles = triangles[0].ToArray();
+
+                mesh1 = new Mesh();
+
+                mesh1.vertices = vertices[1].ToArray();
+                mesh1.normals = normals[1].ToArray();
+                mesh1.uv = uvs[1].ToArray();
+                mesh1.triangles = triangles[1].ToArray();
+
                 stopWatch.Stop();
                 return stopWatch.ElapsedMilliseconds;
             }

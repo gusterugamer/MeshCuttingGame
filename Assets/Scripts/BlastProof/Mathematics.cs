@@ -144,7 +144,7 @@ public class Mathematics
         return minDistance;
     }
 
-    public static bool[] IsInsidePolygon(in List<BoundaryPoint> vertices, in Vector2[] checkPoints, float margin = 0.00001f)
+    public static bool[] IsInsidePolygon(in List<BoundaryPoint> vertices, in Vector2[] checkPoints, float margin = 0.000001f)
     {
         bool[] isInMargin = new bool[checkPoints.Length];
         float[] cdtp= ClosestDistanceToPolygon(vertices, checkPoints);
