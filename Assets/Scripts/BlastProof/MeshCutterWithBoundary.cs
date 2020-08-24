@@ -32,6 +32,8 @@ namespace PrimitivesPro.MeshCutting
         private Contour contour;
         private Dictionary<long, int>[] cutVertCache;
         private Dictionary<int, int>[] cornerVertCache;
+        private Dictionary<int, bool[]> cutTrisVertSideCache = new Dictionary<int, bool[]>();
+
         private int contourBufferSize;
 
         private Vector4 crossSectionUV = defaultCrossSection;
@@ -805,18 +807,24 @@ namespace PrimitivesPro.MeshCutting
                 var v1 = meshVertices[meshTriangles[i + 1]];
                 var v2 = meshVertices[meshTriangles[i + 2]];
 
-                var side0 = Mathematics.IsInsidePolygon(bp, v0);
-                var side1 = Mathematics.IsInsidePolygon(bp, v1);
-                var side2 = Mathematics.IsInsidePolygon(bp, v2);
+                /////TEST
+                //var side0 = plane.GetSideFix(ref v0);
+                //var side1 = plane.GetSideFix(ref v1);
+                //var side2 = plane.GetSideFix(ref v2);
+                ///TEST
+                ///
+                Vector2[] vertsToCheck = { v0, v1, v2 };
 
+                var side = Mathematics.IsInsidePolygon(bp, vertsToCheck); 
+                
                 meshVertices[meshTriangles[i]] = v0;
                 meshVertices[meshTriangles[i + 1]] = v1;
                 meshVertices[meshTriangles[i + 2]] = v2;
 
                 // all points on one side
-                if (side0 == side1 && side1 == side2)
+                if (side[0] == side[1] && side[1] == side[2])
                 {
-                    var idx = side0 ? 0 : 1;
+                    var idx = side[0] ? 0 : 1;
 
                     if (triCache[meshTriangles[i]] == 0)
                     {
@@ -873,6 +881,7 @@ namespace PrimitivesPro.MeshCutting
                 {
                     // intersection triangles add to list and process it in second pass
                     cutTris.Add(i);
+                    cutTrisVertSideCache.Add(i, side);
                 }
             }
 
@@ -923,18 +932,24 @@ namespace PrimitivesPro.MeshCutting
                     uvs = new[] { meshUV[meshTriangles[cutTri + 0]], meshUV[meshTriangles[cutTri + 1]], meshUV[meshTriangles[cutTri + 2]] }
                 };
 
+                Vector2[] vertsToCheck = { triangle.pos[0], triangle.pos[1], triangle.pos[2] };
                 // check points with a plane
-                var side0 =Mathematics.IsInsidePolygon(bp,triangle.pos[0]);
-                var side1 =Mathematics.IsInsidePolygon(bp,triangle.pos[1]);
-                var side2 =Mathematics.IsInsidePolygon(bp,triangle.pos[2]);
+
+                var side = cutTrisVertSideCache[cutTri];              
+
+                //var side0 = plane.GetSideFix(ref triangle.pos[0]);
+                //var side1 = plane.GetSideFix(ref triangle.pos[1]);
+                //var side2 = plane.GetSideFix(ref triangle.pos[2]);
+
+               
 
                 float t0, t1;
                 Vector3 s0, s1;
 
-                var idxLeft = side0 ? 0 : 1;
+                var idxLeft = side[0] ? 0 : 1;
                 var idxRight = 1 - idxLeft;
 
-                if (side0 == side1)
+                if (side[0] == side[1])
                 {
                     var a = plane.IntersectSegment(triangle.pos[2], triangle.pos[0], out t0, out s0);
                     var b = plane.IntersectSegment(triangle.pos[2], triangle.pos[1], out t1, out s1);
@@ -980,7 +995,7 @@ namespace PrimitivesPro.MeshCutting
                         }
                     }
                 }
-                else if (side0 == side2)
+                else if (side[0] == side[2])
                 {
                     var a = plane.IntersectSegment(triangle.pos[1], triangle.pos[0], out t0, out s1);
                     var b = plane.IntersectSegment(triangle.pos[1], triangle.pos[2], out t1, out s0);

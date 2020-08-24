@@ -29,16 +29,9 @@ public  class MeshCut : MonoBehaviour
         List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);     
 
         if (intersectionPoints.Count == 2)
-        {
-            MeshCutterWithBoundary mc = new MeshCutterWithBoundary();
+        {         
 
-            Vector3 tangent = (endPos - startPos);
-            Vector3 depth = Camera.main.transform.forward;
-            Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
-
-            normal.z = 0.0f;
-
-            _blade = new PrimitivesPro.Utils.Plane(normal, startPos);          
+            MeshCutterWithBoundary mc = new MeshCutterWithBoundary();             
 
             //CHACHE
 
@@ -57,7 +50,7 @@ public  class MeshCut : MonoBehaviour
             CreateNewBoundary(victim.GetComponent<CustomBoundryBox>(), leftSideObj, rightSideObj, ref intersectionPoints);       
 
             //MeshCut
-            mc.Cut(_victim_mesh, transform, _blade, true, new Vector4(0.0f, 0.0f, 1.0f, 1.0f), out Mesh _leftSideMesh, out Mesh _rightSideMesh, _boundaryBox.m_CustomBox);
+            mc.Cut(_victim_mesh, transform, _blade, false, new Vector4(0.0f, 0.0f, 1.0f, 1.0f), out Mesh _leftSideMesh, out Mesh _rightSideMesh, _boundaryBox.m_CustomBox);
 
 
             // The capping Material will be at the end
@@ -85,20 +78,26 @@ public  class MeshCut : MonoBehaviour
                 rightSideObj.name = "right side";
                 rightSideObj.GetComponent<MeshFilter>().mesh = right_HalfMesh;
                 rightSideObj.GetComponent<MeshRenderer>().materials = mats;
-            }
-            else
-            {
-                Destroy(rightSideObj);
-            }
+            }          
         }        
-    }     
-
+    }    
     private  void CreateNewBoundary(in CustomBoundryBox _boundaryBox, in GameObject leftSideObj, in GameObject rightSideObj, ref List<IntersectionPoint> intersectionPoint)
-    {       
-
+    {
         //picking first and second intersection point indicies by looking who is closest to the start of the ppolygon
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
         int secondPointIndex = 1 - firstPointIndex;
+
+        Vector2 intersectPct = transform.TransformPoint(intersectionPoint[firstPointIndex]._pos);
+        Vector2 intersectPct2 = transform.TransformPoint(intersectionPoint[secondPointIndex]._pos);
+
+        Vector3 tangent = intersectPct2 - intersectPct;
+        
+        Vector3 depth = Camera.main.transform.forward;
+        Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
+
+        normal.z = 0.0f;
+
+        _blade = new PrimitivesPro.Utils.Plane(normal, intersectPct);
 
         //leftSIde     
         CustomBoundryBox _leftSideBoundary = leftSideObj.GetComponent<CustomBoundryBox>();           
@@ -137,16 +136,16 @@ public  class MeshCut : MonoBehaviour
         rightSide.m_CustomBox = _newRightBoundary;
         _leftSideBoundary.m_CustomBox = _newLeftBoundary;
 
-        //if (_blade.GetSide(_boundaryBox.m_CustomBox[intersectionPoint[firstPointIndex]._previousBoundaryPoint].m_pos))
-        //{
-        //    rightSide.m_CustomBox = _newRightBoundary;
-        //    _leftSideBoundary.m_CustomBox = _newLeftBoundary;
-        //}
-        //else
-        //{
-        //    _leftSideBoundary.m_CustomBox = _newRightBoundary;
-        //    rightSide.m_CustomBox = _newLeftBoundary;
-        //}    
+        if (_blade.GetSide(_boundaryBox.m_CustomBox[intersectionPoint[firstPointIndex]._previousBoundaryPoint].m_pos))
+        {
+            rightSide.m_CustomBox = _newRightBoundary;
+            _leftSideBoundary.m_CustomBox = _newLeftBoundary;
+        }
+        else
+        {
+            _leftSideBoundary.m_CustomBox = _newRightBoundary;
+            rightSide.m_CustomBox = _newLeftBoundary;
+        }    
 
         _leftSideBoundary.UpdateCustomBoundary();      
     }
