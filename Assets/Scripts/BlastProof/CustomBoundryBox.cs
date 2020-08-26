@@ -36,12 +36,12 @@ public class CustomBoundryBox : MonoBehaviour
     void Start()
     {
         m_toCutObject = gameObject;
-        trans = m_toCutObject.GetComponent<Transform>();
-        polyCol = GetComponent<PolygonCollider2D>();
+        trans = m_toCutObject.GetComponent<Transform>();       
     }
    
     public void CreateCustomBoundary()
     {
+        polyCol = GetComponent<PolygonCollider2D>();
         Vector2[] coliderPoints = new Vector2[transform.childCount];
         int i = 0;
         foreach (Transform child in transform)
@@ -67,7 +67,7 @@ public class CustomBoundryBox : MonoBehaviour
         polyCol.points = coliderPoints;
     }
 
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         List<BoundaryPoint> m_CustomBox2 = new List<BoundaryPoint>();
 

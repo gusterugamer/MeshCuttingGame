@@ -32,6 +32,8 @@ namespace PrimitivesPro.MeshCutting
         private Contour contour;
         private Dictionary<long, int>[] cutVertCache;
         private Dictionary<int, int>[] cornerVertCache;
+
+        private Dictionary<int, bool[]> vertSideCache;
         private int contourBufferSize;
 
         private Vector4 crossSectionUV = defaultCrossSection;
@@ -772,6 +774,8 @@ namespace PrimitivesPro.MeshCutting
             var stopWatch = new Stopwatch();
             stopWatch.Start();
 
+            vertSideCache = new Dictionary<int, bool[]>();
+
 #if PROFILING
             MeasureIt.Begin("CutAllocations");
 #endif
@@ -805,9 +809,11 @@ namespace PrimitivesPro.MeshCutting
                 var v1 = meshVertices[meshTriangles[i + 1]];
                 var v2 = meshVertices[meshTriangles[i + 2]];
 
+               
+
                 var side0 = Mathematics.IsInsidePolygon(bp, v0);
                 var side1 = Mathematics.IsInsidePolygon(bp, v1);
-                var side2 = Mathematics.IsInsidePolygon(bp, v2);
+                var side2 = Mathematics.IsInsidePolygon(bp, v2);              
 
                 meshVertices[meshTriangles[i]] = v0;
                 meshVertices[meshTriangles[i + 1]] = v1;
@@ -872,7 +878,9 @@ namespace PrimitivesPro.MeshCutting
                 else
                 {
                     // intersection triangles add to list and process it in second pass
+                    bool[] side = { side0, side1, side2 };
                     cutTris.Add(i);
+                    vertSideCache.Add(i, side);
                 }
             }
 
@@ -906,6 +914,18 @@ namespace PrimitivesPro.MeshCutting
 
             if (cutTris.Count < 1)
             {
+                mesh0 = new Mesh();
+                mesh0.vertices = vertices[0].ToArray();
+                mesh0.normals = normals[0].ToArray();
+                mesh0.uv = uvs[0].ToArray();
+                mesh0.triangles = triangles[0].ToArray();
+
+                mesh1 = new Mesh();
+                mesh1.vertices = vertices[1].ToArray();
+                mesh1.normals = normals[1].ToArray();
+                mesh1.uv = uvs[1].ToArray();              
+                mesh1.triangles = triangles[1].ToArray();
+
                 stopWatch.Stop();
                 return stopWatch.ElapsedMilliseconds;
             }
@@ -924,9 +944,9 @@ namespace PrimitivesPro.MeshCutting
                 };
 
                 // check points with a plane
-                var side0 =Mathematics.IsInsidePolygon(bp,triangle.pos[0]);
-                var side1 =Mathematics.IsInsidePolygon(bp,triangle.pos[1]);
-                var side2 =Mathematics.IsInsidePolygon(bp,triangle.pos[2]);
+                var side0 = vertSideCache[cutTri][0];
+                var side1 = vertSideCache[cutTri][1];
+                var side2 = vertSideCache[cutTri][2];
 
                 float t0, t1;
                 Vector3 s0, s1;
