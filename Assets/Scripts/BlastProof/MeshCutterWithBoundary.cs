@@ -807,11 +807,15 @@ namespace PrimitivesPro.MeshCutting
                 // get triangle points
                 var v0 = meshVertices[meshTriangles[i]];
                 var v1 = meshVertices[meshTriangles[i + 1]];
-                var v2 = meshVertices[meshTriangles[i + 2]];               
+                var v2 = meshVertices[meshTriangles[i + 2]];
 
-                var side0 = Mathematics.IsInsidePolygon(bp, v0);
-                var side1 = Mathematics.IsInsidePolygon(bp, v1);
-                var side2 = Mathematics.IsInsidePolygon(bp, v2);              
+                Vector2[] verts = { v0, v1, v2 };
+
+                bool[] whichSide = Mathematics.IsInsidePolygon(bp, verts);
+
+                var side0 = whichSide[0];
+                var side1 = whichSide[1];
+                var side2 = whichSide[2];
 
                 meshVertices[meshTriangles[i]] = v0;
                 meshVertices[meshTriangles[i + 1]] = v1;
@@ -875,10 +879,10 @@ namespace PrimitivesPro.MeshCutting
                 }
                 else
                 {
-                    // intersection triangles add to list and process it in second pass
-                    bool[] side = { side0, side1, side2 };
+                    //bool[] whichSide = { side0, side1, side2 };
+                    // intersection triangles add to list and process it in second pass                   
                     cutTris.Add(i);
-                    vertSideCache.Add(i, side);
+                    vertSideCache.Add(i, whichSide);
                 }
             }
 
