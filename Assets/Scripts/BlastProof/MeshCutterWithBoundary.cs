@@ -807,9 +807,7 @@ namespace PrimitivesPro.MeshCutting
                 // get triangle points
                 var v0 = meshVertices[meshTriangles[i]];
                 var v1 = meshVertices[meshTriangles[i + 1]];
-                var v2 = meshVertices[meshTriangles[i + 2]];
-
-               
+                var v2 = meshVertices[meshTriangles[i + 2]];               
 
                 var side0 = Mathematics.IsInsidePolygon(bp, v0);
                 var side1 = Mathematics.IsInsidePolygon(bp, v1);
@@ -1320,7 +1318,7 @@ namespace PrimitivesPro.MeshCutting
             }
         }
 
-        void Triangulate(List<Dictionary<int, int>> contours, Utils.Plane plane, List<Vector3>[] vertices, List<Vector3>[] normals, List<Vector2>[] uvs, List<int>[] triangles, bool uvCutMesh)
+        void Triangulate(in List<Dictionary<int, int>> contours, in Utils.Plane plane, in List<Vector3>[] vertices, in List<Vector3>[] normals, in List<Vector2>[] uvs, in List<int>[] triangles, bool uvCutMesh)
         {
             if (contours.Count == 0 || contours[0].Count < 3)
             {

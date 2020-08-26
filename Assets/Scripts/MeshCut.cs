@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using PrimitivesPro.MeshCutting;
+using System.Linq;
 
 public class MeshCut : MonoBehaviour
 {
@@ -15,6 +16,8 @@ public class MeshCut : MonoBehaviour
     private Vector3 startPos;
     private Vector3 endPos;
 
+    private Mesh mesh;
+
     int intersect = 0;
 
     private Camera mainCam;
@@ -24,11 +27,136 @@ public class MeshCut : MonoBehaviour
         Application.targetFrameRate = 60;
         mainCam = Camera.main;
         GetComponent<CustomBoundryBox>().CreateCustomBoundary();
+        //CreateBoundaryA();
     }
 
     public void StartCutting(Vector3 startPos, Vector3 endPos)
     {
         Cut(gameObject, capMaterial, startPos, endPos);
+    }
+
+    private void CreateBoundaryA()
+    {
+        mesh = GetComponent<MeshFilter>().mesh;
+
+        Dictionary<KeyValuePair<int, int>, int> edgeRefCount = new Dictionary<KeyValuePair<int, int>, int>();
+        HashSet<Vector2> vertPos; vertPos = new HashSet<Vector2>();
+
+        for (int i = 0; i < mesh.triangles.Length; i += 3)
+        {
+            int vertPos1 = mesh.triangles[i];
+            int vertPos2 = mesh.triangles[i + 1];
+            int vertPos3 = mesh.triangles[i + 2];
+
+            KeyValuePair<int, int> pair1 = new KeyValuePair<int, int>(vertPos1, vertPos2);
+            KeyValuePair<int, int> pair2 = new KeyValuePair<int, int>(vertPos2, vertPos3);
+            KeyValuePair<int, int> pair3 = new KeyValuePair<int, int>(vertPos3, vertPos1);
+
+            KeyValuePair<int, int> pair1fliped = new KeyValuePair<int, int>(pair1.Value, pair1.Key);
+            KeyValuePair<int, int> pair2fliped = new KeyValuePair<int, int>(pair2.Value, pair2.Key);
+            KeyValuePair<int, int> pair3fliped = new KeyValuePair<int, int>(pair3.Value, pair3.Key);
+
+            ////////////////////
+            if (edgeRefCount.ContainsKey(pair1) || edgeRefCount.ContainsKey(pair1fliped))
+            {
+                if (edgeRefCount.ContainsKey(pair1))
+                {
+                    edgeRefCount[pair1]++;
+                }
+                else
+                {
+                    edgeRefCount[pair1fliped]++;
+                }
+            }
+            else
+            {
+                edgeRefCount.Add(pair1, 1);
+            }
+
+            ///////////////////
+            if (edgeRefCount.ContainsKey(pair2))
+            {
+                if (edgeRefCount.ContainsKey(pair2))
+                {
+                    edgeRefCount[pair2]++;
+                }
+                else
+                {
+                    edgeRefCount[pair2fliped]++;
+                }
+            }
+            else
+            {
+                edgeRefCount.Add(pair2, 1);
+            }
+
+            //////////////
+            if (edgeRefCount.ContainsKey(pair3) || edgeRefCount.ContainsKey(pair3fliped))
+            {
+                if (edgeRefCount.ContainsKey(pair3))
+                {
+                    edgeRefCount[pair3]++;
+                }
+                else
+                {
+                    edgeRefCount[pair3fliped]++;
+                }
+            }
+            else
+            {
+                edgeRefCount.Add(pair3, 1);
+            }
+        }
+
+        foreach (var pair in edgeRefCount)
+        {
+            if (pair.Value == 1)
+            {
+                vertPos.Add(new Vector2(mesh.vertices[pair.Key.Value].x, mesh.vertices[pair.Key.Value].y));
+                vertPos.Add(new Vector2(mesh.vertices[pair.Key.Key].x, mesh.vertices[pair.Key.Key].y));
+            }
+        }
+
+        List<Vector3> testList = new List<Vector3>();
+
+        foreach (var pos in vertPos)
+        {
+            testList.Add(pos);
+        }
+
+        //var polyList = JarvisMarchConvexHull.GetConvexHull(testList);
+
+        //foreach (var pair in edgeRefCount)
+        //{
+        //    if (pair.Value == 1)
+        //    {
+        //        if (vertPos.Add(mesh.vertices[pair.Key.Value]))
+        //        {
+        //            edges.Add(pair.Key.Value);
+        //        }
+        //        if (vertPos.Add(mesh.vertices[pair.Key.Key]))
+        //        {
+        //            edges.Add(pair.Key.Key);
+        //        }
+        //    }
+        //}
+
+        //foreach (var pos in polyList)
+        //{
+        //    GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        //    cube.transform.parent = transform;
+        //    cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+        //    cube.transform.position = transform.position + new Vector3(pos.x, pos.y, 0.0f);
+        //}
+
+        foreach (var pair in vertPos)
+        {
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.parent = transform;
+            cube.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+            cube.transform.position = transform.position + new Vector3(pair.x, pair.y, 0.0f);     
+        }      
+
     }
 
     public void Cut(in GameObject victim, in Material capMaterial, Vector3 startPos, Vector3 endPos)
