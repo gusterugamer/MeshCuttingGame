@@ -134,10 +134,7 @@ namespace PrimitivesPro.MeshCutting
         /// </summary>
         /// <returns>index list of triangle points</returns>
         public List<int> Triangulate()
-        {
-            var watc = new Stopwatch();
-            watc.Start();
-
+        {         
             var p2tPoints = new List<PrimitivesPro.ThirdParty.P2T.PolygonPoint>(Points.Length);
 
             foreach (var point in Points)
@@ -185,10 +182,7 @@ namespace PrimitivesPro.MeshCutting
                 Points[j + 0].y = (float)p2tPolygon.Triangles[i].Points._2.Y;
 
                 j += 3;
-            }
-            watc.Stop();
-
-            UnityEngine.Debug.Log("TIME: " + watc.Elapsed);
+            }       
 
             return indices;
         }
