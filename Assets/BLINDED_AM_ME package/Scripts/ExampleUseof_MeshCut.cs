@@ -30,7 +30,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour
 
     void CutStuff(Vector3 startPos, Vector3 endPos)
     {
-        GameObject[] pieces = MeshCut.Cut(victim, capMaterial, startPos, endPos);
+      //  GameObject[] pieces = MeshCut.Cut(victim, capMaterial, startPos, endPos);
         list = MeshCut.intersectionPoint;
 
         //TEST ONLY
@@ -47,11 +47,11 @@ public class ExampleUseof_MeshCut : MonoBehaviour
         //    }
         //}
         //TEST ONLY
-        if (pieces != null)
-        {
-            if (!pieces[1].GetComponent<DrawBounds>())
-                pieces[1].AddComponent<DrawBounds>();
-        }
+        //if (pieces != null)
+        //{
+        //    if (!pieces[1].GetComponent<DrawBounds>())
+        //        pieces[1].AddComponent<DrawBounds>();
+        //}
     }
 
     void GetMousePosition()

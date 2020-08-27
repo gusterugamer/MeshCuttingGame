@@ -19,6 +19,12 @@ public static class MeshCut
     public static List<IntersectionPoint> intersectionPoint;
 
     //TEST ONLY
+
+    public static void StartCutting (GameObject victim, Material capMaterial,Vector3 startPos, Vector3 endPos)
+    {
+        Cut(victim, capMaterial, startPos, endPos);
+    }
+
     public static GameObject[] Cut(GameObject victim, Material capMaterial, Vector3 startPos, Vector3 endPos)
     {
         CustomBoundryBox _boundaryBox = victim.GetComponent<CustomBoundryBox>();
@@ -182,6 +188,8 @@ public static class MeshCut
         //}     
 
         rightSide.drawNew = true;
+
+        leftSideObj.GetComponent<CustomBoundryBox>().UpdateCustomBoundary();
     }
 
     private static void FilterWholeTriangles(in MeshProperties mp, in Mesh _victim_mesh, ref Mesh_Maker leftSideMesh, ref Mesh_Maker rightSideMesh)

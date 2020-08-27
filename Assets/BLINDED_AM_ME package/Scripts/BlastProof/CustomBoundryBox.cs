@@ -33,6 +33,8 @@ public class CustomBoundryBox : MonoBehaviour
 
     private Transform trans;
 
+    private PolygonCollider2D pol;
+
     //TEST ONLY
     private bool draw = false;
 
@@ -46,7 +48,7 @@ public class CustomBoundryBox : MonoBehaviour
     void Start()
     {
         m_toCutObject = gameObject;
-        trans = m_toCutObject.GetComponent<Transform>();          
+        trans = m_toCutObject.GetComponent<Transform>();       
     }
 
     // Update is called once per frame
@@ -79,9 +81,43 @@ public class CustomBoundryBox : MonoBehaviour
         //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, max.y, min.z)));
         //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, min.y, min.z)));
 
+        pol = GetComponent<PolygonCollider2D>();
+
+        Vector2[] polPoints = new Vector2[transform.childCount];
+        int i = 0;
         foreach (Transform child in transform)
         {
             m_CustomBox.Add(new BoundaryPoint(child.localPosition));
+            polPoints[i] = child.localPosition;
+            i++;
+        }
+        pol.pathCount = 1;
+        pol.points = polPoints;
+
+        draw = true;
+    }
+
+    public void UpdateCustomBoundary()
+    {
+        //Vector3 center = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.center;
+        //Vector3 minPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.min;
+        //Vector3 maxPrime = m_toCutObject.GetComponent<MeshFilter>().mesh.bounds.max;
+        //Vector3 min = center + minPrime;
+        //Vector3 max = center + maxPrime;     
+
+        //m_CustomBox.Add(new BoundaryPoint(min));       
+        //m_CustomBox.Add(new BoundaryPoint(new Vector3(min.x, max.y, min.z)));
+        //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, max.y, min.z)));
+        //m_CustomBox.Add(new BoundaryPoint(new Vector3(max.x, min.y, min.z)));
+
+        pol = GetComponent<PolygonCollider2D>();
+
+        Vector2[] polPoints = new Vector2[transform.childCount];
+        int i = 0;
+        foreach (var pos in m_CustomBox)
+        {
+            polPoints[i] = pos.m_pos;
+            i++;
         }
 
         draw = true;
