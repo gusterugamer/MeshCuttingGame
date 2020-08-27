@@ -27,8 +27,7 @@ public class CutAreaInput : MonoBehaviour, IDragHandler
         if (Physics2D.Raycast(position, Vector2.zero, 0f))
         {
             _isInCollider = true;
-            //_startPosition = position;
-            Debug.Log($"Pointer hit collider {position}");
+            //_startPosition = position;       
         }
         else
         {

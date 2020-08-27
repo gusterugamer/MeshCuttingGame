@@ -1,9 +1,4 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices.WindowsRuntime;
-using UnityEditorInternal;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class IntersectionPoint
 {

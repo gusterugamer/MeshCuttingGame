@@ -98,7 +98,7 @@ public static class MeshCut
             _capMatSub = mats.Length - 1; // for later use               
 
             // cap the opennings
-            //Cap_the_Cut(ref _leftSideMesh, ref _rightSideMesh);
+            Cap_the_Cut(ref _leftSideMesh, ref _rightSideMesh);
 
             // Left Mesh
             UnityEngine.Mesh left_HalfMesh = _leftSideMesh.GetMesh();
@@ -117,6 +117,7 @@ public static class MeshCut
             //assign mats
             leftSideObj.GetComponent<MeshRenderer>().materials = mats;
             rightSideObj.GetComponent<MeshRenderer>().materials = mats;
+            MonoBehaviour.Destroy(rightSideObj, 1);
 
             return new GameObject[] { leftSideObj, rightSideObj };
         }
@@ -242,43 +243,26 @@ public static class MeshCut
                     _triangleCache.tangents[2] = Vector4.zero;
                 }
 
-                // which side are the vertices on
+                Vector2[] verts = { mp.mesh_vertices[index_1], mp.mesh_vertices[index_2], mp.mesh_vertices[index_3] };
 
-                Vector2[] boundryArr = new Vector2[_newLeftBoundary.Count];
-
-                for (int j = 0; j < _newLeftBoundary.Count; j++)
-                {
-                    boundryArr[j] = new Vector2(_newLeftBoundary[j].m_pos.x, _newLeftBoundary[j].m_pos.y);
-                }
-
-                _isLeftSideCache[0] = Mathematics.IsInsidePolygon(boundryArr, _triangleCache.vertices[0]);
-                _isLeftSideCache[1] = Mathematics.IsInsidePolygon(boundryArr, _triangleCache.vertices[1]);
-                _isLeftSideCache[2] = Mathematics.IsInsidePolygon(boundryArr, _triangleCache.vertices[2]);
-
-                Vector2[] boundryArr2 = new Vector2[_newRightBoundary.Count];
-
-                for (int j = 0; j < _newRightBoundary.Count; j++)
-                {
-                    boundryArr2[j] = new Vector2(_newRightBoundary[j].m_pos.x, _newRightBoundary[j].m_pos.y);
-                }
-
-                _isRightSideCache[0] = Mathematics.IsInsidePolygon(boundryArr2, _triangleCache.vertices[0]);
-                _isRightSideCache[1] = Mathematics.IsInsidePolygon(boundryArr2, _triangleCache.vertices[1]);
-                _isRightSideCache[2] = Mathematics.IsInsidePolygon(boundryArr2, _triangleCache.vertices[2]);
+                _isLeftSideCache = Mathematics.IsInsidePolygon(_newLeftBoundary, verts);              
 
                 // whole triangle
-                if (_isLeftSideCache[0] == _isLeftSideCache[1] && _isLeftSideCache[0] == _isLeftSideCache[2] && _isLeftSideCache[0])
+                if (_isLeftSideCache[0] == _isLeftSideCache[1] && _isLeftSideCache[0] == _isLeftSideCache[2])
                 {
-                    leftSideMesh.AddTriangle(_triangleCache, submeshIterator);
-                }
-                else if (_isRightSideCache[0] == _isRightSideCache[1] && _isRightSideCache[0] == _isRightSideCache[2] && _isRightSideCache[0])
-                {
-                    rightSideMesh.AddTriangle(_triangleCache, submeshIterator);
+                    if (_isLeftSideCache[0])
+                    {
+                        leftSideMesh.AddTriangle(_triangleCache, submeshIterator);
+                    }
+                    else
+                    {
+                        rightSideMesh.AddTriangle(_triangleCache, submeshIterator);
+                    }
                 }
                 else
                 {
                     // cut the triangle
-                    CutTriangleInHalf(_triangleCache, submeshIterator, ref leftSideMesh, ref rightSideMesh);
+                    CutTriangleInHalf(_triangleCache, submeshIterator, ref leftSideMesh, ref rightSideMesh, _isLeftSideCache);
                 }
             }
         }
@@ -286,21 +270,8 @@ public static class MeshCut
 
     #region Cutting       
     // Functions
-    private static void CutTriangleInHalf(Mesh_Maker.Triangle triangle, int submesh, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh)
+    private static void CutTriangleInHalf(Mesh_Maker.Triangle triangle, int submesh, ref Mesh_Maker _leftSideMesh, ref Mesh_Maker _rightSideMesh, in bool[] _isLeftSideCache)
     {
-        bool[] _isLeftSideCache = new bool[3];      
-
-        Vector2[] boundryArr = new Vector2[_newLeftBoundary.Count];
-
-        for (int i=0;i<_newLeftBoundary.Count;i++)
-        {
-            boundryArr[i] = new Vector2(_newLeftBoundary[i].m_pos.x, _newLeftBoundary[i].m_pos.y);
-        }
-
-        _isLeftSideCache[0] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[0]);
-        _isLeftSideCache[1] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[1]);
-        _isLeftSideCache[2] = Mathematics.IsInsidePolygon(boundryArr, triangle.vertices[2]);       
-
         if (_isLeftSideCache[0] == _isLeftSideCache[1])
         {
             float t0, t1;

@@ -56,14 +56,12 @@ public class CustomBoundryBox : MonoBehaviour
     {       
         if (draw)
         {
-            DrawCustomBoundary();
-            CheckIfInside();
+            DrawCustomBoundary();           
         }
         if (drawNew)
         {
           //  MOVETHISFUCKERFORTEST();
-            DrawNewCustomBoundary();
-            CheckIfInside();
+            DrawNewCustomBoundary();          
             draw = false;          
         }
     }
@@ -112,7 +110,7 @@ public class CustomBoundryBox : MonoBehaviour
 
         pol = GetComponent<PolygonCollider2D>();
 
-        Vector2[] polPoints = new Vector2[transform.childCount];
+        Vector2[] polPoints = new Vector2[m_CustomBox.Count];
         int i = 0;
         foreach (var pos in m_CustomBox)
         {
@@ -154,26 +152,6 @@ public class CustomBoundryBox : MonoBehaviour
             Debug.DrawLine(transform.position + m_CustomBox[i].m_pos, transform.position + m_CustomBox[(i + 1) % length].m_pos, Color.red);
         }
     }
-
-    void CheckIfInside()
-    {
-        if (objectToCheckIfInside)
-        {
-            var invTransPos = transform.InverseTransformPoint(objectToCheckIfInside.transform.position);
-
-            //Debug.Log("RelativePos: " + invTransPos);
-
-            if (Mathematics.IsInsidePolygon(m_CustomBox, new Vector2(invTransPos.x, invTransPos.y)))
-            {              
-                Debug.Log("inside");
-            }
-            else
-            {
-                Debug.Log("outside");
-            }            
-        }
-    }
-
     void MOVETHISFUCKERFORTEST()
     {
         if (objectToCheckIfInside)

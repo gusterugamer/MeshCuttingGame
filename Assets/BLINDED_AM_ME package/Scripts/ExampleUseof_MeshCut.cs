@@ -14,6 +14,12 @@ public class ExampleUseof_MeshCut : MonoBehaviour
     public GameObject victim;
 
     // Use this for initialization
+
+    private void Awake()
+    {
+        Application.targetFrameRate = 60;
+    }
+
     void Start()
     {
         mainCam = Camera.main;
