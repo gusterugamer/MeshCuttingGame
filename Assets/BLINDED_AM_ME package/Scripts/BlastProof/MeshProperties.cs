@@ -8,4 +8,5 @@ public class MeshProperties
     public Vector3[] mesh_normals;
     public Vector2[] mesh_uvs;
     public Vector4[] mesh_tangents;
+    public int[] mesh_indicies;
 }

@@ -51,24 +51,16 @@ public class Mathematics
     }
     public static Vector2 ProjectPointLine2D(Vector2 point, Vector2 lineStart, Vector2 lineEnd)
     {
-        //Vector2 rhs = point - lineStart;
-        //Vector2 vector2 = lineEnd - lineStart;
-        //float magnitude = vector2.magnitude;
-        //Vector2 lhs = vector2;
-        //if (magnitude > 1E-06f)
-        //{
-        //    lhs = (lhs / magnitude);
-        //}
-        //float num2 = Mathf.Clamp(Vector2.Dot(lhs, rhs), 0f, magnitude);
-        //return (lineStart + ((lhs * num2)));      
-
-
-        Vector3 linePointToPoint = point - lineStart;
-        Vector3 normal = (lineEnd - lineStart).normalized;
-
-        float t = Vector3.Dot(linePointToPoint, normal);
-
-        return lineStart + new Vector2(normal.x * t, normal.y * t);
+        Vector2 rhs = point - lineStart;
+        Vector2 vector2 = lineEnd - lineStart;
+        float magnitude = vector2.magnitude;
+        Vector2 lhs = vector2;
+        if (magnitude > 1E-06f)
+        {
+            lhs = (lhs / magnitude);
+        }
+        float num2 = Mathf.Clamp(Vector2.Dot(lhs, rhs), 0f, magnitude);
+        return (lineStart + ((lhs * num2)));   
     }
 
     public static float ClosestDistanceToPolygon(in Vector2[] verts, in Vector2 point)

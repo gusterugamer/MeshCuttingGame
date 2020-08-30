@@ -9,7 +9,7 @@ public static class MeshCut
     private static PrimitivesPro.Utils.Plane _blade; 
 
     private static List<BoundaryPoint> _newRightBoundary;
-    private static List<BoundaryPoint> _newLeftBoundary;  
+    private static List<BoundaryPoint> _newLeftBoundary;
 
     // Caching
     private static List<Vector3> _newVerticesCache = new List<Vector3>();
@@ -82,6 +82,14 @@ public static class MeshCut
 
             //BOUNDARY CUT      
             CreateNewBoundary(victim, leftSideObj, rightSideObj, ref intersectionPoints);
+
+            MeshProperties generatedMesh= MeshGenerator.CreateMesh(_newRightBoundary);
+
+            Mesh newMesh = new Mesh();
+            newMesh.SetVertices(generatedMesh.mesh_vertices);
+            newMesh.SetTriangles(generatedMesh.mesh_indicies, 0);
+
+            GameObject.Find("TESTBIATCH").GetComponent<MeshFilter>().mesh = newMesh;
 
             //FILTER WHOLE TRIANGLES           
             FilterWholeTriangles(mp, _victim_mesh, ref _leftSideMesh, ref _rightSideMesh);
