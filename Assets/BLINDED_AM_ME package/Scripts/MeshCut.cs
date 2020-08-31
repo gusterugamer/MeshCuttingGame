@@ -83,16 +83,19 @@ public static class MeshCut
             //BOUNDARY CUT      
             CreateNewBoundary(victim, leftSideObj, rightSideObj, ref intersectionPoints);
 
-            MeshProperties generatedMesh= MeshGenerator.CreateMesh(_newRightBoundary);
+            MeshProperties generatedMesh= MeshGenerator.CreateMesh(_newRightBoundary, victim.transform);
 
             Mesh newMesh = new Mesh();
+            newMesh.name = "GenObjectMesh";           
             newMesh.SetVertices(generatedMesh.mesh_vertices);
-            newMesh.SetTriangles(generatedMesh.mesh_indicies, 0);
+            newMesh.SetTriangles(generatedMesh.mesh_indicies, 0);            
+            newMesh.SetNormals(generatedMesh.mesh_normals);
 
             GameObject.Find("TESTBIATCH").GetComponent<MeshFilter>().mesh = newMesh;
+            GameObject.Find("TESTBIATCH").GetComponent<MeshRenderer>().material = victim.GetComponent<MeshRenderer>().material;
 
             //FILTER WHOLE TRIANGLES           
-            FilterWholeTriangles(mp, _victim_mesh, ref _leftSideMesh, ref _rightSideMesh);
+            //FilterWholeTriangles(mp, _victim_mesh, ref _leftSideMesh, ref _rightSideMesh);
 
             // The capping Material will be at the end
             Material[] mats = victim.GetComponent<MeshRenderer>().sharedMaterials;
@@ -106,7 +109,7 @@ public static class MeshCut
             _capMatSub = mats.Length - 1; // for later use               
 
             // cap the opennings
-            Cap_the_Cut(ref _leftSideMesh, ref _rightSideMesh);
+            //Cap_the_Cut(ref _leftSideMesh, ref _rightSideMesh);         
 
             // Left Mesh
             UnityEngine.Mesh left_HalfMesh = _leftSideMesh.GetMesh();
@@ -115,6 +118,8 @@ public static class MeshCut
             // Right Mesh
             UnityEngine.Mesh right_HalfMesh = _rightSideMesh.GetMesh();
             right_HalfMesh.name = "Split Mesh Right";
+
+
 
             // assign the game objects			
 
@@ -174,13 +179,13 @@ public static class MeshCut
         rightSideObj.AddComponent<Rigidbody>();
         CustomBoundryBox rightSide = rightSideObj.GetComponent<CustomBoundryBox>();
 
+        _newRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
         _newRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
 
         for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
         {
             _newRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
-        }
-        _newRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+        }      
 
         rightSide.m_CustomBox = _newRightBoundary;
         _leftSideBoundary.m_CustomBox = _newLeftBoundary;

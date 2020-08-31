@@ -6,58 +6,118 @@ using UnityEngine;
 
 public static class MeshGenerator
 {
-    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly)
-    {
-        MeshProperties generatedMesh = new MeshProperties();
+    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTransform)
+    {      
+        const int FRONTOFFSET = 3;
+        const int UPOFFSET = 4;
+        const int LEFTOFFSET = 5;
+
+        MeshProperties generatedMesh;
 
         Vector2[] genPolyArrFront = new Vector2[genPoly.Count];
 
-        for (int i=0;i<genPoly.Count;i++)
-        {
-            genPolyArrFront[i] = genPoly[i].m_pos;          
-        }
-        Triangulator tri = new Triangulator(genPolyArrFront);
+        List<VertexProperties> verts = new List<VertexProperties>();
 
+        List<Vector3> normals = new List<Vector3>();
+
+        List<int> indicies = new List<int>();
+        
+        //ConvertingToArray
+        for (int i = 0; i < genPoly.Count; i++)
+        {
+            genPolyArrFront[i] = genPoly[i].m_pos;
+        }
+
+        //VerticiesFront
+        for (int i=0;i< genPoly.Count;i++)
+        {
+            verts.Add(new VertexProperties { position = new Vector3 (genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
+            verts.Add(new VertexProperties { position = new Vector3 (genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
+            verts.Add(new VertexProperties { position = new Vector3 (genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
+        }
+
+        //VerticiesBack
+        for (int i = 0; i < genPoly.Count; i++)
+        {
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 1.0f)});
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 1.0f)});
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 1.0f)});
+        }       
+
+        Triangulator tri = new Triangulator(genPolyArrFront);
         int[] triangledPoly = tri.Triangulate();
 
-        Vector3[] meshVerts = new Vector3[2 * genPoly.Count];
-
-        for(int i=0;i<genPoly.Count;i++)
+        //FrontFaceIndicies
+        for (int i=0;i<triangledPoly.Length;i++)
         {
-            meshVerts[i] = genPolyArrFront[i];
-        }
-        for(int i= 0;i<genPoly.Count;i++)
-        {
-            meshVerts[i+genPoly.Count] = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 1.0f);
-        }        
-        List<int> indicies = new List<int>(triangledPoly);
-
-        for(int i=0;i<triangledPoly.Length;i++)
-        {
-            indicies.Add(triangledPoly[i] + (genPolyArrFront.Length));
+            indicies.Add(triangledPoly[i] * FRONTOFFSET);
         }
 
-        for(int i=0;i<genPoly.Count; i++)
+        //BackFaceIndicies
+        for (int i = triangledPoly.Length-1; i >=0; i--)
         {
-            int[] frontFace= { i , (i + 1)%(genPoly.Count)};
-            int[] backFace = { (i + genPoly.Count), (i + 1) % genPoly.Count + genPoly.Count };
-            GetQuadIndicies(frontFace, backFace, ref indicies);
+            indicies.Add(triangledPoly[i] * FRONTOFFSET + (verts.Count/2));
         }
 
-        generatedMesh.mesh_vertices = meshVerts;
-        generatedMesh.mesh_indicies = indicies.ToArray();
+        //Front-Back Faces normals
+        for (int i=0;i<indicies.Count;i+=3)
+        {
+            int[] v = { indicies[i], indicies[i + 1], indicies[i + 2] };
+            GetNormalsForVerts(verts, v);
+        }
+
+        //Generating Side Triangles
+        for (int i=1;i<verts.Count/2;i+=6)
+        {
+            int[] frontFaceVerts = {i, (i + 3) % (verts.Count/2) };
+            int[] backFaceVerts = { (i + (verts.Count / 2)), (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
+
+            GetQuadIndicies(frontFaceVerts, backFaceVerts, indicies, verts);
+        }
+
+        //Generate Up-Down Verts
+        for (int i = 5; i < verts.Count / 2; i += 6)
+        {
+            int[] frontFaceVerts = { i % (verts.Count/2), (i + 3) % (verts.Count / 2) };
+            int[] backFaceVerts = { (i % (verts.Count/2) + (verts.Count / 2)), 
+                                    (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
+
+            GetQuadIndicies(frontFaceVerts, backFaceVerts, indicies, verts);
+        }
+
+        generatedMesh = new MeshProperties(verts);
+        generatedMesh.SetIndicies(indicies.ToArray());
 
         return generatedMesh;
     }
 
-    public static void GetQuadIndicies(int[] frontFaceIndicies, int[] backFaceIndicies, ref List<int> indicies)
-    {       
+    public static void GetQuadIndicies(int[] frontFaceIndicies, int[] backFaceIndicies, List<int> indicies,List<VertexProperties> verts)
+    {
+        indicies.Add(backFaceIndicies[0]);
+        indicies.Add(backFaceIndicies[1]);
+        indicies.Add(frontFaceIndicies[1]);
+        indicies.Add(frontFaceIndicies[1]);
         indicies.Add(frontFaceIndicies[0]);
         indicies.Add(backFaceIndicies[0]);
-        indicies.Add(frontFaceIndicies[1]);
-        indicies.Add(frontFaceIndicies[1]);
-        indicies.Add(backFaceIndicies[0]);
-        indicies.Add(backFaceIndicies[1]);      
+
+        int[] firstTiangleVerts = { backFaceIndicies[0], backFaceIndicies[1], frontFaceIndicies[1] };
+        int[] secondTriangleVerts = { frontFaceIndicies[1], frontFaceIndicies[0], backFaceIndicies[0] };
+
+        GetNormalsForVerts(verts, firstTiangleVerts);
+        GetNormalsForVerts(verts, secondTriangleVerts);
     }
-    
+
+    public static void GetNormalsForVerts(List<VertexProperties> verts, int[] indicies)
+    {
+        int[] v = { indicies[0], indicies[1], indicies[2] };
+
+        Vector3 firstDirection = (verts[v[2]].position - verts[v[1]].position).normalized;
+        Vector3 secondDirection = (verts[v[0]].position - verts[v[1]].position).normalized;
+
+        Vector3 normal = Vector3.Cross(firstDirection, secondDirection).normalized;
+
+        verts[v[0]].normal = normal;
+        verts[v[1]].normal = normal;
+        verts[v[2]].normal = normal;
+    }
 }
