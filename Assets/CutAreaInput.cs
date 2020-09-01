@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.U2D;
 
 public class CutAreaInput : MonoBehaviour, IDragHandler
 {
@@ -11,7 +12,7 @@ public class CutAreaInput : MonoBehaviour, IDragHandler
     private Vector3 _startPosition = Vector3.zero;
     private Vector3 _endPostition = Vector3.zero;
 
-    public GameObject victim;
+    public SpriteShapeController victim;
     public Material capMat;
 
     private bool _isInCollider;

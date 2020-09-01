@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class MeshGenerator
 {
-    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly)
+    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans)
     {
         const int FRONTOFFSET = 3;
         const float BACKFACE_OFFSET = 0.12f;
@@ -23,23 +23,23 @@ public static class MeshGenerator
         //ConvertingToArray
         for (int i = 0; i < genPoly.Count; i++)
         {
-            genPolyArrFront[i] = genPoly[i].m_pos;
+            genPolyArrFront[i] = objTrans.TransformPoint(genPoly[i].m_pos);
         }
 
         //VerticiesFront
         for (int i = 0; i < genPoly.Count; i++)
         {
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
+            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 0.0f) });
+            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 0.0f) });
+            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 0.0f) });
         }
 
         //VerticiesBack
         for (int i = 0; i < genPoly.Count; i++)
         {
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, BACKFACE_OFFSET) });
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, BACKFACE_OFFSET) });
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, BACKFACE_OFFSET) });
+            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET) });
+            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET) });
+            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET) });
         }
 
         Triangulator tri = new Triangulator(genPolyArrFront);

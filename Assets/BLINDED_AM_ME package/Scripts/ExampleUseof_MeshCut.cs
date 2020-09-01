@@ -24,8 +24,7 @@ public class ExampleUseof_MeshCut : MonoBehaviour
     {
         mainCam = Camera.main;
         startPos = new Vector2(1.0f, 1.0f);
-        endPos = Vector2.zero;
-        victim.GetComponent<CustomBoundryBox>().CreateCustomBoundary();
+        endPos = Vector2.zero;       
     }
 
     void Update()
