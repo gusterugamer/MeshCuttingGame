@@ -6,11 +6,11 @@ using UnityEngine;
 
 public static class MeshGenerator
 {
-    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTransform)
-    {      
+    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly)
+    {
         const int FRONTOFFSET = 3;
-        const int UPOFFSET = 4;
-        const int LEFTOFFSET = 5;
+        const float BACKFACE_OFFSET = 0.12f;
+
 
         MeshProperties generatedMesh;
 
@@ -18,10 +18,8 @@ public static class MeshGenerator
 
         List<VertexProperties> verts = new List<VertexProperties>();
 
-        List<Vector3> normals = new List<Vector3>();
-
         List<int> indicies = new List<int>();
-        
+
         //ConvertingToArray
         for (int i = 0; i < genPoly.Count; i++)
         {
@@ -29,60 +27,75 @@ public static class MeshGenerator
         }
 
         //VerticiesFront
-        for (int i=0;i< genPoly.Count;i++)
+        for (int i = 0; i < genPoly.Count; i++)
         {
-            verts.Add(new VertexProperties { position = new Vector3 (genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
-            verts.Add(new VertexProperties { position = new Vector3 (genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
-            verts.Add(new VertexProperties { position = new Vector3 (genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 0.0f) });
         }
 
         //VerticiesBack
         for (int i = 0; i < genPoly.Count; i++)
         {
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 1.0f)});
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 1.0f)});
-            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, 1.0f)});
-        }       
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, BACKFACE_OFFSET) });
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, BACKFACE_OFFSET) });
+            verts.Add(new VertexProperties { position = new Vector3(genPoly[i].m_pos.x, genPoly[i].m_pos.y, BACKFACE_OFFSET) });
+        }
 
         Triangulator tri = new Triangulator(genPolyArrFront);
         int[] triangledPoly = tri.Triangulate();
 
         //FrontFaceIndicies
-        for (int i=0;i<triangledPoly.Length;i++)
+        for (int i = 0; i < triangledPoly.Length; i++)
         {
             indicies.Add(triangledPoly[i] * FRONTOFFSET);
         }
 
         //BackFaceIndicies
-        for (int i = triangledPoly.Length-1; i >=0; i--)
+        for (int i = triangledPoly.Length - 1; i >= 0; i--)
         {
-            indicies.Add(triangledPoly[i] * FRONTOFFSET + (verts.Count/2));
+            indicies.Add(triangledPoly[i] * FRONTOFFSET + (verts.Count / 2));
         }
 
         //Front-Back Faces normals
-        for (int i=0;i<indicies.Count;i+=3)
+        for (int i = 0; i < indicies.Count / 2; i += 3)
         {
-            int[] v = { indicies[i], indicies[i + 1], indicies[i + 2] };
-            GetNormalsForVerts(verts, v);
+            int[] v1 = { indicies[i], indicies[(i + 1) % (indicies.Count / 2)], indicies[(i + 2) % (indicies.Count / 2)] };
+            int[] v2 = { indicies[i + (indicies.Count / 2)], indicies[(i + 1) % (indicies.Count / 2) + (indicies.Count / 2)], indicies[(i + 2) % (indicies.Count / 2) + (indicies.Count / 2)] };
+
+            GetNormalsForVerts(verts, v1);
+            GetNormalsForVerts(verts, v2);
+            GetUVs(verts, v1, Faces.forward);
+            GetUVs(verts, v2, Faces.forward);
         }
 
         //Generating Side Triangles
-        for (int i=1;i<verts.Count/2;i+=6)
+        for (int i = 1; i < verts.Count / 2; i += 6)
         {
-            int[] frontFaceVerts = {i, (i + 3) % (verts.Count/2) };
+            int[] frontFaceVerts = { i, (i + 3) % (verts.Count / 2) };
             int[] backFaceVerts = { (i + (verts.Count / 2)), (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
 
+            //verts pos are used as uvs
+            int[] uvCoord = { i, (i + 3) % (verts.Count / 2), (i + (verts.Count / 2)), (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
+
             GetQuadIndicies(frontFaceVerts, backFaceVerts, indicies, verts);
+
+            GetUVs(verts, uvCoord, Faces.left);
         }
 
         //Generate Up-Down Verts
         for (int i = 5; i < verts.Count / 2; i += 6)
         {
-            int[] frontFaceVerts = { i % (verts.Count/2), (i + 3) % (verts.Count / 2) };
-            int[] backFaceVerts = { (i % (verts.Count/2) + (verts.Count / 2)), 
+            int[] frontFaceVerts = { i % (verts.Count / 2), (i + 3) % (verts.Count / 2) };
+            int[] backFaceVerts = { (i % (verts.Count/2) + (verts.Count / 2)),
                                     (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
 
+            //verts pos are used as uvs
+            int[] uvCoord = { i % (verts.Count / 2), (i + 3) % (verts.Count / 2), (i % (verts.Count / 2) + (verts.Count / 2)), (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
+
             GetQuadIndicies(frontFaceVerts, backFaceVerts, indicies, verts);
+            GetUVs(verts, uvCoord, Faces.up);
+
         }
 
         generatedMesh = new MeshProperties(verts);
@@ -91,7 +104,7 @@ public static class MeshGenerator
         return generatedMesh;
     }
 
-    public static void GetQuadIndicies(int[] frontFaceIndicies, int[] backFaceIndicies, List<int> indicies,List<VertexProperties> verts)
+    public static void GetQuadIndicies(int[] frontFaceIndicies, int[] backFaceIndicies, List<int> indicies, List<VertexProperties> verts)
     {
         indicies.Add(backFaceIndicies[0]);
         indicies.Add(backFaceIndicies[1]);
@@ -119,5 +132,48 @@ public static class MeshGenerator
         verts[v[0]].normal = normal;
         verts[v[1]].normal = normal;
         verts[v[2]].normal = normal;
+    }
+
+    public static void GetUVs(List<VertexProperties> verts, int[] indicies, Faces face)
+    {
+        switch (face)
+        {
+            case Faces.forward:            
+                {
+                    for (int i = 0; i < indicies.Length; i++)
+                    {
+                        verts[indicies[i]].uv.x = verts[indicies[i]].position.x;
+                        verts[indicies[i]].uv.y = verts[indicies[i]].position.y;
+                    }
+                }
+                break;           
+            case Faces.up:
+                {
+                    for (int i = 0; i < indicies.Length; i++)
+                    {
+                        verts[indicies[i]].uv.x = verts[indicies[i]].position.x;
+                        verts[indicies[i]].uv.y = verts[indicies[i]].position.z;
+                    }
+                }
+                break;
+            case Faces.left:
+                {
+                    for (int i = 0; i < indicies.Length; i++)
+                    {
+                        verts[indicies[i]].uv.x = verts[indicies[i]].position.z;
+                        verts[indicies[i]].uv.y = verts[indicies[i]].position.y;
+                    }
+                }
+                break;
+
+        }
+    }
+
+    public enum Faces
+    {
+        none = 0,
+        up = 1, //Same with down
+        left = 2, //Same with right
+        forward = 3 // Same with backward
     }
 }

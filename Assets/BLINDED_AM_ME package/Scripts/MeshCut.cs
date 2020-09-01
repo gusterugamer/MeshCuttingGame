@@ -83,13 +83,20 @@ public static class MeshCut
             //BOUNDARY CUT      
             CreateNewBoundary(victim, leftSideObj, rightSideObj, ref intersectionPoints);
 
-            MeshProperties generatedMesh= MeshGenerator.CreateMesh(_newRightBoundary, victim.transform);
+            List<BoundaryPoint> _newRightBoundaryWorld = new List<BoundaryPoint>();
+            foreach(var bp in _newRightBoundary)
+            {
+                _newRightBoundaryWorld.Add(new BoundaryPoint(victim.transform.TransformPoint(bp.m_pos)));
+            }
+
+            MeshProperties generatedMesh= MeshGenerator.CreateMesh(_newRightBoundaryWorld);
 
             Mesh newMesh = new Mesh();
             newMesh.name = "GenObjectMesh";           
             newMesh.SetVertices(generatedMesh.mesh_vertices);
             newMesh.SetTriangles(generatedMesh.mesh_indicies, 0);            
             newMesh.SetNormals(generatedMesh.mesh_normals);
+            newMesh.SetUVs(0,generatedMesh.mesh_uvs);
 
             GameObject.Find("TESTBIATCH").GetComponent<MeshFilter>().mesh = newMesh;
             GameObject.Find("TESTBIATCH").GetComponent<MeshRenderer>().material = victim.GetComponent<MeshRenderer>().material;
