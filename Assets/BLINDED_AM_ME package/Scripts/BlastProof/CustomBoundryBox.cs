@@ -32,6 +32,8 @@ public class CustomBoundryBox : MonoBehaviour
     
     private Transform trans;
 
+    private PolygonCollider2D polyCol;
+
     [SerializeField] private Material levelMaterial;
 
     public bool drawNew = false; 
@@ -45,6 +47,7 @@ public class CustomBoundryBox : MonoBehaviour
 
     public void CreateCustomBoundary()
     {
+        polyCol = GetComponent<PolygonCollider2D>();
         int length = m_toCutObject.spline.GetPointCount();
 
         Vector2[] points = new Vector2[length];
@@ -53,7 +56,10 @@ public class CustomBoundryBox : MonoBehaviour
         {
             points[i] = m_toCutObject.spline.GetPosition(i);
         }
-        
+
+        polyCol.pathCount = 1;
+        polyCol.points = points;
+
         foreach (Vector2 point in points)
         {
             m_CustomBox.Add(new BoundaryPoint(point));
@@ -62,12 +68,18 @@ public class CustomBoundryBox : MonoBehaviour
 
     public void UpdateCustomBoundary(List<BoundaryPoint> boundary)
     {
+        Vector2[] points = new Vector2[boundary.Count];
+
         m_CustomBox = boundary;
         m_toCutObject.spline.Clear();
         for (int i = 0; i < boundary.Count; i++)
         {
             m_toCutObject.spline.InsertPointAt(i, boundary[i].m_pos);
+            points[i] = boundary[i].m_pos;
         }
+
+        polyCol.pathCount = 1;
+        polyCol.points = points;
     }
 
     private void OnDrawGizmosSelected()

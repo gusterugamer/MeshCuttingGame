@@ -46,8 +46,7 @@ public static class MeshCut
             newMesh.SetNormals(generatedMesh.mesh_normals);
             newMesh.SetUVs(0,generatedMesh.mesh_uvs);
 
-            testobj.GetComponent<MeshFilter>().mesh = newMesh;
-            testobj.GetComponent<MeshRenderer>().material = 
+            testobj.GetComponent<MeshFilter>().mesh = newMesh;       
             //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);
 
             _boundaryBox.UpdateCustomBoundary(_newLeftBoundary);
