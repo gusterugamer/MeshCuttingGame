@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.4465785, g: 0.49641222, b: 0.57481694, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -769,7 +769,7 @@ MonoBehaviour:
   m_AdaptiveUV: 0
   m_StretchUV: 0
   m_WorldSpaceUV: 0
-  m_CornerAngleThreshold: 30
+  m_CornerAngleThreshold: 5
   m_ColliderDetail: 16
   m_ColliderOffset: 0
   m_UpdateCollider: 0
@@ -820,10 +820,11 @@ SpriteShapeRenderer:
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_MaskInteraction: 0
   m_ShapeTexture: {fileID: 2800000, guid: a2f23f841f1dc4c908e1078407a4b77e, type: 3}
-  m_Sprites: []
+  m_Sprites:
+  - {fileID: 21300000, guid: 1e5516696b8ac4a808b6f0a7955faa4d, type: 3}
   m_LocalAABB:
-    m_Center: {x: 8.000001, y: 8.000001, z: 0}
-    m_Extent: {x: 8.000001, y: 8.000001, z: 0}
+    m_Center: {x: 8.000001, y: 8.000001, z: -0.0002}
+    m_Extent: {x: 8.111112, y: 8.111112, z: 0.0002}
 --- !u!4 &1707939980
 Transform:
   m_ObjectHideFlags: 0
@@ -832,7 +833,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1707939977}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

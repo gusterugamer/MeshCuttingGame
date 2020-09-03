@@ -35,9 +35,16 @@ public static class MeshCut
         {         
             CreateNewBoundary(_boundaryBox, ref intersectionPoints);
 
-            GameObject testobj = GameObject.Find("TESTBIATCH");         
+            GameObject testobj = GameObject.Find("TESTBIATCH");
 
-            MeshProperties generatedMesh= MeshGenerator.CreateMesh(_newRightBoundary, shape.transform);
+            GameObject generatedObj = new GameObject();
+            generatedObj.name = "right side";
+            generatedObj.transform.position = Vector3.zero;
+            generatedObj.AddComponent<MeshFilter>();
+            generatedObj.AddComponent<MeshRenderer>();
+            generatedObj.AddComponent<Rigidbody>().angularDrag = 0.0f;
+
+            MeshProperties generatedMesh= MeshGenerator.CreateMesh(_newRightBoundary, shape.transform, 16.0f);
 
             Mesh newMesh = new Mesh();
             newMesh.name = "GenObjectMesh";           
@@ -46,7 +53,8 @@ public static class MeshCut
             newMesh.SetNormals(generatedMesh.mesh_normals);
             newMesh.SetUVs(0,generatedMesh.mesh_uvs);
 
-            testobj.GetComponent<MeshFilter>().mesh = newMesh;       
+            generatedObj.GetComponent<MeshFilter>().mesh = newMesh;
+            generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;
             //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);
 
             _boundaryBox.UpdateCustomBoundary(_newLeftBoundary);

@@ -6,7 +6,7 @@ using UnityEngine;
 
 public static class MeshGenerator
 {
-    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans)
+    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
     {
         const int FRONTOFFSET = 3;
         const float BACKFACE_OFFSET = 0.12f;
@@ -65,8 +65,8 @@ public static class MeshGenerator
 
             GetNormalsForVerts(verts, v1);
             GetNormalsForVerts(verts, v2);
-            GetUVs(verts, v1, Faces.forward);
-            GetUVs(verts, v2, Faces.forward);
+            GetUVsWithSize(verts, v1, Faces.forward, spriteSquareSize);
+            GetUVsWithSize(verts, v2, Faces.forward, spriteSquareSize);
         }
 
         //Generating Side Triangles
@@ -80,7 +80,7 @@ public static class MeshGenerator
 
             GetQuadIndicies(frontFaceVerts, backFaceVerts, indicies, verts);
 
-            GetUVs(verts, uvCoord, Faces.left);
+            GetUVsWithSize(verts, uvCoord, Faces.left, spriteSquareSize);
         }
 
         //Generate Up-Down Verts
@@ -94,7 +94,7 @@ public static class MeshGenerator
             int[] uvCoord = { i % (verts.Count / 2), (i + 3) % (verts.Count / 2), (i % (verts.Count / 2) + (verts.Count / 2)), (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
 
             GetQuadIndicies(frontFaceVerts, backFaceVerts, indicies, verts);
-            GetUVs(verts, uvCoord, Faces.up);
+            GetUVsWithSize(verts, uvCoord, Faces.up, spriteSquareSize);
 
         }
 
@@ -162,6 +162,41 @@ public static class MeshGenerator
                     {
                         verts[indicies[i]].uv.x = verts[indicies[i]].position.z;
                         verts[indicies[i]].uv.y = verts[indicies[i]].position.y;
+                    }
+                }
+                break;
+
+        }
+    }
+
+    public static void GetUVsWithSize(List<VertexProperties> verts, int[] indicies, Faces face, float spriteSquareSize)
+    {
+        switch (face)
+        {
+            case Faces.forward:
+                {
+                    for (int i = 0; i < indicies.Length; i++)
+                    {
+                        verts[indicies[i]].uv.x = verts[indicies[i]].position.x/spriteSquareSize;
+                        verts[indicies[i]].uv.y = verts[indicies[i]].position.y/spriteSquareSize;
+                    }
+                }
+                break;
+            case Faces.up:
+                {
+                    for (int i = 0; i < indicies.Length; i++)
+                    {
+                        verts[indicies[i]].uv.x = verts[indicies[i]].position.x/spriteSquareSize;
+                        verts[indicies[i]].uv.y = verts[indicies[i]].position.z/spriteSquareSize;
+                    }
+                }
+                break;
+            case Faces.left:
+                {
+                    for (int i = 0; i < indicies.Length; i++)
+                    {
+                        verts[indicies[i]].uv.x = verts[indicies[i]].position.z/spriteSquareSize;
+                        verts[indicies[i]].uv.y = verts[indicies[i]].position.y/spriteSquareSize;
                     }
                 }
                 break;

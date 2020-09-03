@@ -19,12 +19,13 @@ public class CutAreaInput : MonoBehaviour, IDragHandler
     private void Awake()
     {
         _mainCamera = Camera.main;
-    }
+    }   
 
     public void OnDrag(PointerEventData eventData)
     {
         var position = _mainCamera.ScreenToWorldPoint(eventData.position);
-        position.z = 0f;
+        position.z = 0f;      
+
         if (Physics2D.Raycast(position, Vector2.zero, 0f))
         {
             _isInCollider = true;
@@ -33,7 +34,10 @@ public class CutAreaInput : MonoBehaviour, IDragHandler
         else
         {
             if (!_isInCollider)
+            {
                 _startPosition = position;
+                _endPostition = position;
+            }
             else
             {
                 _endPostition = position;
