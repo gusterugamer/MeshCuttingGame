@@ -1,4 +1,4 @@
-﻿Shader "Mask/Mask"
+﻿Shader "BlastProof/DepthMask/Mask"
 {   
     SubShader
         {

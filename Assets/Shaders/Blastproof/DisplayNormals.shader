@@ -1,6 +1,6 @@
 ﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-Shader "Tutorial/Display Normals" {
+Shader "BlastProof/TEST/Display Normals" {
     SubShader{
         Pass {
 

@@ -1,13 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
 
 public class CutAreaInput : MonoBehaviour, IDragHandler
 {
-    private Camera _mainCamera;
+    [SerializeField] private Camera _mainCamera;
 
     private Vector3 _startPosition = Vector3.zero;
     private Vector3 _endPostition = Vector3.zero;
@@ -16,15 +13,20 @@ public class CutAreaInput : MonoBehaviour, IDragHandler
     public Material capMat;
 
     private bool _isInCollider;
-    private void Awake()
-    {
-        _mainCamera = Camera.main;
-    }   
 
     public void OnDrag(PointerEventData eventData)
-    {
-        var position = _mainCamera.ScreenToWorldPoint(eventData.position);
-        position.z = 0f;      
+    {       
+        var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+        var position = Vector3.zero;
+        if (Physics.Raycast(ray, out var hit))
+        {
+            position = hit.point;
+        }
+        else return;
+
+        position.z = 0f;
+
+        Debug.Log(position);
 
         if (Physics2D.Raycast(position, Vector2.zero, 0f))
         {
