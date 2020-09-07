@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.U2D;
+using UnityEngine.XR;
 
 public static class MeshCut
 {
@@ -35,14 +36,23 @@ public static class MeshCut
             newMesh.SetUVs(0, generatedMesh.mesh_uvs);
 
             GameObject generatedObj = new GameObject();
+            GameObject generatedObjParent= new GameObject();
+            generatedObjParent.name = "GeneratedParent";
+            generatedObjParent.transform.position = generatedMesh.mesh_center;
+            generatedObj.transform.parent = generatedObjParent.transform;
+
             generatedObj.name = "right side";
             generatedObj.transform.position = Vector3.zero;
             generatedObj.AddComponent<MeshFilter>();
-            generatedObj.AddComponent<MeshRenderer>();
-            generatedObj.AddComponent<Rigidbody>().angularDrag = 0.0f;
+            generatedObj.AddComponent<MeshRenderer>();           
             generatedObj.name = "Generated";
             generatedObj.GetComponent<MeshFilter>().mesh = newMesh;
-            generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;          
+            generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;
+
+            generatedObjParent.AddComponent<Rigidbody>().angularDrag = 0.0f;
+            generatedObjParent.GetComponent<Rigidbody>().AddForce(new Vector3(0.0f, 1000.0f, -150.0f));
+            generatedObjParent.GetComponent<Rigidbody>().AddTorque(new Vector3(-100.0f, 0.0f, 0.0f));
+            generatedObjParent.GetComponent<Rigidbody>().mass = 100.0f;
 
             GameObject maskObj = new GameObject();
             maskObj.AddComponent<MeshFilter>();

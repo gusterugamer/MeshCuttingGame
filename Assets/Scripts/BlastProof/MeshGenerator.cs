@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR;
 
 public static class MeshGenerator
 {
     public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans,float spriteSquareSize)
     {
         const int FRONTOFFSET = 3;
-        const float BACKFACE_OFFSET = 1.2f;
-        const float SCALE_FACTOR = 1.3f;
+        const float BACKFACE_OFFSET = 0.5f;
+        const float SCALE_FACTOR = 1.1f;
 
 
         MeshProperties generatedMesh;
@@ -40,7 +41,7 @@ public static class MeshGenerator
 
         //Calculating the center of the unscaled polygon
         Vector3 polygonCenter = vecSum / genPoly.Count;
-        polygonCenter.z = objTrans.position.z;
+        polygonCenter.z = objTrans.position.z;      
 
         Matrix4x4 scaleMatrix = BlastProof.Mathematics.ScaleMatrix(SCALE_FACTOR);   
 
@@ -129,6 +130,7 @@ public static class MeshGenerator
         }
 
         generatedMesh = new MeshProperties(verts);
+        generatedMesh.mesh_center = polygonCenter;
         generatedMesh.SetIndicies(indicies.ToArray());
 
         return generatedMesh;

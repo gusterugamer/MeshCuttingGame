@@ -9,11 +9,7 @@ public class MeshProperties
     public Vector2[] mesh_uvs;
     public Vector4[] mesh_tangents;
     public int[] mesh_indicies;
-
-    public MeshProperties()
-    {
-
-    }
+    public Vector3 mesh_center;
 
     public MeshProperties(List<VertexProperties> verts = null)
     {
