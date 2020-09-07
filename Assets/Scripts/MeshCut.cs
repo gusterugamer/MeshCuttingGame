@@ -42,7 +42,7 @@ public static class MeshCut
             generatedObj.AddComponent<Rigidbody>().angularDrag = 0.0f;
             generatedObj.name = "Generated";
             generatedObj.GetComponent<MeshFilter>().mesh = newMesh;
-            generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;
+            generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;          
 
             GameObject maskObj = new GameObject();
             maskObj.AddComponent<MeshFilter>();

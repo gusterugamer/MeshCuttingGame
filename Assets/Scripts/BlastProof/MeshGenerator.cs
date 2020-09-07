@@ -60,10 +60,12 @@ public static class MeshGenerator
         Vector3 scaledPolyCenter = vecSum2 / genPoly.Count;
         scaledPolyCenter.z = objTrans.position.z;
 
+        //Caching how much should the polygon move on axis so it matches the original scale polygon
         Vector3 translVec = polygonCenter - scaledPolyCenter;
 
         Matrix4x4 transMatrix = BlastProof.Mathematics.TranslateMatrix(translVec);    
 
+        //Multiplying each backface polygon position with the translation matrix so the center of backface polygon and frontface polygon matches
         for (int i = verts.Count/2; i<verts.Count;i++)
         {
             verts[i].position = transMatrix.MultiplyPoint(verts[i].position);
