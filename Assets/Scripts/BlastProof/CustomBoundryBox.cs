@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
-using UnityEngine.UIElements;
 
 public struct BoundaryPoint
 {
@@ -34,6 +33,13 @@ public class CustomBoundryBox : MonoBehaviour
 
     private PolygonCollider2D polyCol;
 
+    private Vector3 polygonCenter;
+
+    public Vector3 PolygonCenter
+    {
+        get { return polygonCenter; }
+    }
+
     [SerializeField] private Material levelMaterial;
 
     public bool drawNew = false; 
@@ -47,6 +53,8 @@ public class CustomBoundryBox : MonoBehaviour
 
     public void CreateCustomBoundary()
     {
+        Vector2 pointsSum = Vector3.zero;
+
         polyCol = GetComponent<PolygonCollider2D>();
         int length = m_toCutObject.spline.GetPointCount();
 
@@ -55,7 +63,10 @@ public class CustomBoundryBox : MonoBehaviour
         for (int i=0;i<length;i++)
         {
             points[i] = m_toCutObject.spline.GetPosition(i);
+            pointsSum += points[i];
         }
+        polygonCenter = pointsSum / length;
+        polygonCenter.z = transform.position.z;
 
         polyCol.pathCount = 1;
         polyCol.points = points;
@@ -104,7 +115,7 @@ public class CustomBoundryBox : MonoBehaviour
             BoundaryPoint currentBP = m_CustomBox[i];
             BoundaryPoint nextBP = m_CustomBox[(i + 1) % length];
 
-            if (Mathematics.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
+            if (BlastProof.Mathematics.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
             {                
                 pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x,intersPoint.y, 0.0f), i, (i + 1)));                
             }

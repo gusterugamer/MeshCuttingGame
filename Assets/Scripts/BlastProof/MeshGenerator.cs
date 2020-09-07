@@ -3,10 +3,11 @@ using UnityEngine;
 
 public static class MeshGenerator
 {
-    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
+    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans,float spriteSquareSize)
     {
         const int FRONTOFFSET = 3;
-        const float BACKFACE_OFFSET = 0.12f;
+        const float BACKFACE_OFFSET = 1.2f;
+        const float SCALE_FACTOR = 1.3f;
 
 
         MeshProperties generatedMesh;
@@ -23,21 +24,51 @@ public static class MeshGenerator
             genPolyArrFront[i] = objTrans.TransformPoint(genPoly[i].m_pos);
         }
 
+        Vector3 vecSum = Vector3.zero;
+
         //VerticiesFront
         for (int i = 0; i < genPoly.Count; i++)
         {
-            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 0.0f) });
-            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 0.0f) });
-            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 0.0f) });
+            Vector3 _position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 0.0f);
+
+            vecSum += _position;
+
+            verts.Add(new VertexProperties { position = _position });
+            verts.Add(new VertexProperties { position = _position });
+            verts.Add(new VertexProperties { position = _position });
         }
+
+        //Calculating the center of the unscaled polygon
+        Vector3 polygonCenter = vecSum / genPoly.Count;
+        polygonCenter.z = objTrans.position.z;
+
+        Matrix4x4 scaleMatrix = BlastProof.Mathematics.ScaleMatrix(SCALE_FACTOR);   
+
+        Vector3 vecSum2 = Vector3.zero;    
 
         //VerticiesBack
         for (int i = 0; i < genPoly.Count; i++)
         {
-            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET) });
-            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET) });
-            verts.Add(new VertexProperties { position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET) });
+            Vector3 _position = scaleMatrix.MultiplyPoint(new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET));
+            vecSum2 += _position;
+
+            verts.Add(new VertexProperties { position = _position});
+            verts.Add(new VertexProperties { position = _position});
+            verts.Add(new VertexProperties { position = _position});
         }
+
+        Vector3 scaledPolyCenter = vecSum2 / genPoly.Count;
+        scaledPolyCenter.z = objTrans.position.z;
+
+        Vector3 translVec = polygonCenter - scaledPolyCenter;
+
+        Matrix4x4 transMatrix = BlastProof.Mathematics.TranslateMatrix(translVec);    
+
+        for (int i = verts.Count/2; i<verts.Count;i++)
+        {
+            verts[i].position = transMatrix.MultiplyPoint(verts[i].position);
+        }
+
 
         Triangulator tri = new Triangulator(genPolyArrFront);
         int[] triangledPoly = tri.Triangulate();
@@ -184,7 +215,7 @@ public static class MeshGenerator
                     for (int i = 0; i < indicies.Length; i++)
                     {
                         verts[indicies[i]].uv.x = verts[indicies[i]].position.x/spriteSquareSize;
-                        verts[indicies[i]].uv.y = verts[indicies[i]].position.z/spriteSquareSize;
+                        verts[indicies[i]].uv.y = verts[indicies[i]].position.y/spriteSquareSize; 
                     }
                 }
                 break;
@@ -192,7 +223,7 @@ public static class MeshGenerator
                 {
                     for (int i = 0; i < indicies.Length; i++)
                     {
-                        verts[indicies[i]].uv.x = verts[indicies[i]].position.z/spriteSquareSize;
+                        verts[indicies[i]].uv.x = verts[indicies[i]].position.x/spriteSquareSize;
                         verts[indicies[i]].uv.y = verts[indicies[i]].position.y/spriteSquareSize;
                     }
                 }

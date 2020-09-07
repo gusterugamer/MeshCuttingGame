@@ -19,8 +19,8 @@ public static class MeshCut
     public static void Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
-        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);     
-
+        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
+        
         if (intersectionPoints.Count == 2)
         {         
             CreateNewBoundary(_boundaryBox, ref intersectionPoints);
@@ -47,7 +47,7 @@ public static class MeshCut
             GameObject maskObj = new GameObject();
             maskObj.AddComponent<MeshFilter>();
             maskObj.AddComponent<MeshRenderer>();
-            maskObj.transform.position = new Vector3(0.0f,0.0f, 0.5f);
+            maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f,0.0f, -0.5f);
             maskObj.GetComponent<MeshFilter>().mesh = newMesh;
             maskObj.name = "mask";
             maskObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/MaskMaterial") as Material;

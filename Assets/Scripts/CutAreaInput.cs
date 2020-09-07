@@ -26,8 +26,6 @@ public class CutAreaInput : MonoBehaviour, IDragHandler
 
         position.z = 0f;
 
-        Debug.Log(position);
-
         if (Physics2D.Raycast(position, Vector2.zero, 0f))
         {
             _isInCollider = true;
@@ -48,7 +46,7 @@ public class CutAreaInput : MonoBehaviour, IDragHandler
 
                 _isInCollider = false;
                 _startPosition = Vector3.zero;
-                _endPostition = Vector3.zero;
+                _endPostition = Vector3.zero;              
             }
         }
     }
