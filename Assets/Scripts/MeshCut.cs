@@ -12,12 +12,12 @@ public static class MeshCut
     public static List<IntersectionPoint> intersectionPoint;
 
     //TEST ONLY
-    public static void StartCutting (SpriteShapeController shape, Material capMaterial,Vector3 startPos, Vector3 endPos)
+    public static bool StartCutting (SpriteShapeController shape, Material capMaterial,Vector3 startPos, Vector3 endPos)
     {
-        Cut(shape, capMaterial, startPos, endPos);
+        return Cut(shape, capMaterial, startPos, endPos);
     }
 
-    public static void Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos)
+    public static bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
         List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
@@ -64,7 +64,9 @@ public static class MeshCut
             //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);
 
             _boundaryBox.UpdateCustomBoundary(_newLeftBoundary);
-        }     
+            return true;
+        }
+        return false;
     }
 
     private static void CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint)

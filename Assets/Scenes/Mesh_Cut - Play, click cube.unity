@@ -337,6 +337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _mainCamera: {fileID: 1871123384}
+  cbm: {fileID: 1707939981}
   victim: {fileID: 1707939978}
   capMat: {fileID: 0}
 --- !u!114 &862199932
@@ -735,6 +736,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _mainCamera: {fileID: 0}
+  cbm: {fileID: 0}
   victim: {fileID: 1707939978}
   capMat: {fileID: 0}
 --- !u!114 &1871123381

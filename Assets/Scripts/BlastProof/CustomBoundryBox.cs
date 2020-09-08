@@ -121,5 +121,15 @@ public class CustomBoundryBox : MonoBehaviour
             }
         }      
         return pointsList;
-    }  
+    }
+    
+    public Vector2[] ToArray()
+    {
+        Vector2[] arr = new Vector2[m_CustomBox.Count];
+        for (int i=0;i<m_CustomBox.Count;i++)
+        {
+            arr[i] = m_CustomBox[i].m_pos;
+        }
+        return arr;
+    }
 }

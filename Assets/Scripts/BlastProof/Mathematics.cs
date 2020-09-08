@@ -47,6 +47,27 @@ namespace BlastProof
             return (num3 * 57.29578f);
         }
 
+        public static int PointOnWhichSideOfLineSegment(Vector3 linePoint1, Vector3 linePoint2, Vector3 point)
+        {
+            Vector3 rhs = linePoint2 - linePoint1;
+            Vector3 lhs = point - linePoint1;
+            return ((Vector3.Dot(lhs, rhs) <= 0f) ? 1 : ((lhs.magnitude > rhs.magnitude) ? 2 : 0));
+        }
+
+        public static Vector3 ProjectPointOnLine(Vector3 linePoint, Vector3 lineVec, Vector3 point)
+        {
+            float num = Vector3.Dot(point - linePoint, lineVec);
+            return (linePoint + (lineVec * num));
+        }
+
+        public static Vector3 ProjectPointOnLineSegment(Vector3 linePoint1, Vector3 linePoint2, Vector3 point)
+        {
+            Vector3 vector = linePoint2 - linePoint1;
+            Vector3 vector2 = ProjectPointOnLine(linePoint1, vector.normalized, point);
+            int num = PointOnWhichSideOfLineSegment(linePoint1, linePoint2, vector2);
+            return ((num != 0) ? ((num != 1) ? ((num != 2) ? Vector3.zero : linePoint2) : linePoint1) : vector2);
+        }
+
         public static float DistancePointLine2D(Vector2 point, Vector2 lineStart, Vector2 lineEnd)
         {
             return (ProjectPointLine2D(point, lineStart, lineEnd) - point).magnitude;
@@ -65,17 +86,35 @@ namespace BlastProof
             return (lineStart + ((lhs * num2)));
         }
 
-        public static float ClosestDistanceToPolygon(in Vector2[] verts, in Vector2 point)
+        public static float ClosestDistanceToPolygon(in Vector2[] verts, in Vector2 point, ref KeyValuePair<int,int> edgeVerts)
         {
             int nvert = verts.Length;
             int i, j = 0;
             float minDistance = Mathf.Infinity;
             for (i = 0, j = nvert - 1; i < nvert; j = i++)
             {
+                float tempMin = minDistance;
                 float distance = DistancePointLine2D(point, verts[i], verts[j]);
                 minDistance = Mathf.Min(minDistance, distance);
+                if (minDistance != tempMin)
+                {
+                    edgeVerts = new KeyValuePair<int, int>(i, j);
+                }
             }
 
+            return minDistance;
+        }
+
+        public static float ClosestDistanceToPolygon(in Vector2[] verts, in Vector2 point)
+        {
+            int nvert = verts.Length;
+            int i, j = 0;
+            float minDistance = Mathf.Infinity;
+            for (i = 0, j = nvert - 1; i < nvert; j = i++)
+            {               
+                float distance = DistancePointLine2D(point, verts[i], verts[j]);
+                minDistance = Mathf.Min(minDistance, distance);               
+            }
             return minDistance;
         }
 
