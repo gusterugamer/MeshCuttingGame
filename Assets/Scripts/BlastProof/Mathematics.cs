@@ -5,6 +5,41 @@ using UnityEngine;
 
 namespace BlastProof
 {
+    public class Circle
+    {
+        private Vector3 _center;
+        private float _radius;
+
+        public float Radius { get => _radius; }
+        public Vector3 Center { get => _center; }
+
+        public Circle(Vector3 center, float radius)
+        {
+            _center = center;
+            _radius = radius;
+        }
+
+        public List<IntersectionPoint> GetIntersections(Vector2[] polygon)
+        {
+            List<IntersectionPoint> interPoints = new List<IntersectionPoint>();
+            for (int i=0;i<polygon.Length;i++)
+            {
+                Vector2 interPos;
+                int j = (i + 1) % polygon.Length;
+                if (Mathematics.CircleIntersectsSegment(_center,_radius,polygon[i],polygon[j],out interPos))
+                {
+                    interPoints.Add(new IntersectionPoint(interPos, i, j));
+                }
+            }
+            return interPoints;
+        }
+
+        public void UpdatePosition(Vector3 position)
+        {
+            _center = position;
+        }
+    }
+
     public static class Mathematics
     {
         //Verifies is 2 lines intersect and returns the intersection point in intersectionPoint parameter
@@ -86,20 +121,21 @@ namespace BlastProof
             return (lineStart + ((lhs * num2)));
         }
 
-        public static float ClosestDistanceToPolygon(in Vector2[] verts, in Vector2 point, ref KeyValuePair<int,int> edgeVerts)
+        public static float ClosestDistanceToPolygon(in Vector2[] verts, in Vector2 point, ref KeyValuePair<int, int> edgeVerts)
         {
             int nvert = verts.Length;
             int i, j = 0;
             float minDistance = Mathf.Infinity;
             for (i = 0, j = nvert - 1; i < nvert; j = i++)
-            {
-                float tempMin = minDistance;
-                float distance = DistancePointLine2D(point, verts[i], verts[j]);
-                minDistance = Mathf.Min(minDistance, distance);
-                if (minDistance != tempMin)
-                {
-                    edgeVerts = new KeyValuePair<int, int>(i, j);
-                }
+            {                
+                    float tempMin = minDistance;
+                    float distance = DistancePointLine2D(point, verts[i], verts[j]);
+                    minDistance = Mathf.Min(minDistance, distance);
+                    if (minDistance != tempMin)
+                    {
+                        edgeVerts = new KeyValuePair<int, int>(i, j);
+                    }
+                
             }
 
             return minDistance;
@@ -152,22 +188,56 @@ namespace BlastProof
             return c;
         }
 
+        public static Vector3[] SegmentIntersectsCircle(Vector3 p1, Vector3 p2, Vector3 center, float radius)
+        {
+            Vector3 dp = new Vector3();
+            Vector3[] sect;
+            float a, b, c;
+            float bb4ac;
+            float mu1;
+            float mu2;
+
+            //  get the distance between X and Z on the segment
+            dp.x = p2.x - p1.x;
+            dp.z = p2.z - p1.z;
+            //   I don't get the math here
+            a = dp.x * dp.x + dp.z * dp.z;
+            b = 2 * (dp.x * (p1.x - center.x) + dp.z * (p1.z - center.z));
+            c = center.x * center.x + center.z * center.z;
+            c += p1.x * p1.x + p1.z * p1.z;
+            c -= 2 * (center.x * p1.x + center.z * p1.z);
+            c -= radius * radius;
+            bb4ac = b * b - 4 * a * c;
+            if (Mathf.Abs(a) < float.Epsilon || bb4ac < 0)
+            {
+                //  line does not intersect
+                return new Vector3[] { Vector3.zero, Vector3.zero };
+            }
+            mu1 = (-b + Mathf.Sqrt(bb4ac)) / (2 * a);
+            mu2 = (-b - Mathf.Sqrt(bb4ac)) / (2 * a);
+            sect = new Vector3[2];
+            sect[0] = new Vector3(p1.x + mu1 * (p2.x - p1.x), 0, p1.z + mu1 * (p2.z - p1.z));
+            sect[1] = new Vector3(p1.x + mu2 * (p2.x - p1.x), 0, p1.z + mu2 * (p2.z - p1.z));
+
+            return sect;
+        }
+
         /////////////////////////////////////////////////CUSTOM OVERLOARDS//////////////////////////////////////
-        public static bool PointInPolygon(Vector2 point, in List<BoundaryPoint> points)
+        public static bool PointInPolygon(Vector2 point, Vector2[] points)
         {
             float f = 0f;
             Vector2 zero = Vector2.zero;
             Vector2 vector2 = Vector2.zero;
-            int length = points.Count;
+            int length = points.Length;
 
             for (int i = 0; i < length; i++)
             {
-                BoundaryPoint point2 = points[i];
-                BoundaryPoint point3 = points[(i + 1) % length];
-                zero.x = point2.m_pos.x - point.x;
-                zero.y = point2.m_pos.y - point.y;
-                vector2.x = point3.m_pos.x - point.x;
-                vector2.y = point3.m_pos.y - point.y;
+                Vector2 point2 = points[i];
+                Vector2 point3 = points[(i + 1) % length];
+                zero.x = point2.x - point.x;
+                zero.y = point2.y - point.y;
+                vector2.x = point3.x - point.x;
+                vector2.y = point3.y - point.y;
                 f += Angle2D(zero.x, zero.y, vector2.x, vector2.y);
 
                 //Checks if intersects one of the boundary lines
@@ -267,5 +337,51 @@ namespace BlastProof
             _transMatrix.m23 = translVec.z;
             return _transMatrix;
         }
+
+        public static bool CircleIntersectsSegment(Vector2 circlePoint, float circleRadius, Vector2 segmentPoint1, Vector2 segmentPoint2, out Vector2 intersection)
+        {
+            intersection = NearestPoint(segmentPoint1, segmentPoint2, circlePoint);
+            float num = circleRadius * circleRadius;
+            if (!Between3f(intersection.x, segmentPoint1.x, segmentPoint2.x) || (!Between3f(intersection.y, segmentPoint1.y, segmentPoint2.y) || (DistanceSquared(intersection, circlePoint) > num)))
+            {
+                if (DistanceSquared(circlePoint, segmentPoint1) <= num)
+                {
+                    intersection = segmentPoint1;
+                    return true;
+                }
+                if (DistanceSquared(circlePoint, segmentPoint2) > num)
+                {
+                    return false;
+                }
+                intersection = segmentPoint2;
+            }
+            return true;
+        }
+        public static float DistanceSquared(Vector2 point1, Vector2 point2)
+        {
+            float num = point2.x - point1.x;
+            float num2 = point2.y - point1.y;
+            return ((num * num) + (num2 * num2));
+        }
+
+        public static Vector2 NearestPoint(Vector2 point1, Vector2 point2, Vector2 otherPoint)
+        {
+            float f = point2.x - point1.x;
+            float num2 = point2.y - point1.y;
+            if (Mathf.Abs(f) < 1E-05f)
+            {
+                return new Vector2(point1.x, otherPoint.y);
+            }
+            if (Mathf.Abs(num2) < 1E-05f)
+            {
+                return new Vector2(otherPoint.x, point1.y);
+            }
+            float num3 = num2 / f;
+            float x = (((-point1.y + (num3 * point1.x)) + otherPoint.y) + (otherPoint.x / num3)) / (num3 + (1f / num3));
+            return new Vector2(x, ((num3 * x) + point1.y) - (num3 * point1.x));
+        }
+        public static bool Between3f(float f1, float f2, float f3) =>
+           (((f2 > f1) || (f1 > f3)) ? ((f3 <= f1) && (f1 <= f2)) : true);
+
     }
 }

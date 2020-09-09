@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using BlastProof;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
@@ -15,7 +16,19 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
     public SpriteShapeController victim;
     public Material capMat;
 
-    private bool _isInCollider;
+    private Circle circle;
+
+    private Vector2[] polygon;
+
+    private void Awake()
+    {       
+        circle = new Circle(Vector3.zero, 2.0f);
+    }
+
+    private void Start()
+    {
+        polygon = cbm.ToArray();
+    }       
 
     public void OnDrag(PointerEventData eventData)
     {
@@ -24,30 +37,36 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
         Physics.Raycast(ray, out var hit);
         position = hit.point;
 
+        circle.UpdatePosition(position);
+        var intersect = circle.GetIntersections(polygon);
+
+        if (Mathematics.IsInsidePolygon(polygon, position))
+        {
+            Debug.Log("IN");
+        }
 
         position.z = 0f;
 
         if (Physics2D.Raycast(position, Vector2.zero, 0f))
         {
-            _isInCollider = true;
             KeyValuePair<int, int> pair;
-            var y = BlastProof.Mathematics.ClosestDistanceToPolygon(cbm.ToArray(), position, ref pair);
+            var y = Mathematics.ClosestDistanceToPolygon(cbm.ToArray(), position, ref pair);
             //Debug.Log(y);
             if (y < 2.0f)
             {
-                var x = BlastProof.Mathematics.ProjectPointOnLineSegment(cbm.m_CustomBox[pair.Key].m_pos, cbm.m_CustomBox[pair.Value].m_pos, position);
+                var x = Mathematics.ProjectPointOnLineSegment(cbm.m_CustomBox[pair.Key].m_pos, cbm.m_CustomBox[pair.Value].m_pos, position);
                 _endPostition = x;
-                Debug.Log(x);
                 if (MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition))
                 {
-                    _isInCollider = false;
+                    _startPosition = cbm.PolygonCenter;
+                    _endPostition = cbm.PolygonCenter;
                 }
             }
         }
-
-        if (!_isInCollider)
+        else
         {
             _startPosition = position;
+            _endPostition = cbm.PolygonCenter;
         }
     }
 

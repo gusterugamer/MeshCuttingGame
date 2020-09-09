@@ -42,12 +42,16 @@ public class CustomBoundryBox : MonoBehaviour
 
     [SerializeField] private Material levelMaterial;
 
-    public bool drawNew = false; 
+    public bool drawNew = false;
+
+    private void Awake()
+    {
+        CreateCustomBoundary();
+    }
 
     // Start is called before the first frame update
     void Start()
-    {
-        CreateCustomBoundary();
+    {        
        trans = m_toCutObject.GetComponent<Transform>();       
     }
 
