@@ -10,7 +10,6 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
 
     private Vector3 _startPosition = Vector3.zero;
     private Vector3 _endPostition = Vector3.zero;
-
     private Vector3 prevStartPos = Vector3.zero;
     private Vector3 prevEndPos = Vector3.zero;
 
@@ -22,15 +21,19 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
     public SpriteShapeController victim;
     public Material capMat;
 
-    private bool cutted = false;
+    private IntersectionPoint startInterPnt = IntersectionPoint.zero;
 
     private Circle circle;
 
+    private float distanceFromPolyCenter = 16.0f;
+
     private Vector2[] polygon;
+
+    private float lastTime;
 
     private void Awake()
     {
-        circle = new Circle(Vector3.zero, 2.0f);
+        circle = new Circle(Vector3.zero, 1.0f);
     }
 
     private void Start()
@@ -46,38 +49,73 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
         position = hit.point;
 
         circle.UpdatePosition(position);
-        
+        List<IntersectionPoint> intersect = circle.GetIntersections(polygon);
+
         if (Physics2D.Raycast(position, Vector2.zero, 0f))
         {
-            var intersect = circle.GetIntersections(polygon);
-            if (intersect.Count == 2)
+            Debug.Log("IN");
+            float currentDistance = Vector3.Distance(cbm.PolygonCenter, position);
+            if (intersect.Count == 1)
             {
+                if (startInterPnt._nextBoundaryPoint == -1)
+                {
+                    _startPosition = intersect[0]._pos;
+                    startInterPnt = intersect[0];
+                }
+                else 
+                {
+                    _endPostition = intersect[0]._pos;
+                     MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition);
+                    _startPosition = cbm.PolygonCenter;
+                    _endPostition = cbm.PolygonCenter;
+                    startInterPnt = IntersectionPoint.zero;
+                    polygon = cbm.ToArray();
+                }
+            }
+
+            else if (intersect.Count == 2 && distanceFromPolyCenter < currentDistance)
+            {
+                startInterPnt = IntersectionPoint.zero;
                 if ((intersect[0]._nextBoundaryPoint == intersect[1]._previousBoundaryPoint) ||
                     (intersect[0]._previousBoundaryPoint == intersect[1]._nextBoundaryPoint))
                 {
                     _startPosition = intersect[0]._pos;
                     _endPostition = intersect[1]._pos;
 
-                    if (Mathematics.IsVectorsAproximately(prevStartPos, _startPosition) || Mathematics.IsVectorsAproximately(prevEndPos, _endPostition))
-                    {
-                        return;
-                    }
-                    else
-                    {
-                        prevStartPos = _startPosition;
-                        prevEndPos = _endPostition;
-                    }
+                    //if (Mathematics.IsVectorsAproximately(prevStartPos, _startPosition) || Mathematics.IsVectorsAproximately(prevEndPos, _endPostition))
+                    //{
+                    //    return;
+                    //}
+                    //else
+                    //{
+                    //    prevStartPos = _startPosition;
+                    //    prevEndPos = _endPostition;
+                    //}
 
                     bool distanceOverThreshold = Vector3.Distance(_startPosition, _endPostition) > MIN_DISTANCE;
-                    bool angleUnderThreshold = Mathf.Abs(Vector3.Angle(_startPosition,_endPostition)) < MAX_ANGLE;
+                    bool angleUnderThreshold = Mathf.Abs(Vector3.Angle(_startPosition, _endPostition)) < MAX_ANGLE;
 
-                    if (distanceOverThreshold && angleUnderThreshold)
+                    if (distanceOverThreshold && angleUnderThreshold && Time.unscaledTime - lastTime > 0.15f)
                     {
                         MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition);
+                        _startPosition = cbm.PolygonCenter;
+                        _endPostition = cbm.PolygonCenter;
+                        lastTime = Time.unscaledTime;                        
+                        distanceFromPolyCenter = currentDistance;
+                        polygon = cbm.ToArray();
                     }
                 }
             }
+            else
+            {
+                distanceFromPolyCenter = currentDistance;
+                polygon = cbm.ToArray();
+            }
         }
+        else
+        {
+            startInterPnt = IntersectionPoint.zero;
+        }       
 
         //if (Physics2D.Raycast(position, Vector2.zero, 0f))
         //{
@@ -106,5 +144,6 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
     {
         _startPosition = cbm.PolygonCenter;
         _endPostition = cbm.PolygonCenter;
+        startInterPnt = IntersectionPoint.zero;
     }
 }
