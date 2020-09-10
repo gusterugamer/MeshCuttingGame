@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using BlastProof;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -103,8 +104,7 @@ public class CustomBoundryBox : MonoBehaviour
             Debug.DrawLine((transform.position + m_CustomBox[i].m_pos), (transform.position + m_CustomBox[(i + 1) % length].m_pos), Color.red);
         }
     }  
-
-    //TEST ONLY
+   
     public List<IntersectionPoint> GetIntersections(Vector3 startPoint, Vector3 endPoint)
     {
         List<IntersectionPoint> pointsList = new List<IntersectionPoint>();
@@ -135,5 +135,42 @@ public class CustomBoundryBox : MonoBehaviour
             arr[i] = m_CustomBox[i].m_pos;
         }
         return arr;
+    }
+
+    public void ClearUnnecessaryPoints()
+    {
+        List<BoundaryPoint> list = new List<BoundaryPoint>();
+        BoundaryPoint lastAdded = BoundaryPoint.zero;
+        for(int i=0;i<m_CustomBox.Count;i++)
+        {
+            if (lastAdded.m_pos != Vector3.zero)
+            {
+                int j = (i + 1) % m_CustomBox.Count;
+                float distanceKJ = Vector3.Distance(lastAdded.m_pos, m_CustomBox[j].m_pos);
+                float distanceKI = Vector3.Distance(lastAdded.m_pos, m_CustomBox[i].m_pos);
+                float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);
+
+                if (!Mathf.Approximately(distanceKI + distanceIJ, distanceKJ))
+                {
+                    list.Add(m_CustomBox[i]);
+                    lastAdded = m_CustomBox[i];
+                }
+            }
+            else
+            {
+                int j = (i + 1) % m_CustomBox.Count;
+                int k = (int)Mathematics.nfmod((i - 1), m_CustomBox.Count);
+                float distanceKJ = Vector3.Distance(m_CustomBox[k].m_pos, m_CustomBox[j].m_pos);
+                float distanceKI = Vector3.Distance(m_CustomBox[k].m_pos, m_CustomBox[i].m_pos);
+                float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);
+
+                if (!Mathf.Approximately(distanceKI + distanceIJ, distanceKJ))
+                {
+                    list.Add(m_CustomBox[i]);
+                    lastAdded = m_CustomBox[i];
+                }
+            }          
+        }
+        m_CustomBox = list;
     }
 }

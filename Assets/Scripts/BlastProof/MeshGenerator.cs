@@ -4,7 +4,7 @@ using UnityEngine.XR;
 
 public static class MeshGenerator
 {
-    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans,float spriteSquareSize)
+    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
     {
         const int FRONTOFFSET = 3;
         const float BACKFACE_OFFSET = 0.5f;

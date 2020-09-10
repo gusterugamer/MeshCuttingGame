@@ -64,6 +64,7 @@ public static class MeshCut
             //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);
 
             _boundaryBox.UpdateCustomBoundary(_newLeftBoundary);
+            _boundaryBox.ClearUnnecessaryPoints();
             return true;
         }
         return false;
