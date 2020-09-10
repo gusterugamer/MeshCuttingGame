@@ -9,12 +9,7 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
     [SerializeField] private Camera _mainCamera;
 
     private Vector3 _startPosition = Vector3.zero;
-    private Vector3 _endPostition = Vector3.zero;
-    private Vector3 prevStartPos = Vector3.zero;
-    private Vector3 prevEndPos = Vector3.zero;
-
-    private const float MIN_DISTANCE = 0.05f;
-    private const float MAX_ANGLE = 179.0f;
+    private Vector3 _endPostition = Vector3.zero;    
 
     [SerializeField] private CustomBoundryBox cbm;
 
@@ -25,7 +20,7 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
 
     private Circle circle;
 
-    private float distanceFromPolyCenter = 16.0f;
+    private float oldDistanceFromPolyCenter = 16.0f;
 
     private Vector2[] polygon;
 
@@ -39,6 +34,8 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
     private void Start()
     {
         polygon = cbm.ToArray();
+        _startPosition = cbm.PolygonCenter;
+        _endPostition = cbm.PolygonCenter;
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -57,65 +54,53 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
             float currentDistance = Vector3.Distance(cbm.PolygonCenter, position);
             if (intersect.Count == 1)
             {
-                if (startInterPnt._nextBoundaryPoint == -1)
+                if (Mathematics.IsVectorsAproximately(_startPosition,cbm.PolygonCenter))
                 {
                     _startPosition = intersect[0]._pos;
                     startInterPnt = intersect[0];
                 }
-                else 
+                else
                 {
-                    _endPostition = intersect[0]._pos;
-                     MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition);
-                    _startPosition = cbm.PolygonCenter;
-                    _endPostition = cbm.PolygonCenter;
-                    startInterPnt = IntersectionPoint.zero;
-                    polygon = cbm.ToArray();
+                    if (!IsSameEdge(startInterPnt,intersect[0]) && startInterPnt != IntersectionPoint.zero)
+                    {
+                        _endPostition = intersect[0]._pos;
+                        MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition);
+                        _startPosition = cbm.PolygonCenter;
+                        _endPostition = cbm.PolygonCenter;
+                        startInterPnt = IntersectionPoint.zero;
+                        polygon = cbm.ToArray();
+                        Debug.Log("HERE!!!");
+                    }
                 }
             }
 
-            else if (intersect.Count == 2 && distanceFromPolyCenter < currentDistance)
-            {
-                startInterPnt = IntersectionPoint.zero;
-                if ((intersect[0]._nextBoundaryPoint == intersect[1]._previousBoundaryPoint) ||
-                    (intersect[0]._previousBoundaryPoint == intersect[1]._nextBoundaryPoint))
+            else if (intersect.Count == 2)
+            {                
+                if (AreEdgesConnected(intersect[0],intersect[1]) && oldDistanceFromPolyCenter < currentDistance)
                 {
                     _startPosition = intersect[0]._pos;
-                    _endPostition = intersect[1]._pos;
+                    _endPostition = intersect[1]._pos;  
 
-                    //if (Mathematics.IsVectorsAproximately(prevStartPos, _startPosition) || Mathematics.IsVectorsAproximately(prevEndPos, _endPostition))
-                    //{
-                    //    return;
-                    //}
-                    //else
-                    //{
-                    //    prevStartPos = _startPosition;
-                    //    prevEndPos = _endPostition;
-                    //}
-
-                    bool distanceOverThreshold = Vector3.Distance(_startPosition, _endPostition) > MIN_DISTANCE;
-                    bool angleUnderThreshold = Mathf.Abs(Vector3.Angle(_startPosition, _endPostition)) < MAX_ANGLE;
-
-                    if (distanceOverThreshold && angleUnderThreshold && Time.unscaledTime - lastTime > 0.15f)
+                    if (Time.unscaledTime - lastTime > 0.15f)
                     {
                         MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition);
                         _startPosition = cbm.PolygonCenter;
                         _endPostition = cbm.PolygonCenter;
-                        lastTime = Time.unscaledTime;                        
-                        distanceFromPolyCenter = currentDistance;
+                        lastTime = Time.unscaledTime;
+                        oldDistanceFromPolyCenter = currentDistance;
                         polygon = cbm.ToArray();
                     }
-                }
+                }            
             }
             else
             {
-                distanceFromPolyCenter = currentDistance;
-                polygon = cbm.ToArray();
+                oldDistanceFromPolyCenter = currentDistance;             
             }
         }
         else
         {
-            startInterPnt = IntersectionPoint.zero;
-        }       
+            
+        }
 
         //if (Physics2D.Raycast(position, Vector2.zero, 0f))
         //{
@@ -138,6 +123,20 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
         //    _startPosition = position;
         //    _endPostition = cbm.PolygonCenter;
         //}
+    }
+
+    private bool IsSameEdge(IntersectionPoint point1, IntersectionPoint point2)
+    {
+        return (point1._previousBoundaryPoint == point2._previousBoundaryPoint) &&
+               (point1._nextBoundaryPoint == point2._nextBoundaryPoint);
+    }
+
+    private bool AreEdgesConnected(IntersectionPoint point1, IntersectionPoint point2)
+    {
+        bool prevNext = point1._previousBoundaryPoint == point2._nextBoundaryPoint;
+        bool nextPrev = point2._previousBoundaryPoint == point1._nextBoundaryPoint;
+
+        return prevNext || nextPrev;
     }
 
     public void OnEndDrag(PointerEventData eventData)

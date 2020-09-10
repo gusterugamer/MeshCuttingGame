@@ -24,7 +24,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Lightning - Click Play.unity
     guid: 0b559f7bc53584d9da78c4452b74ae9a
   - enabled: 1
-    path: Assets/Scenes/Mesh_Cut - Play, click cube.unity
+    path: Assets/Resources/Material/Scenes/Mesh_Cut - Play, click cube.unity
     guid: 11d928b7f36024f079bef9251b5cdca5
   - enabled: 0
     path: Assets/Scenes/MeshColliderPerMaterial.unity
