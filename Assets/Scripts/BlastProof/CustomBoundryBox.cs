@@ -36,6 +36,13 @@ public class CustomBoundryBox : MonoBehaviour
 
     private Vector3 polygonCenter;
 
+    private float _area = 0.0f;
+
+    public float Area
+    {
+        get { return _area; } private set { _area = value; }
+    }
+
     public Vector3 PolygonCenter
     {
         get { return polygonCenter; }
@@ -79,7 +86,8 @@ public class CustomBoundryBox : MonoBehaviour
         foreach (Vector2 point in points)
         {
             m_CustomBox.Add(new BoundaryPoint(point));
-        }           
+        }
+        GetArea();
     }
 
     public void UpdateCustomBoundary(List<BoundaryPoint> boundary)
@@ -88,6 +96,7 @@ public class CustomBoundryBox : MonoBehaviour
 
         ClearUnnecessaryPoints();
         UpdateCenter();
+        GetArea();
 
         Vector2[] points = new Vector2[m_CustomBox.Count];
         for (int i = 0; i < m_CustomBox.Count; i++)
@@ -96,7 +105,7 @@ public class CustomBoundryBox : MonoBehaviour
         }
 
         polyCol.pathCount = 1;
-        polyCol.points = points;
+        polyCol.points = points;        
     }
 
     private void OnDrawGizmosSelected()
@@ -152,7 +161,7 @@ public class CustomBoundryBox : MonoBehaviour
         return arr;
     }
 
-    public void ClearUnnecessaryPoints()
+    private void ClearUnnecessaryPoints()
     {
         List<BoundaryPoint> list = new List<BoundaryPoint>();
         BoundaryPoint lastAdded = BoundaryPoint.zero;
@@ -188,4 +197,9 @@ public class CustomBoundryBox : MonoBehaviour
         }
         m_CustomBox = list;        
     }    
+
+    private void GetArea()
+    {
+        _area = Mathematics.PolygonArea(m_CustomBox);
+    }
 }

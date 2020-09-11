@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
 
-public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
+public class CutAreaInput : MonoBehaviour
 {
     [SerializeField] private Camera _mainCamera;
 
@@ -26,9 +26,17 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
 
     private float lastTime;
 
+    private bool _isInCollider = false;
+
     private void Awake()
     {
-        circle = new Circle(Vector3.zero, 1.0f);
+        circle = new Circle(Vector3.zero, 1f);
+    }
+
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawSphere(circle.Center, circle.Radius);
     }
 
     private void Start()
@@ -38,85 +46,55 @@ public class CutAreaInput : MonoBehaviour, IDragHandler, IEndDragHandler
         _endPostition = cbm.PolygonCenter;
     }
 
-    public void OnDrag(PointerEventData eventData)
+    public void Update()
+    {
+        GetCutPoints();
+    }
+
+    private void GetCutPoints()
     {
         var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
         var position = Vector3.zero;
-        Physics.Raycast(ray, out var hit);
-        position = hit.point;
+        if (Physics.Raycast(ray, out var hit))
+        {
+            position = hit.point;
+        }
+        else return;
 
-        circle.UpdatePosition(position);
-        List<IntersectionPoint> intersect = circle.GetIntersections(polygon);
-        var intersect2 = circle.GetIntersections2(polygon);
+        position.z = 0f;       
 
         if (Physics2D.Raycast(position, Vector2.zero, 0f))
         {
-            if (intersect.Count != 0)
-            {
-                if (_startPosition == cbm.PolygonCenter)
-                {
-                    _startPosition = intersect[0]._pos;
-                    startInterPnt = intersect[0];
-                }
-                else
-                {
-                    IntersectionPoint endIntersectionPoint = startInterPnt;
-                    float maxDistance = -Mathf.Infinity;
-                    for (int i = 0; i < intersect.Count;i++)
-                    {
-                        if (intersect[i] != startInterPnt)
-                        {
-                            float distance = Vector3.Distance(_startPosition, intersect[i]._pos);
-                            if (distance > maxDistance)
-                            {
-                                maxDistance = distance;
-                                endIntersectionPoint = intersect[i];
-                            }
-                        }
-                    }
-                    _endPostition = endIntersectionPoint._pos;
-                    var x = MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition);
-                    if (x)
-                    {
-                        _startPosition = cbm.PolygonCenter;
-                        _endPostition = cbm.PolygonCenter;
-                        polygon = cbm.ToArray();
-                        startInterPnt = IntersectionPoint.zero;
-                    }    
-                    else
-                    {
-                        Debug.Log("FAILED!");
-                    }
-                }
-                lastTime = Time.unscaledTime;
-            }
+            _isInCollider = true;
+            //_startPosition = position;       
         }
         else
         {
-            _startPosition = position;
-            _endPostition = _startPosition;
+            if (!_isInCollider)
+            {
+                _startPosition = position;
+                _endPostition = position;
+            }
+            else
+            {
+                _endPostition = position;
+
+                MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition);
+
+                _isInCollider = false;
+                _startPosition = Vector3.zero;
+                _endPostition = Vector3.zero;
+            }
         }
-  
     }
-
-    private bool IsSameEdge(IntersectionPoint point1, IntersectionPoint point2)
-    {
-        return (point1._previousBoundaryPoint == point2._previousBoundaryPoint) &&
-               (point1._nextBoundaryPoint == point2._nextBoundaryPoint);
-    }
-
-    private bool AreEdgesConnected(IntersectionPoint point1, IntersectionPoint point2)
-    {
-        bool prevNext = point1._nextBoundaryPoint == point2._previousBoundaryPoint && point2._nextBoundaryPoint != point1._previousBoundaryPoint;
-        bool nextPrev = point2._nextBoundaryPoint == point1._previousBoundaryPoint && point1._nextBoundaryPoint != point2._previousBoundaryPoint;
-
-        return prevNext || nextPrev;
-    }
-
     public void OnEndDrag(PointerEventData eventData)
     {
         _startPosition = cbm.PolygonCenter;
-        _endPostition = cbm.PolygonCenter;
-        startInterPnt = IntersectionPoint.zero;
+        _endPostition = cbm.PolygonCenter;  
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        //GetCutPoints();
     }
 }
