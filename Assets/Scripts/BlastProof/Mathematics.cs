@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace BlastProof
@@ -30,6 +28,20 @@ namespace BlastProof
                 {
                     interPoints.Add(new IntersectionPoint(interPos, i, j));
                 }
+            }
+            return interPoints;
+        }
+        public List<Vector3[]> GetIntersections2(Vector2[] polygon)
+        {
+            List<Vector3[]> interPoints = new List<Vector3[]>();
+            Vector3[] interPos = null;
+            for (int i = 0; i < polygon.Length; i++)
+            {               
+                int j = (i + 1) % polygon.Length;
+                interPos = Mathematics.SegmentIntersectCircle(polygon[i], polygon[j], _center, _radius);
+                interPoints.Add(interPos);
+                // interPoints.Add(new IntersectionPoint(interPos, i, j));
+                
             }
             return interPoints;
         }
@@ -195,6 +207,40 @@ namespace BlastProof
         public static float nfmod(float a, float b)
         {
             return a - b * Mathf.Floor(a / b);
+        }
+
+        public static Vector3[] SegmentIntersectCircle(Vector3 p1, Vector3 p2, Vector3 center, float radius)
+        {
+            Vector3 dp = new Vector3();
+            Vector3[] sect;
+            float a, b, c;
+            float bb4ac;
+            float mu1;
+            float mu2;
+
+            //  get the distance between X and Z on the segment
+            dp.x = p2.x - p1.x;
+            dp.y = p2.y - p1.y;
+            //   I don't get the math here
+            a = dp.x * dp.x + dp.y * dp.y;
+            b = 2 * (dp.x * (p1.x - center.x) + dp.y * (p1.y - center.y));
+            c = center.x * center.x + center.y * center.y;
+            c += p1.x * p1.x + p1.y * p1.y;
+            c -= 2 * (center.x * p1.x + center.y * p1.y);
+            c -= radius * radius;
+            bb4ac = b * b - 4 * a * c;
+            if (Mathf.Abs(a) < float.Epsilon || bb4ac < 0)
+            {
+                //  line does not intersect
+                return null;
+            }
+            mu1 = (-b + Mathf.Sqrt(bb4ac)) / (2 * a);
+            mu2 = (-b - Mathf.Sqrt(bb4ac)) / (2 * a);
+            sect = new Vector3[2];
+            sect[0] = new Vector3(p1.x + mu1 * (p2.x - p1.x),p1.y + mu1 * (p2.y - p1.y));
+            sect[1] = new Vector3(p1.x + mu2 * (p2.x - p1.x),p1.y + mu2 * (p2.y - p1.y));
+
+            return sect;
         }
 
         /////////////////////////////////////////////////CUSTOM OVERLOARDS//////////////////////////////////////

@@ -84,12 +84,15 @@ public class CustomBoundryBox : MonoBehaviour
 
     public void UpdateCustomBoundary(List<BoundaryPoint> boundary)
     {
-        Vector2[] points = new Vector2[boundary.Count];
+        m_CustomBox = boundary;
 
-        m_CustomBox = boundary;       
-        for (int i = 0; i < boundary.Count; i++)
+        ClearUnnecessaryPoints();
+        UpdateCenter();
+
+        Vector2[] points = new Vector2[m_CustomBox.Count];
+        for (int i = 0; i < m_CustomBox.Count; i++)
         {           
-            points[i] = boundary[i].m_pos;
+            points[i] = m_CustomBox[i].m_pos;
         }
 
         polyCol.pathCount = 1;
@@ -103,8 +106,20 @@ public class CustomBoundryBox : MonoBehaviour
         {
             Debug.DrawLine((transform.position + m_CustomBox[i].m_pos), (transform.position + m_CustomBox[(i + 1) % length].m_pos), Color.red);
         }
-    }  
-   
+    }
+
+    private void UpdateCenter()
+    {
+        int length = m_CustomBox.Count;
+        Vector3 pointsSum = Vector2.zero;
+        for (int i = 0; i < length; i++)
+        {           
+            pointsSum += m_CustomBox[i].m_pos;
+        }
+        polygonCenter = pointsSum / length;
+        polygonCenter.z = transform.position.z;
+    }
+
     public List<IntersectionPoint> GetIntersections(Vector3 startPoint, Vector3 endPoint)
     {
         List<IntersectionPoint> pointsList = new List<IntersectionPoint>();
@@ -171,6 +186,6 @@ public class CustomBoundryBox : MonoBehaviour
                 }
             }          
         }
-        m_CustomBox = list;
-    }
+        m_CustomBox = list;        
+    }    
 }

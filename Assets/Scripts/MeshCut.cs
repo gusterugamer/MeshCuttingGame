@@ -63,8 +63,7 @@ public static class MeshCut
             maskObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/MaskMaterial") as Material;
             //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);
 
-            _boundaryBox.UpdateCustomBoundary(_newLeftBoundary);
-            _boundaryBox.ClearUnnecessaryPoints();
+            _boundaryBox.UpdateCustomBoundary(_newLeftBoundary);            
             return true;
         }
         return false;
