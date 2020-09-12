@@ -1,5 +1,5 @@
 ﻿using BlastProof;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.U2D;
@@ -7,40 +7,30 @@ using UnityEngine.U2D;
 public class CutAreaInput : MonoBehaviour
 {
     [SerializeField] private Camera _mainCamera;
+    [SerializeField] private CustomBoundryBox cbm;
+    private Cutter cutter;
+    [SerializeField] private SpriteShapeController victim;
+    [SerializeField] private Material capMat;
 
     private Vector3 _startPosition = Vector3.zero;
     private Vector3 _endPostition = Vector3.zero;
 
-    [SerializeField] private CustomBoundryBox cbm;
-
-    public SpriteShapeController victim;
-    public Material capMat;
+    private Vector2[] polygon;
 
     private IntersectionPoint startInterPnt = IntersectionPoint.zero;
 
     private Circle circle;
 
     private float oldDistanceFromPolyCenter = 16.0f;
-
-    private Vector2[] polygon;
-
     private float lastTime;
-
+    
     private bool _isInCollider = false;
 
-    private void Awake()
-    {
-        circle = new Circle(Vector3.zero, 1f);
-    }
-
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawSphere(circle.Center, circle.Radius);
-    }
+    public event EventHandler OnCutDone;
 
     private void Start()
     {
+        cutter = new Cutter();
         polygon = cbm.ToArray();
         _startPosition = cbm.PolygonCenter;
         _endPostition = cbm.PolygonCenter;
@@ -79,7 +69,10 @@ public class CutAreaInput : MonoBehaviour
             {
                 _endPostition = position;
 
-                MeshCut.StartCutting(victim, capMat, _startPosition, _endPostition);
+                if (cutter.Cut(victim, capMat, _startPosition, _endPostition))
+                {
+                    OnCutDone?.Invoke(this, EventArgs.Empty);
+                }
 
                 _isInCollider = false;
                 _startPosition = Vector3.zero;

@@ -1,32 +1,25 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.U2D;
-using UnityEngine.XR;
 
-public static class MeshCut
+public class Cutter
 {
-    private static List<BoundaryPoint> _newRightBoundary;
-    private static List<BoundaryPoint> _newLeftBoundary;
+    private List<BoundaryPoint> _newRightBoundary;
+    private List<BoundaryPoint> _newLeftBoundary;
 
-    // TEST ONLY
-    public static List<IntersectionPoint> intersectionPoint;
+    public List<BoundaryPoint> NewRightBoundary { get => _newRightBoundary; private set { _newRightBoundary = value; } }
+    public List<BoundaryPoint> NewLeftBoundary { get => _newLeftBoundary; private set { _newLeftBoundary = value; } }
 
-    //TEST ONLY
-    public static bool StartCutting (SpriteShapeController shape, Material capMaterial,Vector3 startPos, Vector3 endPos)
-    {
-        return Cut(shape, capMaterial, startPos, endPos);
-    }
-
-    public static bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos)
+    public bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
         List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
-        
+
         if (intersectionPoints.Count == 2)
-        {         
+        {
             CreateNewBoundary(_boundaryBox, ref intersectionPoints);
 
-            MeshProperties generatedMesh = MeshGenerator.CreateMesh(_newRightBoundary, shape.transform, 16.0f);
+            MeshProperties generatedMesh = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, 16.0f);
 
             Mesh newMesh = new Mesh();
             newMesh.name = "GenObjectMesh";
@@ -36,7 +29,7 @@ public static class MeshCut
             newMesh.SetUVs(0, generatedMesh.mesh_uvs);
 
             GameObject generatedObj = new GameObject();
-            GameObject generatedObjParent= new GameObject();
+            GameObject generatedObjParent = new GameObject();
             generatedObjParent.name = "GeneratedParent";
             generatedObjParent.transform.position = generatedMesh.mesh_center;
             generatedObj.transform.parent = generatedObjParent.transform;
@@ -44,7 +37,7 @@ public static class MeshCut
             generatedObj.name = "right side";
             generatedObj.transform.position = Vector3.zero;
             generatedObj.AddComponent<MeshFilter>();
-            generatedObj.AddComponent<MeshRenderer>();           
+            generatedObj.AddComponent<MeshRenderer>();
             generatedObj.name = "Generated";
             generatedObj.GetComponent<MeshFilter>().mesh = newMesh;
             generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;
@@ -57,49 +50,49 @@ public static class MeshCut
             GameObject maskObj = new GameObject();
             maskObj.AddComponent<MeshFilter>();
             maskObj.AddComponent<MeshRenderer>();
-            maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f,0.0f, -0.5f);
+            maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f, 0.0f, -0.5f);
             maskObj.GetComponent<MeshFilter>().mesh = newMesh;
             maskObj.name = "mask";
             maskObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/MaskMaterial") as Material;
             //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);
 
-            _boundaryBox.UpdateCustomBoundary(_newLeftBoundary);            
+            _boundaryBox.UpdateCustomBoundary(NewLeftBoundary);
             return true;
         }
         return false;
     }
 
-    private static void CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint)
+    private void CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint)
     {
         //picking first and second intersection point indicies by looking who is closest to the start of the ppolygon
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
-        int secondPointIndex = 1 - firstPointIndex;       
+        int secondPointIndex = 1 - firstPointIndex;
 
-        _newLeftBoundary = new List<BoundaryPoint>();
-        _newRightBoundary = new List<BoundaryPoint>();
+        NewLeftBoundary = new List<BoundaryPoint>();
+        NewRightBoundary = new List<BoundaryPoint>();
 
         for (int i = 0; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint; i++)
         {
-            _newLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
+            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
         }
 
-        _newLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
-        _newLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+        NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
+        NewLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
 
         for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Count; i++)
         {
-            _newLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
+            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
         }
-        
-        //rightside
-        int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;        
 
-        _newRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
-        _newRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
+        //rightside
+        int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
+
+        NewRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+        NewRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
 
         for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
         {
-            _newRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
-        }  
-    }   
+            NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
+        }
+    }
 }
