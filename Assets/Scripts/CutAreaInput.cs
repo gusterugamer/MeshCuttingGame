@@ -26,7 +26,9 @@ public class CutAreaInput : MonoBehaviour
     
     private bool _isInCollider = false;
 
-    public event EventHandler OnCutDone;
+    public delegate void CutDelegate();
+
+    public event CutDelegate OnCutDone;
 
     private void Start()
     {
@@ -71,7 +73,7 @@ public class CutAreaInput : MonoBehaviour
 
                 if (cutter.Cut(victim, capMat, _startPosition, _endPostition))
                 {
-                    OnCutDone?.Invoke(this, EventArgs.Empty);
+                    OnCutDone?.Invoke();
                 }
 
                 _isInCollider = false;

@@ -15,9 +15,9 @@ public class Score
     public float StartArea { get => _startArea; }
     public float CurrentArea { get => _currentArea; }
 
-    public int progressPercent()
+    public float progressPercent()
     {
-        return (int)((CurrentArea / StartArea) * 100f);
+        return (CurrentArea / StartArea);
     }
 
     public void UpdateCurrentScore(float currentArea)

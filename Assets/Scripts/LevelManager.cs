@@ -6,17 +6,22 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private CustomBoundryBox cbm;
     [SerializeField] private CutAreaInput cai;
 
-    private static Score score;   
+    private static Score score;
+
+    public Score Score { get => score; private set => score = value; }
+
+    public delegate void ScoreChangeDelegate();
+    public event ScoreChangeDelegate OnScoreChange;
    
     void Start()
     {
-        score = new Score(cbm.Area);
+        Score = new Score(cbm.Area);
         cai.OnCutDone += UpdateScore;
     } 
 
-    private void UpdateScore (object sender, EventArgs e)
+    private void UpdateScore()
     {
-        score.UpdateCurrentScore(cbm.Area);
-        Debug.Log(score.progressPercent());
+        Score.UpdateCurrentScore(cbm.Area);
+        OnScoreChange?.Invoke();
     }
 }
