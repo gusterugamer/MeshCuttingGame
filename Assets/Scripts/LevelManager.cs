@@ -35,14 +35,16 @@ public class LevelManager : MonoBehaviour
     {        
         for (int i=-1;i<2;i++)
         {
-            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            GameObject prefabcube = Resources.Load("Prefab/Cube") as GameObject;
+            GameObject cube = Instantiate(prefabcube);
             cube.name = "object" + i;
             cube.transform.localScale = Vector3.one;
             Vector3 newPosition = new Vector3(cbm.PolygonCenter.x, cbm.PolygonCenter.y + i * 6.5f, cbm.PolygonCenter.z);
             cube.transform.position = newPosition;
-            cube.tag = "Obstacle";
+            cube.AddComponent<LevelObstacle>();
+            cube.tag = "Obstacle";           
             obstacles.Add(cube);
-        }
+        }      
     }
 
     private void CollidedWithObject()

@@ -18,6 +18,7 @@ public class CutAreaInput : MonoBehaviour
     private Vector3 _endPostition = Vector3.zero;
 
     private bool _isInCollider = false;
+    private bool _collidedWithObject = false;
 
     public delegate void CutDelegate();
     public delegate void ObjectCutDelegate();
@@ -60,31 +61,35 @@ public class CutAreaInput : MonoBehaviour
                 if (!_isInCollider)
                 {
                     _startPosition = position;
+                    _collidedWithObject = false;
                 }
                 else
                 {
-                    _endPostition = position;             
+                    _endPostition = position;
+                    if (_startPosition != cbm.PolygonCenter && _endPostition != cbm.PolygonCenter)
+                    {
+                        if (Physics.Raycast(_startPosition, (_endPostition - _startPosition).normalized, out RaycastHit hit1, Vector3.Distance(_startPosition, _endPostition)))
+                        {
+                            if (hit1.collider.tag == "Obstacle" && !_collidedWithObject)
+                            {
+                                OnObjectCut?.Invoke();
+                                _collidedWithObject = true;                               
+                            }
+                        }
+                    }
 
                     Plane plane = Mathematics.SlicePlane(_startPosition, _endPostition, _mainCamera.transform.forward);
 
-                    if (LM.IsObjectsOnSameSide(plane))
+                    if (LM.IsObjectsOnSameSide(plane) && !_collidedWithObject)
                     {
                         if (cutter.Cut(victim, capMat, _startPosition, _endPostition))
                         {
                             OnCutDone?.Invoke();
                         }
                         _isInCollider = false;
-                        _startPosition = Vector3.zero;
-                        _endPostition = Vector3.zero;
+                        _startPosition = cbm.PolygonCenter;
+                        _endPostition = cbm.PolygonCenter;
                     }
-                }
-            }
-
-            if (Physics.Raycast(_startPosition, (_endPostition - _startPosition).normalized, out RaycastHit hit1))
-            {
-                if (hit1.collider.tag == "Obstacle")
-                {
-                    OnObjectCut?.Invoke();
                 }
             }
         }

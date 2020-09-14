@@ -584,13 +584,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 950396717}
-  m_LocalRotation: {x: 0.24014524, y: 0.4172299, z: -0.11531606, w: 0.8688796}
+  m_LocalRotation: {x: 0.26280877, y: 0.15767282, z: -0.043578394, w: 0.95087945}
   m_LocalPosition: {x: -8.31, y: 16.74, z: -2.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 30.9, y: 51.3, z: 0}
+  m_LocalEulerAnglesHint: {x: 30.9, y: 18.83, z: 0}
 --- !u!1 &1453787787
 GameObject:
   m_ObjectHideFlags: 0
@@ -734,8 +734,8 @@ GameObject:
   - component: {fileID: 1707939980}
   - component: {fileID: 1707939979}
   - component: {fileID: 1707939978}
-  - component: {fileID: 1707939982}
   - component: {fileID: 1707939981}
+  - component: {fileID: 1707939982}
   m_Layer: 0
   m_Name: Sprite
   m_TagString: Untagged
@@ -885,8 +885,8 @@ MonoBehaviour:
   m_toCutObject: {fileID: 1707939978}
   levelMaterial: {fileID: 0}
   drawNew: 0
---- !u!60 &1707939982
-PolygonCollider2D:
+--- !u!68 &1707939982
+EdgeCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -899,20 +899,10 @@ PolygonCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
+  m_EdgeRadius: 0
   m_Points:
-    m_Paths:
-    - - {x: 0, y: 16}
-      - {x: 16, y: 16}
-      - {x: 16, y: 0}
+  - {x: 0, y: 8.000001}
+  - {x: 16.000002, y: 8.000001}
 --- !u!1 &1871123379
 GameObject:
   m_ObjectHideFlags: 0

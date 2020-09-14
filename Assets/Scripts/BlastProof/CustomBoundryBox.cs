@@ -32,7 +32,7 @@ public class CustomBoundryBox : MonoBehaviour
     
     private Transform trans;
 
-    private PolygonCollider2D polyCol;
+    private EdgeCollider2D polyCol;
 
     private Vector3 polygonCenter;
 
@@ -67,7 +67,7 @@ public class CustomBoundryBox : MonoBehaviour
     {
         Vector2 pointsSum = Vector3.zero;
 
-        polyCol = GetComponent<PolygonCollider2D>();
+        polyCol = GetComponent<EdgeCollider2D>();
         int length = m_toCutObject.spline.GetPointCount();
 
         Vector2[] points = new Vector2[length];
@@ -80,7 +80,7 @@ public class CustomBoundryBox : MonoBehaviour
         polygonCenter = pointsSum / length;
         polygonCenter.z = transform.position.z;
 
-        polyCol.pathCount = 1;
+        //polyCol.pathCount = 1;
         polyCol.points = points;
 
         foreach (Vector2 point in points)
@@ -104,7 +104,7 @@ public class CustomBoundryBox : MonoBehaviour
             points[i] = m_CustomBox[i].m_pos;
         }
 
-        polyCol.pathCount = 1;
+        //polyCol.pathCount = 1;
         polyCol.points = points;        
     }
 
