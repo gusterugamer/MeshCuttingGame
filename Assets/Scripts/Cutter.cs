@@ -10,14 +10,14 @@ public class Cutter
     public List<BoundaryPoint> NewRightBoundary { get => _newRightBoundary; private set { _newRightBoundary = value; } }
     public List<BoundaryPoint> NewLeftBoundary { get => _newLeftBoundary; private set { _newLeftBoundary = value; } }
 
-    public bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos)
+    public bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos, int count)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
         List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
 
         if (intersectionPoints.Count == 2)
         {
-            CreateNewBoundary(_boundaryBox, ref intersectionPoints);
+            CreateNewBoundary(_boundaryBox, ref intersectionPoints, count);
 
             MeshProperties generatedMesh = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, 16.0f);
 
@@ -62,7 +62,7 @@ public class Cutter
         return false;
     }
 
-    private void CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint)
+    private void CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint, int count)
     {
         //picking first and second intersection point indicies by looking who is closest to the start of the ppolygon
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
@@ -93,6 +93,13 @@ public class Cutter
         for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
         {
             NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
+        }
+
+        if (count<0)
+        {
+            List<BoundaryPoint> tempBoundary = NewLeftBoundary;
+            NewLeftBoundary = NewRightBoundary;
+            NewRightBoundary = tempBoundary;
         }
     }
 }

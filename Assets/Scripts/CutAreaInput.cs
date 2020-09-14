@@ -16,6 +16,7 @@ public class CutAreaInput : MonoBehaviour
 
     private Vector3 _startPosition = Vector3.zero;
     private Vector3 _endPostition = Vector3.zero;
+    private Vector2[] polygon;
 
     private bool _isInCollider = false;
     private bool _collidedWithObject = false;
@@ -28,6 +29,7 @@ public class CutAreaInput : MonoBehaviour
 
     private void Start()
     {
+        polygon = cbm.ToArray();
         cutter = new Cutter();
         _startPosition = Vector3.zero;
         _endPostition = Vector3.zero;
@@ -52,7 +54,7 @@ public class CutAreaInput : MonoBehaviour
 
             position.z = 0f;
 
-            if (Physics2D.Raycast(position, Vector2.zero, 0f))
+            if (Mathematics.IsPointInPolygon(position, polygon))
             {
                 _isInCollider = true;
             }
@@ -61,28 +63,28 @@ public class CutAreaInput : MonoBehaviour
                 if (!_isInCollider)
                 {
                     _startPosition = position;
-                    _collidedWithObject = false;
                 }
                 else
                 {
                     _endPostition = position;
                     if (_startPosition != cbm.PolygonCenter && _endPostition != cbm.PolygonCenter)
                     {
-                        if (Physics.Raycast(_startPosition, (_endPostition - _startPosition).normalized, out RaycastHit hit1, Vector3.Distance(_startPosition, _endPostition)))
+                        RaycastHit2D hit1;
+                        Debug.DrawRay(_startPosition, (_endPostition - _startPosition).normalized);
+                        if (hit1 = Physics2D.Raycast(_startPosition, (_endPostition - _startPosition).normalized, Vector2.Distance(_startPosition, _endPostition), LayerMask.NameToLayer("Obstacles")))
                         {
-                            if (hit1.collider.tag == "Obstacle" && !_collidedWithObject)
-                            {
-                                OnObjectCut?.Invoke();
-                                _collidedWithObject = true;                               
-                            }
+                            OnObjectCut?.Invoke();
+                            _collidedWithObject = true;
                         }
                     }
+                    Plane plane;
 
-                    Plane plane = Mathematics.SlicePlane(_startPosition, _endPostition, _mainCamera.transform.forward);
+                    plane = Mathematics.SlicePlane(_startPosition, _endPostition, _mainCamera.transform.forward);
 
-                    if (LM.IsObjectsOnSameSide(plane) && !_collidedWithObject)
+
+                    if (LM.IsObjectsOnSameSide(plane, out int count) && !_collidedWithObject)
                     {
-                        if (cutter.Cut(victim, capMat, _startPosition, _endPostition))
+                        if (cutter.Cut(victim, capMat, _startPosition, _endPostition, count))
                         {
                             OnCutDone?.Invoke();
                         }

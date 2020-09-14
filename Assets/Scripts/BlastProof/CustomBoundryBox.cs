@@ -70,23 +70,20 @@ public class CustomBoundryBox : MonoBehaviour
         polyCol = GetComponent<EdgeCollider2D>();
         int length = m_toCutObject.spline.GetPointCount();
 
-        Vector2[] points = new Vector2[length];
+        Vector2[] points = new Vector2[length+1];
 
         for (int i=0;i<length;i++)
         {
             points[i] = m_toCutObject.spline.GetPosition(i);
             pointsSum += points[i];
+            m_CustomBox.Add(new BoundaryPoint(points[i]));
         }
+        points[length] = points[0];
         polygonCenter = pointsSum / length;
         polygonCenter.z = transform.position.z;
 
         //polyCol.pathCount = 1;
         polyCol.points = points;
-
-        foreach (Vector2 point in points)
-        {
-            m_CustomBox.Add(new BoundaryPoint(point));
-        }
         GetArea();
     }
 
@@ -98,10 +95,10 @@ public class CustomBoundryBox : MonoBehaviour
         UpdateCenter();
         GetArea();
 
-        Vector2[] points = new Vector2[m_CustomBox.Count];
-        for (int i = 0; i < m_CustomBox.Count; i++)
+        Vector2[] points = new Vector2[m_CustomBox.Count+1];
+        for (int i = 0; i <= m_CustomBox.Count; i++)
         {           
-            points[i] = m_CustomBox[i].m_pos;
+            points[i] = m_CustomBox[i % m_CustomBox.Count].m_pos;
         }
 
         //polyCol.pathCount = 1;

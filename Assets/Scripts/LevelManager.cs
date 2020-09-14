@@ -52,13 +52,14 @@ public class LevelManager : MonoBehaviour
         Debug.Log("TRUE");
     }
 
-    public bool IsObjectsOnSameSide(Plane plane)
+    public bool IsObjectsOnSameSide(Plane plane, out int _count)
     {
         int count = 0;
         foreach (var go in obstacles)
         {
             count += plane.GetSide(go.transform.position) ? 1 : -1;
         }
+        _count = count;
         return Math.Abs(count) == obstacles.Count;
     }
 }
