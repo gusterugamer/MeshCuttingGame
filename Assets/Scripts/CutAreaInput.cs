@@ -8,34 +8,28 @@ public class CutAreaInput : MonoBehaviour
 {
     [SerializeField] private Camera _mainCamera;
     [SerializeField] private CustomBoundryBox cbm;
-    private Cutter cutter;
     [SerializeField] private SpriteShapeController victim;
     [SerializeField] private Material capMat;
+    [SerializeField] private LevelManager LM;
+
+    private Cutter cutter;
 
     private Vector3 _startPosition = Vector3.zero;
     private Vector3 _endPostition = Vector3.zero;
 
-    private Vector2[] polygon;
-
-    private IntersectionPoint startInterPnt = IntersectionPoint.zero;
-
-    private Circle circle;
-
-    private float oldDistanceFromPolyCenter = 16.0f;
-    private float lastTime;
-    
     private bool _isInCollider = false;
 
     public delegate void CutDelegate();
+    public delegate void ObjectCutDelegate();
 
     public event CutDelegate OnCutDone;
+    public event ObjectCutDelegate OnObjectCut;
 
     private void Start()
     {
         cutter = new Cutter();
-        polygon = cbm.ToArray();
-        _startPosition = cbm.PolygonCenter;
-        _endPostition = cbm.PolygonCenter;
+        _startPosition = Vector3.zero;
+        _endPostition = Vector3.zero;
     }
 
     public void Update()
@@ -45,51 +39,54 @@ public class CutAreaInput : MonoBehaviour
 
     private void GetCutPoints()
     {
-        var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-        var position = Vector3.zero;
-        if (Physics.Raycast(ray, out var hit))
+        if (Input.GetMouseButton(0))
         {
-            position = hit.point;
-        }
-        else return;
-
-        position.z = 0f;       
-
-        if (Physics2D.Raycast(position, Vector2.zero, 0f))
-        {
-            _isInCollider = true;
-            //_startPosition = position;       
-        }
-        else
-        {
-            if (!_isInCollider)
+            var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+            var position = Vector3.zero;
+            if (Physics.Raycast(ray, out var hit))
             {
-                _startPosition = position;
-                _endPostition = position;
+                position = hit.point;
+            }
+            else return;
+
+            position.z = 0f;
+
+            if (Physics2D.Raycast(position, Vector2.zero, 0f))
+            {
+                _isInCollider = true;
             }
             else
             {
-                _endPostition = position;
-
-                if (cutter.Cut(victim, capMat, _startPosition, _endPostition))
+                if (!_isInCollider)
                 {
-                    OnCutDone?.Invoke();
+                    _startPosition = position;
                 }
+                else
+                {
+                    _endPostition = position;             
 
-                _isInCollider = false;
-                _startPosition = Vector3.zero;
-                _endPostition = Vector3.zero;
+                    Plane plane = Mathematics.SlicePlane(_startPosition, _endPostition, _mainCamera.transform.forward);
+
+                    if (LM.IsObjectsOnSameSide(plane))
+                    {
+                        if (cutter.Cut(victim, capMat, _startPosition, _endPostition))
+                        {
+                            OnCutDone?.Invoke();
+                        }
+                        _isInCollider = false;
+                        _startPosition = Vector3.zero;
+                        _endPostition = Vector3.zero;
+                    }
+                }
+            }
+
+            if (Physics.Raycast(_startPosition, (_endPostition - _startPosition).normalized, out RaycastHit hit1))
+            {
+                if (hit1.collider.tag == "Obstacle")
+                {
+                    OnObjectCut?.Invoke();
+                }
             }
         }
-    }
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        _startPosition = cbm.PolygonCenter;
-        _endPostition = cbm.PolygonCenter;  
-    }
-
-    public void OnPointerDown(PointerEventData eventData)
-    {
-        //GetCutPoints();
     }
 }

@@ -377,6 +377,19 @@ namespace BlastProof
             return (num3 * 57.29578f);
         }
 
+        public static Plane SlicePlane(Vector3 point1, Vector3 point2, Vector3 forward)
+        {
+            Vector3 tangent = (point2 - point1);
+
+            Vector3 depth = (point1 + forward);
+
+            Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
+
+            normal.z = 0.0f;           
+
+            return new Plane(normal, point1);
+        }
+
         public static int PointOnWhichSideOfLineSegment(Vector3 linePoint1, Vector3 linePoint2, Vector3 point)
         {
             Vector3 rhs = linePoint2 - linePoint1;
