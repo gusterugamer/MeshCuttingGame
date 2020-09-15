@@ -378,18 +378,17 @@ namespace BlastProof
         }
 
         public static Plane SlicePlane(Vector3 point1, Vector3 point2, Vector3 forward)
-        {
+        {         
             Vector3 tangent = (point2 - point1);
 
             Vector3 depth = (point1 + forward);
 
-            Vector3 normal = (Vector3.Cross(tangent, depth)).normalized;
+            Vector3 crossProd = Vector3.Cross(tangent, depth);
 
-            normal.z = 0.0f;           
-            if (normal.x>0 && normal.y <0)
-            {
-                normal = new Vector3(-normal.x, -1f * normal.y);
-            }
+            crossProd.z = 0.0f;
+
+            Vector3 normal = (crossProd).normalized;                       
+            
             return new Plane(normal, point1);
         }
 

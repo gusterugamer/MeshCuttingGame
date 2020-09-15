@@ -13,6 +13,7 @@ public class LevelManager : MonoBehaviour
     private List<GameObject> obstacles = new List<GameObject>();
 
     public Score Score { get => score; private set => score = value; }
+    public List<GameObject> Obstacles { get => obstacles; private set => obstacles = value; }
 
     public delegate void ScoreChangeDelegate();
     public event ScoreChangeDelegate OnScoreChange;
@@ -43,23 +44,12 @@ public class LevelManager : MonoBehaviour
             cube.transform.position = newPosition;
             cube.AddComponent<LevelObstacle>();
             cube.tag = "Obstacle";           
-            obstacles.Add(cube);
+            Obstacles.Add(cube);
         }      
     }
 
     private void CollidedWithObject()
     {
         Debug.Log("TRUE");
-    }
-
-    public bool IsObjectsOnSameSide(Plane plane, out int _count)
-    {
-        int count = 0;
-        foreach (var go in obstacles)
-        {
-            count += plane.GetSide(go.transform.position) ? 1 : -1;
-        }
-        _count = count;
-        return Math.Abs(count) == obstacles.Count;
-    }
+    }    
 }

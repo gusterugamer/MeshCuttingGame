@@ -4,7 +4,7 @@ using UnityEngine.XR;
 
 public static class MeshGenerator
 {
-    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
+    public static MeshProperties[] CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
     {
         const int FRONTOFFSET = 3;
         const float BACKFACE_OFFSET = 0.5f;
@@ -12,12 +12,15 @@ public static class MeshGenerator
 
 
         MeshProperties generatedMesh;
+        MeshProperties frontFaceMesh;
 
         Vector2[] genPolyArrFront = new Vector2[genPoly.Count];
 
         List<VertexProperties> verts = new List<VertexProperties>();
+        List<VertexProperties> frontFaceVerticies = new List<VertexProperties>();
 
         List<int> indicies = new List<int>();
+        List<int> frontFaceIndicies = new List<int>();
 
         //ConvertingToArray
         for (int i = 0; i < genPoly.Count; i++)
@@ -37,6 +40,8 @@ public static class MeshGenerator
             verts.Add(new VertexProperties { position = _position });
             verts.Add(new VertexProperties { position = _position });
             verts.Add(new VertexProperties { position = _position });
+
+            frontFaceVerticies.Add(new VertexProperties { position = _position });
         }
 
         //Calculating the center of the unscaled polygon
@@ -80,6 +85,7 @@ public static class MeshGenerator
         for (int i = 0; i < triangledPoly.Length; i++)
         {
             indicies.Add(triangledPoly[i] * FRONTOFFSET);
+            frontFaceIndicies.Add(triangledPoly[i]);
         }
 
         //BackFaceIndicies
@@ -133,7 +139,11 @@ public static class MeshGenerator
         generatedMesh.mesh_center = polygonCenter;
         generatedMesh.SetIndicies(indicies.ToArray());
 
-        return generatedMesh;
+        frontFaceMesh = new MeshProperties(frontFaceVerticies);
+        frontFaceMesh.mesh_center = polygonCenter;
+        frontFaceMesh.SetIndicies(frontFaceIndicies.ToArray());
+
+        return new MeshProperties[] { generatedMesh, frontFaceMesh};
     }
 
     public static void GetQuadIndicies(int[] frontFaceIndicies, int[] backFaceIndicies, List<int> indicies, List<VertexProperties> verts)
