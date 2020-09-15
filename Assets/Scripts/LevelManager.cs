@@ -7,7 +7,7 @@ using BlastProof;
 public class LevelManager : MonoBehaviour
 {
     [SerializeField] private CustomBoundryBox cbm;
-    [SerializeField] private CutAreaInput cai;
+    [SerializeField] private NewInputSystem InputSystem;
 
     private static Score score;
     private List<GameObject> obstacles = new List<GameObject>();
@@ -21,8 +21,8 @@ public class LevelManager : MonoBehaviour
     void Start()
     {
         Score = new Score(cbm.Area);
-        cai.OnCutDone += UpdateScore;
-        cai.OnObjectCut += CollidedWithObject;
+       // InputSystem.OnCutDone += UpdateScore;
+        InputSystem.OnObjectCut += CollidedWithObject;
         CreateObjectsInScene();
     } 
 
@@ -51,5 +51,6 @@ public class LevelManager : MonoBehaviour
     private void CollidedWithObject()
     {
         Debug.Log("TRUE");
+        Time.timeScale = 0.0f;        
     }    
 }
