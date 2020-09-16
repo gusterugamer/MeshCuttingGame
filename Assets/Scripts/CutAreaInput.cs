@@ -26,11 +26,6 @@ public class CutAreaInput : MonoBehaviour
 
     public event CutDelegate OnCutDone;
     public event ObjectCutDelegate OnObjectCut;
-    public GameObject circleObj;
-
-    private CircleCollider2D circleCol;
-
-    //public LayerMask layer;
 
     private void Start()
     {
@@ -38,7 +33,6 @@ public class CutAreaInput : MonoBehaviour
         cutter = new Cutter();
         _startPosition = cbm.PolygonCenter;
         _endPostition = cbm.PolygonCenter;
-        circleCol = circleObj.GetComponent<CircleCollider2D>();
     }
 
     public void Update()
@@ -50,56 +44,55 @@ public class CutAreaInput : MonoBehaviour
     {
         if (Input.GetMouseButton(0))
         {
-            //var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
-            //var position = Vector3.zero;
-            //Physics.Raycast(ray, out var hit);
-            //position = hit.point;                 
-            //position.z = 0f;
+            var ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
+            var position = Vector3.zero;
+            if (Physics.Raycast(ray, out var hit))
+            {
+                position = hit.point;
+            }
+            else return;
 
-            //circleCol.transform.position = position;
-            
-            //if (_startPosition == cbm.PolygonCenter)
-            //{
-                
-            //}
+            position.z = 0f;
 
-            //if (Mathematics.IsPointInPolygon(position, polygon))
-            //{
-            //    _endPostition = position;
-            //    if (_startPosition != cbm.PolygonCenter && _endPostition != cbm.PolygonCenter)
-            //    {
-            //        float dist = Vector2.Distance(_startPosition, _endPostition);
-            //        LayerMask layer = LayerMask.NameToLayer("Obstacles");
-            //        RaycastHit2D hit1;
-            //        if (hit1 = Physics2D.Linecast(_startPosition, _endPostition))
-            //        {
-            //            if (hit1.collider.tag == "Obstacle")
-            //            {
-            //                OnObjectCut?.Invoke();
-            //                _collidedWithObject = true;
-            //            }
-            //        }
-            //    }
+            if (Mathematics.IsPointInPolygon(position, polygon))
+            {
+                _isInCollider = true;
+            }
+            else
+            {
+                if (!_isInCollider)
+                {
+                    _startPosition = position;
+                }
+                else
+                {
+                    _endPostition = position;
+                    //if (_startPosition != cbm.PolygonCenter && _endPostition != cbm.PolygonCenter)
+                    //{
+                    //    RaycastHit2D hit1;
+                    //    Debug.DrawRay(_startPosition, (_endPostition - _startPosition).normalized);
+                    //    if (hit1 = Physics2D.Raycast(_startPosition, (_endPostition - _startPosition).normalized, Vector2.Distance(_startPosition, _endPostition), LayerMask.NameToLayer("Obstacles")))
+                    //    {
+                    //        OnObjectCut?.Invoke();
+                    //        _collidedWithObject = true;
+                    //    }
+                    //}        
 
-            //    if (!_collidedWithObject)
-            //    {
-            //        Time.timeScale = 0.0f;
-            //        if (cutter.Cut(victim, capMat, _startPosition, _endPostition, LM.Obstacles))
-            //        {
-            //            OnCutDone?.Invoke();
-            //        }
-            //        _isInCollider = false;
-            //        _startPosition = cbm.PolygonCenter;
-            //        _endPostition = cbm.PolygonCenter;
-            //        polygon = cbm.ToArray();
-            //        Time.timeScale = 1.0f;
-            //    }               
-            //}
-        }
-        else
-        {
-            _startPosition = cbm.PolygonCenter;
-            _endPostition = cbm.PolygonCenter;
+
+                    if (!_collidedWithObject)
+                    {
+                        Time.timeScale = 0.0f;
+                        if (cutter.Cut(victim, capMat, _startPosition, _endPostition, LM.Obstacles))
+                        {
+                            OnCutDone?.Invoke();
+                        }
+                        _isInCollider = false;
+                        _startPosition = cbm.PolygonCenter;
+                        _endPostition = cbm.PolygonCenter;
+                        Time.timeScale = 1.0f;
+                    }
+                }
+            }
         }
     }
 }

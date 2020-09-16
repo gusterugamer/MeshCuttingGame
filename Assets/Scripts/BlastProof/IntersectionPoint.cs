@@ -20,6 +20,13 @@ public class IntersectionPoint
         _nextBoundaryPoint = nextBp;
     }
 
+    public IntersectionPoint(IntersectionPoint point)
+    {
+        _pos = point._pos;
+        _previousBoundaryPoint = point._previousBoundaryPoint;
+        _nextBoundaryPoint = point._nextBoundaryPoint;
+    }
+
     public static IntersectionPoint zero => new IntersectionPoint(new Vector3(0.0f, 0.0f, 0.0f), -1, -1);
 
     public static bool operator !=(IntersectionPoint point1, IntersectionPoint point2)
