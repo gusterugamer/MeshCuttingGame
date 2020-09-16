@@ -22,6 +22,7 @@ public class LevelManager : MonoBehaviour
         Score = new Score(cbm.Area);
        // InputSystem.OnCutDone += UpdateScore;
         InputSystem.OnObjectCut += CollidedWithObject;
+        InputSystem.OnCutDone += UpdateScore;
         CreateObjectsInScene();
     } 
 

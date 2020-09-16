@@ -121,6 +121,7 @@ public class NewInputSystem : MonoBehaviour
                         firstInterPoint = IntersectionPoint.zero;
                         hasEnded = true;
                         hasStarted = false;
+                        OnCutDone?.Invoke();
                     }
                 }
             }
