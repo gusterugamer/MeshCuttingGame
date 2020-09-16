@@ -33,18 +33,21 @@ public class NewInputSystem : MonoBehaviour
     private Vector3 _startPos;
     private Vector3 _endPos;
 
+    private float distanceFromCam;
+
     private bool hasStarted = false;
     private bool hasEnded = false;
 
     void Start()
     {
-        circleBig = new Circle(transform.position, 1.5f);
+        circleBig = new Circle(transform.position, 1.0f);
         circleSmall = new Circle(transform.position, 0.2f);
         _mainCam = Camera.main;
         _startPos = cbm.PolygonCenter;
         _endPos = cbm.PolygonCenter;
         polygon = cbm.ToArray();
         cutter = new Cutter();
+        distanceFromCam = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);
     }
 
     private void OnDrawGizmos()
@@ -55,7 +58,7 @@ public class NewInputSystem : MonoBehaviour
     private void Update()
     {
         Vector3 position = Input.mousePosition;
-        position.z = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);
+        position.z = distanceFromCam;
         position = _mainCam.ScreenToWorldPoint(position);
         transform.position = position;
 
@@ -69,7 +72,8 @@ public class NewInputSystem : MonoBehaviour
         }
         else
         {
-            currentCircle = circleSmall;            
+            currentCircle = circleSmall;
+            hasStarted = false;
         }
 
 
@@ -85,37 +89,38 @@ public class NewInputSystem : MonoBehaviour
                         firstInterPoint = new IntersectionPoint(intersections[0]);
                         _startPos = position;
                         hasStarted = true;
+                        hasEnded = false;
                         Debug.Log("Pos: " + _startPos);
                     }
                 }
-                //else if (Mathematics.PointInPolygon(position, polygon))
-                //{
-                //    if (!hasStarted)
-                //    {
-                //        firstInterPoint = new IntersectionPoint(intersections[0]);
-                //        Vector3 dirToIntersection = (intersections[0]._pos - transform.position).normalized;
-                //        _startPos = transform.position + 2 * currentCircle.Radius * dirToIntersection;
-                //        // _startPos = position;
-                //        hasStarted = true;
-                //        Debug.Log("Pos: " + _startPos);
-                //    }
-                //}
-
-                if (!hasEnded && firstInterPoint != IntersectionPoint.zero)
+                else if (Mathematics.PointInPolygon(position, polygon))
                 {
-                    if (hasAtMostOneCommonEdge(firstInterPoint, intersections[0]) && Mathematics.IsPointInPolygon(position, polygon))
+                    if (!hasStarted)
                     {
-                        _endPos = position;
-                        Vector3 cutDirection = (_endPos - _startPos).normalized;
-                        _endPos = intersections[0]._pos + cutDirection * 2 * currentCircle.Radius;
-                        Debug.Log(_endPos);
-                        Debug.DrawLine(_startPos, _endPos);                       
-                        if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles))
-                        {
-                            polygon = cbm.ToArray();
-                            firstInterPoint = IntersectionPoint.zero;
-                            hasEnded = true;
-                        }
+                        firstInterPoint = new IntersectionPoint(intersections[0]);
+                        Vector3 dirToIntersection = (intersections[0]._pos - transform.position).normalized;
+                        _startPos = transform.position + 2 * currentCircle.Radius * dirToIntersection;                       
+                        hasStarted = true;
+                        hasEnded = false;
+                        Debug.Log("Pos: " + _startPos);
+                    }
+                }               
+            }
+            if (!hasEnded)
+            {
+                if (Mathematics.IsPointInPolygon(position, polygon))
+                {
+                    _endPos = position;
+                    Vector3 cutDirection = (_endPos - _startPos).normalized;
+                    _endPos = position + cutDirection * 2 * currentCircle.Radius;                   
+                    Debug.Log(_endPos);
+                    Debug.DrawLine(_startPos, _endPos);
+                    if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles))
+                    {
+                        polygon = cbm.ToArray();
+                        firstInterPoint = IntersectionPoint.zero;
+                        hasEnded = true;
+                        hasStarted = false;
                     }
                 }
             }

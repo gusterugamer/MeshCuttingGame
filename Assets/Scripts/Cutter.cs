@@ -17,9 +17,12 @@ public class Cutter
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
         List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
 
+       
+
         if (intersectionPoints.Count == 2)
         {
-            if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles))
+            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 1.0f;
+            if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
 
                 MeshProperties[] newMeshes = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, 16.0f);
