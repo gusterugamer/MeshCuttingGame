@@ -24,4 +24,9 @@ public class Score
     {
         _currentArea = currentArea;
     }
+
+    public void Reset()
+    {
+        _currentArea = StartArea;
+    }
 }

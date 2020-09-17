@@ -3,18 +3,18 @@ using UnityEngine.UI;
 
 public class ScoreProgressBar : MonoBehaviour
 {
-    private Image progressBar;
-    [SerializeField] LevelManager LM;
+    private Image _progressBar;
+    [SerializeField] LevelManager _LM;
 
     private void Awake()
     {
-        progressBar = GetComponent<Image>();
-        LM.OnScoreChange += DefillBar;
+        _progressBar = GetComponent<Image>();
+        _LM.OnScoreChange += DefillBar;
     }
 
     private void DefillBar()
     {
-        progressBar.fillAmount = LM.Score.progressPercent();
+        _progressBar.fillAmount = _LM.Score.progressPercent();
     }
     
 }

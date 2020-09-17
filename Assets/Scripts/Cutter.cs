@@ -12,28 +12,17 @@ public class Cutter
     public List<BoundaryPoint> NewRightBoundary { get => _newRightBoundary; private set { _newRightBoundary = value; } }
     public List<BoundaryPoint> NewLeftBoundary { get => _newLeftBoundary; private set { _newLeftBoundary = value; } }
 
-    public bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles)
+    public bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles, out GameObject mask)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
-        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
-
-       
+        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);       
 
         if (intersectionPoints.Count == 2)
         {
-            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 1.0f;
+            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.001f;
             if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
-
-                MeshProperties[] newMeshes = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, 16.0f);
-                MeshProperties generatedMesh = newMeshes[0];
-                MeshProperties maskMesh = newMeshes[1];
-
-                Mesh newMaskMesh = new Mesh();
-                newMaskMesh.name = "GenMaskMesh";
-                newMaskMesh.SetVertices(maskMesh.mesh_vertices);
-                newMaskMesh.SetTriangles(maskMesh.mesh_indicies, 0);
-
+                MeshProperties generatedMesh = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, 16.0f);
 
                 Mesh newMesh = new Mesh();
                 newMesh.name = "GenObjectMesh";
@@ -65,17 +54,23 @@ public class Cutter
                 maskObj.AddComponent<MeshFilter>();
                 maskObj.AddComponent<MeshRenderer>();
                 maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f, 0.0f, -0.5f);
-                maskObj.GetComponent<MeshFilter>().mesh = newMaskMesh;
+                maskObj.GetComponent<MeshFilter>().mesh = newMesh;
                 maskObj.name = "mask";
                 maskObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/MaskMaterial") as Material;
+
+                mask = maskObj;
                 //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);
 
                 _boundaryBox.UpdateCustomBoundary(NewLeftBoundary);
                 return true;
             }
             else
+            {
+                mask = null;
                 return false;
+            }
         }
+        mask = null;
         return false;
     }
 

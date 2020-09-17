@@ -4,7 +4,7 @@ using UnityEngine.XR;
 
 public static class MeshGenerator
 {
-    public static MeshProperties[] CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
+    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
     {
         const int FRONTOFFSET = 3;
         const float BACKFACE_OFFSET = 0.5f;
@@ -16,11 +16,9 @@ public static class MeshGenerator
 
         Vector2[] genPolyArrFront = new Vector2[genPoly.Count];
 
-        List<VertexProperties> verts = new List<VertexProperties>();
-        List<VertexProperties> frontFaceVerticies = new List<VertexProperties>();
+        List<VertexProperties> verts = new List<VertexProperties>();        
 
-        List<int> indicies = new List<int>();
-        List<int> frontFaceIndicies = new List<int>();
+        List<int> indicies = new List<int>();      
 
         //ConvertingToArray
         for (int i = 0; i < genPoly.Count; i++)
@@ -39,9 +37,7 @@ public static class MeshGenerator
 
             verts.Add(new VertexProperties { position = _position });
             verts.Add(new VertexProperties { position = _position });
-            verts.Add(new VertexProperties { position = _position });
-
-            frontFaceVerticies.Add(new VertexProperties { position = _position });
+            verts.Add(new VertexProperties { position = _position });          
         }
 
         //Calculating the center of the unscaled polygon
@@ -84,11 +80,10 @@ public static class MeshGenerator
         //FrontFaceIndicies
         for (int i = 0; i < triangledPoly.Length; i++)
         {
-            indicies.Add(triangledPoly[i] * FRONTOFFSET);
-            frontFaceIndicies.Add(triangledPoly[i]);
-        }
+            indicies.Add(triangledPoly[i] * FRONTOFFSET);           
+        }    
 
-        //BackFaceIndicies
+        //BackFaceIndicies - have to be added from last to first to respect the winding order
         for (int i = triangledPoly.Length - 1; i >= 0; i--)
         {
             indicies.Add(triangledPoly[i] * FRONTOFFSET + (verts.Count / 2));
@@ -99,12 +94,14 @@ public static class MeshGenerator
         {
             int[] v1 = { indicies[i], indicies[(i + 1) % (indicies.Count / 2)], indicies[(i + 2) % (indicies.Count / 2)] };
             int[] v2 = { indicies[i + (indicies.Count / 2)], indicies[(i + 1) % (indicies.Count / 2) + (indicies.Count / 2)], indicies[(i + 2) % (indicies.Count / 2) + (indicies.Count / 2)] };
-
+            
             GetNormalsForVerts(verts, v1);
             GetNormalsForVerts(verts, v2);
             GetUVsWithSize(verts, v1, Faces.forward, spriteSquareSize);
             GetUVsWithSize(verts, v2, Faces.forward, spriteSquareSize);
-        }
+
+            //M
+        }       
 
         //Generating Side Triangles
         for (int i = 1; i < verts.Count / 2; i += 6)
@@ -137,13 +134,9 @@ public static class MeshGenerator
 
         generatedMesh = new MeshProperties(verts);
         generatedMesh.mesh_center = polygonCenter;
-        generatedMesh.SetIndicies(indicies.ToArray());
+        generatedMesh.SetIndicies(indicies.ToArray());        
 
-        frontFaceMesh = new MeshProperties(frontFaceVerticies);
-        frontFaceMesh.mesh_center = polygonCenter;
-        frontFaceMesh.SetIndicies(frontFaceIndicies.ToArray());
-
-        return new MeshProperties[] { generatedMesh, frontFaceMesh};
+        return generatedMesh;
     }
 
     public static void GetQuadIndicies(int[] frontFaceIndicies, int[] backFaceIndicies, List<int> indicies, List<VertexProperties> verts)

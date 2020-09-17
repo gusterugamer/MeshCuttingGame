@@ -1,12 +1,14 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
  
 [RequireComponent(typeof(Rigidbody2D),typeof(BoxCollider2D))]
 public class  LevelObstacle : MonoBehaviour
 {
     private Rigidbody2D rb;
     private BoxCollider2D bc;
+
+    private Vector3 _startPos;
+
+    public Vector3 StartPos { get => _startPos;}
 
     private void Awake()
     {
@@ -15,12 +17,7 @@ public class  LevelObstacle : MonoBehaviour
 
     private void Start()
     {        
-    }
-
-    private void Move(Vector2 direction)
-    {
-        transform.Translate(direction);
-    }
+    }   
 
     private void Init()
     {
@@ -37,5 +34,16 @@ public class  LevelObstacle : MonoBehaviour
     private void OnTriggerExit2D(Collider2D collision)
     {
         Debug.Log(collision.transform.name);
+    }
+
+    public void SetStartPosition(Vector3 pos)
+    {
+        _startPos = pos;
+    }
+
+    public void Reset()
+    {
+        transform.position = _startPos;
+        Init();
     }
 }

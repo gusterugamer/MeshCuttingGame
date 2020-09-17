@@ -28,7 +28,7 @@ public class CustomBoundryBox : MonoBehaviour
 {
     [SerializeField] private SpriteShapeController m_toCutObject;
     
-    public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();  
+    public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();   
     
     private Transform trans;
 
@@ -198,5 +198,11 @@ public class CustomBoundryBox : MonoBehaviour
     private void GetArea()
     {
         _area = Mathematics.PolygonArea(m_CustomBox);
+    }
+
+    public void ResetShape()
+    {
+        m_CustomBox.Clear();
+        CreateCustomBoundary();
     }
 }
