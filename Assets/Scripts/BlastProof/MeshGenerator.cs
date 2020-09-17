@@ -4,7 +4,7 @@ using UnityEngine.XR;
 
 public static class MeshGenerator
 {
-    public static MeshProperties CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
+    public static MeshProperties[] CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
     {
         const int FRONTOFFSET = 3;
         const float BACKFACE_OFFSET = 0.5f;
@@ -16,9 +16,11 @@ public static class MeshGenerator
 
         Vector2[] genPolyArrFront = new Vector2[genPoly.Count];
 
-        List<VertexProperties> verts = new List<VertexProperties>();        
+        List<VertexProperties> verts = new List<VertexProperties>();
+        List<VertexProperties> frontFaceVerticies = new List<VertexProperties>();
 
-        List<int> indicies = new List<int>();      
+        List<int> indicies = new List<int>();
+        List<int> frontFaceIndicies = new List<int>();
 
         //ConvertingToArray
         for (int i = 0; i < genPoly.Count; i++)
@@ -37,16 +39,18 @@ public static class MeshGenerator
 
             verts.Add(new VertexProperties { position = _position });
             verts.Add(new VertexProperties { position = _position });
-            verts.Add(new VertexProperties { position = _position });          
+            verts.Add(new VertexProperties { position = _position });
+
+            frontFaceVerticies.Add(new VertexProperties { position = _position });
         }
 
         //Calculating the center of the unscaled polygon
         Vector3 polygonCenter = vecSum / genPoly.Count;
-        polygonCenter.z = objTrans.position.z;      
+        polygonCenter.z = objTrans.position.z;
 
-        Matrix4x4 scaleMatrix = BlastProof.Mathematics.ScaleMatrix(SCALE_FACTOR);   
+        Matrix4x4 scaleMatrix = BlastProof.Mathematics.ScaleMatrix(SCALE_FACTOR);
 
-        Vector3 vecSum2 = Vector3.zero;    
+        Vector3 vecSum2 = Vector3.zero;
 
         //VerticiesBack
         for (int i = 0; i < genPoly.Count; i++)
@@ -54,9 +58,9 @@ public static class MeshGenerator
             Vector3 _position = scaleMatrix.MultiplyPoint(new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET));
             vecSum2 += _position;
 
-            verts.Add(new VertexProperties { position = _position});
-            verts.Add(new VertexProperties { position = _position});
-            verts.Add(new VertexProperties { position = _position});
+            verts.Add(new VertexProperties { position = _position });
+            verts.Add(new VertexProperties { position = _position });
+            verts.Add(new VertexProperties { position = _position });
         }
 
         Vector3 scaledPolyCenter = vecSum2 / genPoly.Count;
@@ -65,10 +69,10 @@ public static class MeshGenerator
         //Caching how much should the polygon move on axis so it matches the original scale polygon
         Vector3 translVec = polygonCenter - scaledPolyCenter;
 
-        Matrix4x4 transMatrix = BlastProof.Mathematics.TranslateMatrix(translVec);    
+        Matrix4x4 transMatrix = BlastProof.Mathematics.TranslateMatrix(translVec);
 
         //Multiplying each backface polygon position with the translation matrix so the center of backface polygon and frontface polygon matches
-        for (int i = verts.Count/2; i<verts.Count;i++)
+        for (int i = verts.Count / 2; i < verts.Count; i++)
         {
             verts[i].position = transMatrix.MultiplyPoint(verts[i].position);
         }
@@ -80,10 +84,11 @@ public static class MeshGenerator
         //FrontFaceIndicies
         for (int i = 0; i < triangledPoly.Length; i++)
         {
-            indicies.Add(triangledPoly[i] * FRONTOFFSET);           
-        }    
+            indicies.Add(triangledPoly[i] * FRONTOFFSET);
+            frontFaceIndicies.Add(triangledPoly[i]);
+        }
 
-        //BackFaceIndicies - have to be added from last to first to respect the winding order
+        //BackFaceIndicies
         for (int i = triangledPoly.Length - 1; i >= 0; i--)
         {
             indicies.Add(triangledPoly[i] * FRONTOFFSET + (verts.Count / 2));
@@ -94,14 +99,12 @@ public static class MeshGenerator
         {
             int[] v1 = { indicies[i], indicies[(i + 1) % (indicies.Count / 2)], indicies[(i + 2) % (indicies.Count / 2)] };
             int[] v2 = { indicies[i + (indicies.Count / 2)], indicies[(i + 1) % (indicies.Count / 2) + (indicies.Count / 2)], indicies[(i + 2) % (indicies.Count / 2) + (indicies.Count / 2)] };
-            
+
             GetNormalsForVerts(verts, v1);
             GetNormalsForVerts(verts, v2);
             GetUVsWithSize(verts, v1, Faces.forward, spriteSquareSize);
             GetUVsWithSize(verts, v2, Faces.forward, spriteSquareSize);
-
-            //M
-        }       
+        }
 
         //Generating Side Triangles
         for (int i = 1; i < verts.Count / 2; i += 6)
@@ -134,11 +137,14 @@ public static class MeshGenerator
 
         generatedMesh = new MeshProperties(verts);
         generatedMesh.mesh_center = polygonCenter;
-        generatedMesh.SetIndicies(indicies.ToArray());        
+        generatedMesh.SetIndicies(indicies.ToArray());
 
-        return generatedMesh;
+        frontFaceMesh = new MeshProperties(frontFaceVerticies);
+        frontFaceMesh.mesh_center = polygonCenter;
+        frontFaceMesh.SetIndicies(frontFaceIndicies.ToArray());
+
+        return new MeshProperties[] { generatedMesh, frontFaceMesh };
     }
-
     public static void GetQuadIndicies(int[] frontFaceIndicies, int[] backFaceIndicies, List<int> indicies, List<VertexProperties> verts)
     {
         indicies.Add(backFaceIndicies[0]);

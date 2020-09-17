@@ -20,13 +20,7 @@ public class NewInputSystem : MonoBehaviour
 
     private Circle circleBig;
     private Circle circleSmall;
-    private Circle currentCircle;
-
-    public delegate void CutDelegate();
-    public delegate void ObjectCutDelegate();
-
-    public event CutDelegate OnCutDone;
-    public event ObjectCutDelegate OnObjectCut;    
+    private Circle currentCircle;  
 
     //public LayerMask layer;
 
@@ -37,6 +31,7 @@ public class NewInputSystem : MonoBehaviour
 
     private bool hasStarted = false;
     private bool hasEnded = false;
+    private bool isEnabled = true;
 
     void Start()
     {
@@ -87,7 +82,7 @@ public class NewInputSystem : MonoBehaviour
             hasStarted = false;
         }
 
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && isEnabled)
         {
             trailrenderer.forceRenderingOff = false;
 
@@ -130,22 +125,24 @@ public class NewInputSystem : MonoBehaviour
                     {                       
                         if (hasStarted)
                         {
-                            OnObjectCut?.Invoke();
-                            //polygon = cbm.ToArray();
+                            LM.CollidedWithObject();
+                            isEnabled = false;                           
                         }
                     }
 
                     //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
                     Vector3 cutDirection = (_endPos - _startPos).normalized;
                     _endPos = position + cutDirection * 2 * currentCircle.Radius;
+                    Time.timeScale = 0.0f;
                     if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
                     {
                         LM.AddPieceToList(ref cuttedPiece);
                         polygon = cbm.ToArray();                      
                         hasEnded = true;
                         hasStarted = false;
-                        OnCutDone?.Invoke();
+                        LM.UpdateScore();
                     }
+                    Time.timeScale = 1.0f;
                 }
             }
         }
@@ -155,7 +152,13 @@ public class NewInputSystem : MonoBehaviour
             hasEnded = false;
             trailrenderer.forceRenderingOff = true;
         }
-    }    
+    } 
+    
+    public void ReEnable()
+    {
+        isEnabled = true;
+        polygon = cbm.ToArray();
+    }
 }
 
 

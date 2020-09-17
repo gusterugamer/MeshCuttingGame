@@ -21,8 +21,8 @@ public class  LevelObstacle : MonoBehaviour
 
     private void Init()
     {
-        float randomX = Random.Range(-10, 10);
-        float randomY = Random.Range(-10, 10);
+        float randomX = Random.Range(-10f, 10f);
+        float randomY = Random.Range(-10f, 10f);
         rb = GetComponent<Rigidbody2D>();
         rb.angularDrag = 0.0f;
         rb.drag = 0.0f;

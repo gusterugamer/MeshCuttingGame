@@ -16,18 +16,21 @@ public class LevelManager : MonoBehaviour
     public List<GameObject> Obstacles { get => obstacles; private set => obstacles = value; }   
 
     public delegate void ScoreChangeDelegate();
+    public delegate void ResetSceneDelegate();
+    public delegate void CutOBjectDelegate();
+
     public event ScoreChangeDelegate OnScoreChange;
+    public event CutOBjectDelegate OnCuttingObject;
+    public event ResetSceneDelegate OnResetScene;
    
     void Start()
     {
         //startShape = new CustomBoundryBox(cbm);
-        Score = new Score(cbm.Area);      
-        InputSystem.OnObjectCut += CollidedWithObject;
-        InputSystem.OnCutDone += UpdateScore;
+        Score = new Score(cbm.Area);         
         CreateObjectsInScene();
     } 
 
-    private void UpdateScore()
+    public void UpdateScore()
     {
         Score.UpdateCurrentScore(cbm.Area);
         OnScoreChange?.Invoke();
@@ -54,10 +57,11 @@ public class LevelManager : MonoBehaviour
         cuttedObjects.Add(piece);
     }
 
-    private void CollidedWithObject()
+    public void CollidedWithObject()
     {
         Debug.Log("TRUE");
-       // ResetScene();
+        Time.timeScale = 0.0f;       
+        OnCuttingObject?.Invoke();
     }
 
     public void ResetScene()
@@ -66,13 +70,21 @@ public class LevelManager : MonoBehaviour
         {
             Destroy(go);
         }
+
         cuttedObjects.Clear();
+
         foreach (GameObject go in obstacles)
         {
             go.GetComponent<LevelObstacle>().Reset();
         }
+
+        OnScoreChange?.Invoke();
+        OnResetScene?.Invoke();
+
         cbm.ResetShape();
         score.Reset();
-        OnScoreChange?.Invoke();
+       
+        InputSystem.ReEnable();
+        Time.timeScale = 1.0f;       
     }
 }

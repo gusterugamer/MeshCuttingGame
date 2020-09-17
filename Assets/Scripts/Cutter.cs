@@ -22,7 +22,16 @@ public class Cutter
             bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.001f;
             if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
-                MeshProperties generatedMesh = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, 16.0f);
+
+                MeshProperties[] newMeshes = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, 16.0f);
+                MeshProperties generatedMesh = newMeshes[0];
+                MeshProperties maskMesh = newMeshes[1];
+
+                Mesh newMaskMesh = new Mesh();
+                newMaskMesh.name = "GenMaskMesh";
+                newMaskMesh.SetVertices(maskMesh.mesh_vertices);
+                newMaskMesh.SetTriangles(maskMesh.mesh_indicies, 0);
+
 
                 Mesh newMesh = new Mesh();
                 newMesh.name = "GenObjectMesh";
@@ -49,18 +58,18 @@ public class Cutter
                 generatedObjParent.GetComponent<Rigidbody>().AddForce(new Vector3(0.0f, 1000.0f, -150.0f));
                 generatedObjParent.GetComponent<Rigidbody>().AddTorque(new Vector3(-100.0f, 0.0f, 0.0f));
                 generatedObjParent.GetComponent<Rigidbody>().mass = 100.0f;
+                generatedObjParent.AddComponent<DestroyMyself>();
 
                 GameObject maskObj = new GameObject();
                 maskObj.AddComponent<MeshFilter>();
                 maskObj.AddComponent<MeshRenderer>();
                 maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f, 0.0f, -0.5f);
-                maskObj.GetComponent<MeshFilter>().mesh = newMesh;
+                maskObj.GetComponent<MeshFilter>().mesh = newMaskMesh;
                 maskObj.name = "mask";
                 maskObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/MaskMaterial") as Material;
+                //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);                
 
                 mask = maskObj;
-                //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);
-
                 _boundaryBox.UpdateCustomBoundary(NewLeftBoundary);
                 return true;
             }
