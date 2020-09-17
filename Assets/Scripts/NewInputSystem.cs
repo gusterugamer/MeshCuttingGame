@@ -1,4 +1,5 @@
 ﻿using BlastProof;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.U2D;
 
@@ -20,7 +21,7 @@ public class NewInputSystem : MonoBehaviour
 
     private Circle circleBig;
     private Circle circleSmall;
-    private Circle currentCircle;  
+    private Circle currentCircle;
 
     //public LayerMask layer;
 
@@ -28,6 +29,13 @@ public class NewInputSystem : MonoBehaviour
     private Vector3 _endPos;
 
     private float distanceFromCam;
+    private float lastCutTime = 0.0f;
+
+    private const float _BIG_CIRCLE_RADIUS = 1.25f;
+    private const float _SMALL_CIRCLE_RADIUS = 2.25f;
+    private const float _COOLDOWN_TIME = 0.10f;
+    private const float _COROUTINE_CALL_TIME = 0.01667f;
+
 
     private bool hasStarted = false;
     private bool hasEnded = false;
@@ -38,8 +46,8 @@ public class NewInputSystem : MonoBehaviour
         trailrenderer = GetComponent<TrailRenderer>();
         trailrenderer.forceRenderingOff = true;
 
-        circleBig = new Circle(transform.position, 1.0f);
-        circleSmall = new Circle(transform.position, 0.2f);
+        circleBig = new Circle(transform.position, _BIG_CIRCLE_RADIUS);
+        circleSmall = new Circle(transform.position, _SMALL_CIRCLE_RADIUS);
 
         _mainCam = Camera.main;
         _startPos = cbm.PolygonCenter;
@@ -48,7 +56,17 @@ public class NewInputSystem : MonoBehaviour
 
         cutter = new Cutter();
         distanceFromCam = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);
-    }  
+
+       // StartCoroutine(LoopCoroutine());
+    }
+
+
+    //private IEnumerator LoopCoroutine()
+    //{
+    //    yield return new WaitForSeconds(_COROUTINE_CALL_TIME);
+    //    MoveBlade();
+    //    StartCoroutine(LoopCoroutine());
+    //}
 
     private void Update()
     {
@@ -86,74 +104,81 @@ public class NewInputSystem : MonoBehaviour
         {
             trailrenderer.forceRenderingOff = false;
 
-            var intersections = currentCircle.GetIntersections(polygon);
-            if (intersections.Count > 0)
+            if (Time.unscaledTime > lastCutTime + _COOLDOWN_TIME)
             {
-                //Check weather the cutting started from inside or from outside
-                if (!Mathematics.PointInPolygon(position, polygon))
-                {
-                    if (!hasStarted)
-                    {                       
-                        _startPos = position;
-                        hasStarted = true;
-                        hasEnded = false;
-                    }
-                }
-                //In case it starts inside the polygon the starting point has to be pushed outside the polygon to avoid intersection problems (cutting line - polygon)
-                else if (Mathematics.PointInPolygon(position, polygon))
-                {
-                    if (!hasStarted)
-                    {                        
-                        Vector3 dirToIntersection = (intersections[0]._pos - transform.position).normalized;
-                        _startPos = transform.position + 2 * currentCircle.Radius * dirToIntersection;
-                        hasStarted = true;
-                        hasEnded = false;
-                    }
-                }
-            }
-            if (!hasEnded)
-            {
-                //Ending point can be found only if you are inside the polygon to avoid inconsistent cutting (getting in the polygon ->generating starting point , 
-                //then getting out through the same edge which won't allow cutting, and then getting in through another edge)
-                if (Mathematics.IsPointInPolygon(position, polygon))
-                {
-                    _endPos = position;
 
-                    //Checking if blade is intersecting an obstacle object
-                    RaycastHit2D hit;
-                    if (hit = Physics2D.Linecast(_startPos, _endPos,layer))
-                    {                       
-                        if (hasStarted)
+                var intersections = currentCircle.GetIntersections(polygon);
+                if (intersections.Count > 0)
+                {
+                    //Check weather the cutting started from inside or from outside
+                    if (!Mathematics.PointInPolygon(position, polygon))
+                    {
+                        if (!hasStarted)
                         {
-                            LM.CollidedWithObject();
-                            isEnabled = false;                           
+                            _startPos = position;
+                            hasStarted = true;
+                            hasEnded = false;
                         }
                     }
-
-                    //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
-                    Vector3 cutDirection = (_endPos - _startPos).normalized;
-                    _endPos = position + cutDirection * 2 * currentCircle.Radius;
-                    Time.timeScale = 0.0f;
-                    if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
+                    //In case it starts inside the polygon the starting point has to be pushed outside the polygon to avoid intersection problems (cutting line - polygon)
+                    else if (Mathematics.PointInPolygon(position, polygon))
                     {
-                        LM.AddPieceToList(ref cuttedPiece);
-                        polygon = cbm.ToArray();                      
-                        hasEnded = true;
-                        hasStarted = false;
-                        LM.UpdateScore();
+                        if (!hasStarted)
+                        {
+                            Vector3 dirToIntersection = (intersections[0]._pos - transform.position).normalized;
+                            _startPos = transform.position + 2 * currentCircle.Radius * dirToIntersection;
+                            hasStarted = true;
+                            hasEnded = false;
+                        }
                     }
-                    Time.timeScale = 1.0f;
                 }
-            }
+                if (!hasEnded)
+                {
+                    //Ending point can be found only if you are inside the polygon to avoid inconsistent cutting (getting in the polygon ->generating starting point , 
+                    //then getting out through the same edge which won't allow cutting, and then getting in through another edge)
+                    if (Mathematics.IsPointInPolygon(position, polygon))
+                    {
+                        _endPos = position;
+
+                        //Checking if blade is intersecting an obstacle object
+                        RaycastHit2D hit;
+                        if (hit = Physics2D.Linecast(_startPos, _endPos, layer))
+                        {
+                            if (hasStarted)
+                            {
+                                LM.CollidedWithObject();
+                                isEnabled = false;
+                            }
+                        }
+
+                        //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
+                        Vector3 cutDirection = (_endPos - _startPos).normalized;
+                        _endPos = position + cutDirection * 2 * currentCircle.Radius;
+                        if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
+                        {
+                            LM.AddPieceToList(ref cuttedPiece);
+                            polygon = cbm.ToArray();
+                            hasEnded = true;
+                            hasStarted = false;
+                            LM.UpdateScore();
+                            _startPos = cbm.PolygonCenter;
+                            _endPos = cbm.PolygonCenter;
+                            lastCutTime = Time.unscaledTime;
+                        }
+                    }
+                }
+            }           
         }
         else
         {
+            _startPos = cbm.PolygonCenter;
+            _endPos = cbm.PolygonCenter;
             hasStarted = false;
             hasEnded = false;
             trailrenderer.forceRenderingOff = true;
         }
-    } 
-    
+    }
+
     public void ReEnable()
     {
         isEnabled = true;

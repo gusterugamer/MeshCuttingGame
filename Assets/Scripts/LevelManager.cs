@@ -59,8 +59,7 @@ public class LevelManager : MonoBehaviour
 
     public void CollidedWithObject()
     {
-        Debug.Log("TRUE");
-        Time.timeScale = 0.0f;       
+        Debug.Log("TRUE");         
         OnCuttingObject?.Invoke();
     }
 
@@ -76,15 +75,14 @@ public class LevelManager : MonoBehaviour
         foreach (GameObject go in obstacles)
         {
             go.GetComponent<LevelObstacle>().Reset();
-        }
-
-        OnScoreChange?.Invoke();
-        OnResetScene?.Invoke();
+        }        
+        OnResetScene?.Invoke();       
 
         cbm.ResetShape();
         score.Reset();
-       
-        InputSystem.ReEnable();
-        Time.timeScale = 1.0f;       
+
+        OnScoreChange?.Invoke();
+
+        InputSystem.ReEnable();           
     }
 }

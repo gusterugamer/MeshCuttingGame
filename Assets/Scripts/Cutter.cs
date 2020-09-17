@@ -19,7 +19,7 @@ public class Cutter
 
         if (intersectionPoints.Count == 2)
         {
-            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.001f;
+            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.00001f;
             if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
 
