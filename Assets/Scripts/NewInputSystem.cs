@@ -34,7 +34,6 @@ public class NewInputSystem : MonoBehaviour
     private const float _BIG_CIRCLE_RADIUS = 1.25f;
     private const float _SMALL_CIRCLE_RADIUS = 2.25f;
     private const float _COOLDOWN_TIME = 0.10f;
-    private const float _COROUTINE_CALL_TIME = 0.01667f;
 
 
     private bool hasStarted = false;
@@ -55,18 +54,8 @@ public class NewInputSystem : MonoBehaviour
         polygon = cbm.ToArray();
 
         cutter = new Cutter();
-        distanceFromCam = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);
-
-       // StartCoroutine(LoopCoroutine());
+        distanceFromCam = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);      
     }
-
-
-    //private IEnumerator LoopCoroutine()
-    //{
-    //    yield return new WaitForSeconds(_COROUTINE_CALL_TIME);
-    //    MoveBlade();
-    //    StartCoroutine(LoopCoroutine());
-    //}
 
     private void Update()
     {
@@ -89,7 +78,6 @@ public class NewInputSystem : MonoBehaviour
         circleBig.UpdatePosition(position);
         circleSmall.UpdatePosition(position);
 
-
         if (Mathematics.PointInPolygon(position, polygon))
         {
             currentCircle = circleBig;
@@ -98,7 +86,7 @@ public class NewInputSystem : MonoBehaviour
         {
             currentCircle = circleSmall;
             hasStarted = false;
-        }
+        }      
 
         if (Input.GetMouseButton(0) && isEnabled)
         {
@@ -106,22 +94,23 @@ public class NewInputSystem : MonoBehaviour
 
             if (Time.unscaledTime > lastCutTime + _COOLDOWN_TIME)
             {
+                if (!Physics2D.Linecast(_startPos, _endPos))
+                {
+                    _startPos = position;
+                    hasEnded = true;
+                    hasStarted = false;
+                    _endPos = cbm.PolygonCenter;
+                }
+                else
+                {
+                    hasStarted = true;
+                    hasEnded = false;
+                }
 
                 var intersections = currentCircle.GetIntersections(polygon);
                 if (intersections.Count > 0)
                 {
-                    //Check weather the cutting started from inside or from outside
-                    if (!Mathematics.PointInPolygon(position, polygon))
-                    {
-                        if (!hasStarted)
-                        {
-                            _startPos = position;
-                            hasStarted = true;
-                            hasEnded = false;
-                        }
-                    }
-                    //In case it starts inside the polygon the starting point has to be pushed outside the polygon to avoid intersection problems (cutting line - polygon)
-                    else if (Mathematics.PointInPolygon(position, polygon))
+                    if (Mathematics.PointInPolygon(position, polygon))
                     {
                         if (!hasStarted)
                         {
@@ -132,42 +121,39 @@ public class NewInputSystem : MonoBehaviour
                         }
                     }
                 }
-                if (!hasEnded)
+                if (!hasEnded && hasStarted)
                 {
                     //Ending point can be found only if you are inside the polygon to avoid inconsistent cutting (getting in the polygon ->generating starting point , 
                     //then getting out through the same edge which won't allow cutting, and then getting in through another edge)
-                    if (Mathematics.IsPointInPolygon(position, polygon))
+
+                    _endPos = position;
+
+                    //Checking if blade is intersecting an obstacle object                       
+                    if (Physics2D.Linecast(_startPos, _endPos, layer))
                     {
-                        _endPos = position;
-
-                        //Checking if blade is intersecting an obstacle object
-                        RaycastHit2D hit;
-                        if (hit = Physics2D.Linecast(_startPos, _endPos, layer))
+                        if (hasStarted)
                         {
-                            if (hasStarted)
-                            {
-                                LM.CollidedWithObject();
-                                isEnabled = false;
-                            }
-                        }
-
-                        //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
-                        Vector3 cutDirection = (_endPos - _startPos).normalized;
-                        _endPos = position + cutDirection * 2 * currentCircle.Radius;
-                        if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
-                        {
-                            LM.AddPieceToList(ref cuttedPiece);
-                            polygon = cbm.ToArray();
-                            hasEnded = true;
-                            hasStarted = false;
-                            LM.UpdateScore();
-                            _startPos = cbm.PolygonCenter;
-                            _endPos = cbm.PolygonCenter;
-                            lastCutTime = Time.unscaledTime;
+                            LM.CollidedWithObject();
+                            isEnabled = false;
                         }
                     }
+
+                    //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
+                    Vector3 cutDirection = (_endPos - _startPos).normalized;
+                    _endPos = position + cutDirection * 2 * currentCircle.Radius;
+                    if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
+                    {
+                        LM.AddPieceToList(ref cuttedPiece);
+                        polygon = cbm.ToArray();
+                        hasEnded = true;
+                        hasStarted = false;
+                        LM.UpdateScore();
+                        _startPos = cbm.PolygonCenter;
+                        _endPos = cbm.PolygonCenter;
+                        lastCutTime = Time.unscaledTime;
+                    }
                 }
-            }           
+            }
         }
         else
         {
