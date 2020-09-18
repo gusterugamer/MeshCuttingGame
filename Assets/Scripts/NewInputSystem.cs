@@ -54,7 +54,7 @@ public class NewInputSystem : MonoBehaviour
         polygon = cbm.ToArray();
 
         cutter = new Cutter();
-        distanceFromCam = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);      
+        distanceFromCam = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);
     }
 
     private void Update()
@@ -78,15 +78,19 @@ public class NewInputSystem : MonoBehaviour
         circleBig.UpdatePosition(position);
         circleSmall.UpdatePosition(position);
 
-        if (Mathematics.PointInPolygon(position, polygon))
-        {
-            currentCircle = circleBig;
-        }
-        else
-        {
-            currentCircle = circleSmall;
-            hasStarted = false;
-        }      
+        currentCircle = circleBig;
+
+        //if (Mathematics.PointInPolygon(position, polygon))
+        //{
+        //    currentCircle = circleBig;
+        //}
+        //else
+        //{
+        //    currentCircle = circleSmall;
+        //   // hasStarted = false;
+        //}
+
+        Debug.Log("STARTPOS: " + _startPos);        
 
         if (Input.GetMouseButton(0) && isEnabled)
         {
@@ -94,17 +98,16 @@ public class NewInputSystem : MonoBehaviour
 
             if (Time.unscaledTime > lastCutTime + _COOLDOWN_TIME)
             {
-                if (!Physics2D.Linecast(_startPos, _endPos))
-                {
-                    _startPos = position;
-                    hasEnded = true;
-                    hasStarted = false;
-                    _endPos = cbm.PolygonCenter;
-                }
-                else
+                if (!Physics2D.Linecast(position, cbm.PolygonCenter))
                 {
                     hasStarted = true;
                     hasEnded = false;
+                    Debug.Log("IN!");
+                }
+
+                if (!hasStarted)
+                {
+                    _startPos = position;
                 }
 
                 var intersections = currentCircle.GetIntersections(polygon);
@@ -140,7 +143,7 @@ public class NewInputSystem : MonoBehaviour
 
                     //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
                     Vector3 cutDirection = (_endPos - _startPos).normalized;
-                    _endPos = position + cutDirection * 2 * currentCircle.Radius;
+                    _endPos = position + cutDirection * 2f * 2.0f;
                     if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
                     {
                         LM.AddPieceToList(ref cuttedPiece);
