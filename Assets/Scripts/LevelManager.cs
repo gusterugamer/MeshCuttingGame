@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using System;
 using System.Collections.Generic;
-using BlastProof;
+using UnityEngine.U2D;
 
 public class LevelManager : MonoBehaviour
 {
@@ -28,8 +27,9 @@ public class LevelManager : MonoBehaviour
     private void Awake()
     {
         Application.targetFrameRate = 60;
-        textureMat = Resources.Load("Material/SignMaterial") as Material;        
+        textureMat = Resources.Load("Material/scales") as Material;        
         InputSystem.UpdateMats(textureMat);
+        cbm.GetComponent<SpriteShapeController>().spriteShape.fillTexture = textureMat.mainTexture as Texture2D;
         cbm.TextureSize(textureMat.mainTexture.width);
     }
 
