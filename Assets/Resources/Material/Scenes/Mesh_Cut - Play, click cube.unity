@@ -1032,9 +1032,12 @@ MonoBehaviour:
   victim: {fileID: 1707939978}
   capMat: {fileID: 2100000, guid: c794508bb2865374eab5f446dd42cbf4, type: 2}
   LM: {fileID: 698130949}
-  layer:
+  obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
+  polygonLayer:
+    serializedVersion: 2
+    m_Bits: 512
 --- !u!1 &1624754843
 GameObject:
   m_ObjectHideFlags: 0
@@ -1136,7 +1139,7 @@ GameObject:
   - component: {fileID: 1707939978}
   - component: {fileID: 1707939981}
   - component: {fileID: 1707939982}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}

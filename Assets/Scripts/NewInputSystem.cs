@@ -1,6 +1,7 @@
 ﻿using BlastProof;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Experimental.XR.Interaction;
 using UnityEngine.U2D;
 
 public class NewInputSystem : MonoBehaviour
@@ -12,7 +13,8 @@ public class NewInputSystem : MonoBehaviour
     [SerializeField] private Material capMat;
     [SerializeField] private LevelManager LM;
 
-    public LayerMask layer;
+    public LayerMask obstacleLayer;
+    public LayerMask polygonLayer;
 
     private Cutter cutter;
     private Vector2[] polygon;
@@ -33,12 +35,15 @@ public class NewInputSystem : MonoBehaviour
 
     private const float _BIG_CIRCLE_RADIUS = 1.25f;
     private const float _SMALL_CIRCLE_RADIUS = 2.25f;
-    private const float _COOLDOWN_TIME = 0.10f;
+    private const float _COOLDOWN_TIME = 0.15f;
+    private const float _PREDICTION_FACTOR = 4f;
+    private const float _LOOP_TIME = 0.008333f;
 
 
     private bool hasStarted = false;
     private bool hasEnded = false;
     private bool isEnabled = true;
+    private bool hasStartedOutside = false;
 
     void Start()
     {
@@ -49,18 +54,21 @@ public class NewInputSystem : MonoBehaviour
         circleSmall = new Circle(transform.position, _SMALL_CIRCLE_RADIUS);
 
         _mainCam = Camera.main;
-        _startPos = cbm.PolygonCenter;
-        _endPos = cbm.PolygonCenter;
         polygon = cbm.ToArray();
+        _startPos = cbm.PolygonCenter;
+        _endPos = cbm.PolygonCenter;       
 
         cutter = new Cutter();
         distanceFromCam = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);
+        StartCoroutine(Loop());
     }
 
-    private void Update()
+    private IEnumerator Loop()
     {
+        yield return new WaitForSeconds(_LOOP_TIME);
         MoveBlade();
-    }
+        StartCoroutine(Loop());
+    } 
 
     private void OnDrawGizmos()
     {
@@ -80,17 +88,8 @@ public class NewInputSystem : MonoBehaviour
 
         currentCircle = circleBig;
 
-        //if (Mathematics.PointInPolygon(position, polygon))
-        //{
-        //    currentCircle = circleBig;
-        //}
-        //else
-        //{
-        //    currentCircle = circleSmall;
-        //   // hasStarted = false;
-        //}
-
-        Debug.Log("STARTPOS: " + _startPos);        
+        bool isOutside = Physics2D.Linecast(position, cbm.PolygonCenter, polygonLayer) || (!Mathematics.PointInPolygon(position,polygon) ? true: false);
+        var intersections = currentCircle.GetIntersections(polygon);             
 
         if (Input.GetMouseButton(0) && isEnabled)
         {
@@ -98,22 +97,25 @@ public class NewInputSystem : MonoBehaviour
 
             if (Time.unscaledTime > lastCutTime + _COOLDOWN_TIME)
             {
-                if (!Physics2D.Linecast(position, cbm.PolygonCenter))
+                if (isOutside)
                 {
+                    if (!hasStarted)
+                    {
+                        _startPos = position;
+                        Debug.Log("OUT!");
+                        hasStartedOutside = true;
+                    }
+                }
+                if (!isOutside && hasStartedOutside)
+                {                   
                     hasStarted = true;
                     hasEnded = false;
                     Debug.Log("IN!");
                 }
-
-                if (!hasStarted)
-                {
-                    _startPos = position;
-                }
-
-                var intersections = currentCircle.GetIntersections(polygon);
+                
                 if (intersections.Count > 0)
                 {
-                    if (Mathematics.PointInPolygon(position, polygon))
+                    if (!isOutside)
                     {
                         if (!hasStarted)
                         {
@@ -132,7 +134,7 @@ public class NewInputSystem : MonoBehaviour
                     _endPos = position;
 
                     //Checking if blade is intersecting an obstacle object                       
-                    if (Physics2D.Linecast(_startPos, _endPos, layer))
+                    if (Physics2D.Linecast(_startPos, _endPos, obstacleLayer))
                     {
                         if (hasStarted)
                         {
@@ -143,13 +145,14 @@ public class NewInputSystem : MonoBehaviour
 
                     //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
                     Vector3 cutDirection = (_endPos - _startPos).normalized;
-                    _endPos = position + cutDirection * 2f * 2.0f;
+                    _endPos = position + cutDirection * _PREDICTION_FACTOR;
                     if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
                     {
                         LM.AddPieceToList(ref cuttedPiece);
                         polygon = cbm.ToArray();
                         hasEnded = true;
                         hasStarted = false;
+                        hasStartedOutside = false;
                         LM.UpdateScore();
                         _startPos = cbm.PolygonCenter;
                         _endPos = cbm.PolygonCenter;
@@ -164,6 +167,7 @@ public class NewInputSystem : MonoBehaviour
             _endPos = cbm.PolygonCenter;
             hasStarted = false;
             hasEnded = false;
+            hasStartedOutside = false;
             trailrenderer.forceRenderingOff = true;
         }
     }
