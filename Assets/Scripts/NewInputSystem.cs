@@ -17,13 +17,12 @@ public class NewInputSystem : MonoBehaviour
 
     private Cutter cutter;
     private Vector2[] polygon;
-
-    private Material maskMat;
-    private Material textureMat;
+    
+    private Material _textureMat;
 
     private TrailRenderer trailrenderer;
 
-    private Circle circle;     
+    private Circle circle;
 
     private Vector3 _startPos;
     private Vector3 _endPos;
@@ -31,34 +30,27 @@ public class NewInputSystem : MonoBehaviour
     private float distanceFromCam;
     private float lastCutTime = 0.0f;
 
-    private const float _CIRCLE_RADIUS = 1.25f;  
+    private const float _CIRCLE_RADIUS = 1.25f;
     private const float _COOLDOWN_TIME = 0.15f;
-    private const float _PREDICTION_FACTOR = 4f;
+    private const float _PREDICTION_FACTOR = 2f;
     private const float _LOOP_TIME = 0.008333f;
-
 
     private bool hasStarted = false;
     private bool hasEnded = false;
     private bool isEnabled = true;
     private bool hasStartedOutside = false;
 
-    private void Awake()
-    {
-        textureMat = Resources.Load("Material/SignMaterial") as Material;
-        maskMat = Resources.Load("Material/MaskMaterial") as Material;       
-    }
-
     void Start()
     {
         trailrenderer = GetComponent<TrailRenderer>();
         trailrenderer.forceRenderingOff = true;
 
-        circle = new Circle(transform.position, _CIRCLE_RADIUS);     
+        circle = new Circle(transform.position, _CIRCLE_RADIUS);
 
         _mainCam = Camera.main;
         polygon = cbm.ToArray();
-        _startPos = cbm.PolygonCenter;
-        _endPos = cbm.PolygonCenter;       
+        _startPos = Vector3.zero;
+        _endPos = Vector3.zero;
 
         cutter = new Cutter();
         distanceFromCam = Mathf.Abs(_mainCam.transform.position.z - victim.transform.position.z);
@@ -70,7 +62,7 @@ public class NewInputSystem : MonoBehaviour
         yield return new WaitForSeconds(_LOOP_TIME);
         MoveBlade();
         StartCoroutine(Loop());
-    } 
+    }
 
     private void OnDrawGizmos()
     {
@@ -85,10 +77,10 @@ public class NewInputSystem : MonoBehaviour
         position = _mainCam.ScreenToWorldPoint(position);
         transform.position = position;
 
-        circle.UpdatePosition(position);        
-       
-        bool isOutside = Physics2D.Linecast(position, cbm.PolygonCenter, polygonLayer) || (Mathematics.PointInPolygon(position,polygon) ? false:true);
-        var intersections = circle.GetIntersections(polygon);             
+        circle.UpdatePosition(position);
+
+        bool isOutside = (Mathematics.PointInPolygon(position, polygon) ? false : true);
+        var intersections = circle.GetIntersections(polygon);
 
         if (Input.GetMouseButton(0) && isEnabled)
         {
@@ -96,34 +88,27 @@ public class NewInputSystem : MonoBehaviour
 
             if (Time.unscaledTime > lastCutTime + _COOLDOWN_TIME)
             {
+                // if the objects is outside mark the cutting as starting outside the polygon
                 if (isOutside)
                 {
                     if (!hasStarted)
                     {
                         _startPos = position;
-                        Debug.Log("OUT!");
                         hasStartedOutside = true;
                     }
                 }
                 if (!isOutside && hasStartedOutside)
-                {                   
+                {
+                    hasStarted = true;
+                    hasEnded = false;                  
+                }
+
+                if (intersections.Count > 0 && !isOutside && !hasStarted)
+                {
+                    Vector3 dirToIntersection = (intersections[0]._pos - transform.position).normalized;
+                    _startPos = transform.position + _PREDICTION_FACTOR * dirToIntersection;
                     hasStarted = true;
                     hasEnded = false;
-                    Debug.Log("IN!");
-                }
-                
-                if (intersections.Count > 0)
-                {
-                    if (!isOutside)
-                    {
-                        if (!hasStarted)
-                        {
-                            Vector3 dirToIntersection = (intersections[0]._pos - transform.position).normalized;
-                            _startPos = transform.position + _PREDICTION_FACTOR * dirToIntersection;
-                            hasStarted = true;
-                            hasEnded = false;
-                        }
-                    }
                 }
                 if (!hasEnded && hasStarted)
                 {
@@ -145,25 +130,21 @@ public class NewInputSystem : MonoBehaviour
                     //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
                     Vector3 cutDirection = (_endPos - _startPos).normalized;
                     _endPos = position + cutDirection * _PREDICTION_FACTOR;
-                    if (cutter.Cut(victim, textureMat, maskMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
-                    {                       
+                    if (cutter.Cut(victim, _textureMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
+                    {
                         LM.AddPieceToList(ref cuttedPiece);
                         polygon = cbm.ToArray();
                         hasEnded = true;
                         hasStarted = false;
                         hasStartedOutside = false;
-                        LM.UpdateScore();
-                        _startPos = cbm.PolygonCenter;
-                        _endPos = cbm.PolygonCenter;
+                        LM.UpdateScore();                       
                         lastCutTime = Time.unscaledTime;
                     }
                 }
             }
         }
         else
-        {
-            _startPos = cbm.PolygonCenter;
-            _endPos = cbm.PolygonCenter;
+        {          
             hasStarted = false;
             hasEnded = false;
             hasStartedOutside = false;
@@ -171,13 +152,16 @@ public class NewInputSystem : MonoBehaviour
         }
     }
 
-
+    public void UpdateMats(Material textureMat)
+    {
+        _textureMat = textureMat;
+    }
 
     public void ReEnable()
     {
         isEnabled = true;
         polygon = cbm.ToArray();
-    }    
+    }
 }
 
 

@@ -10,7 +10,9 @@ public class LevelManager : MonoBehaviour
 
     private static Score score;
     private List<GameObject> obstacles = new List<GameObject>();
-    private List<GameObject> cuttedObjects = new List<GameObject>();   
+    private List<GameObject> cuttedObjects = new List<GameObject>();
+   
+    private Material textureMat;
 
     public Score Score { get => score; private set => score = value; }
     public List<GameObject> Obstacles { get => obstacles; private set => obstacles = value; }   
@@ -26,6 +28,9 @@ public class LevelManager : MonoBehaviour
     private void Awake()
     {
         Application.targetFrameRate = 60;
+        textureMat = Resources.Load("Material/SignMaterial") as Material;        
+        InputSystem.UpdateMats(textureMat);
+        cbm.TextureSize(textureMat.mainTexture.width);
     }
 
     void Start()

@@ -38,6 +38,8 @@ public class CustomBoundryBox : MonoBehaviour
 
     private float _area = 0.0f;
 
+    private float _textureSize = 0.0f;
+
     //Used to calculate length and height
     private float maxY = -Mathf.Infinity;
     private float maxX = -Mathf.Infinity;  
@@ -97,7 +99,7 @@ public class CustomBoundryBox : MonoBehaviour
         polyCol.points = points;
         GetArea();       
 
-        ratio = 512f/Mathf.Max(MaxX, MaxY);
+        ratio = _textureSize/Mathf.Max(MaxX, MaxY);
 
         int pixelPerUnit = Mathf.CeilToInt(ratio);
         m_toCutObject.fillPixelsPerUnit = pixelPerUnit;
@@ -218,13 +220,18 @@ public class CustomBoundryBox : MonoBehaviour
 
     private void GetMinMaxXY(Vector3 vec)
     {
-        maxX = maxX < vec.x ? vec.x : maxX;        
-        maxY = maxY < vec.y ? vec.y : maxY;   
+        maxX = maxX < Mathf.Abs(vec.x) ? Mathf.Abs(vec.x) : maxX;        
+        maxY = maxY < Mathf.Abs(vec.y) ? Mathf.Abs(vec.y) : maxY;   
     } 
 
     public void ResetShape()
     {
         m_CustomBox.Clear();
         CreateCustomBoundary();
+    }
+
+    public void TextureSize(float size)
+    {
+        _textureSize = size;
     }
 }

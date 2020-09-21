@@ -344,7 +344,6 @@ namespace BlastProof
             return 1 << count;
         }
 
-
         public static float PolygonArea(Vector2[] points)
         {
             float f = 0f;

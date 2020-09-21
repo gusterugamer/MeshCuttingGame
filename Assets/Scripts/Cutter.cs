@@ -10,10 +10,11 @@ public class Cutter
     private List<BoundaryPoint> _newRightBoundary;
     private List<BoundaryPoint> _newLeftBoundary;
 
+    private Material maskMaterial = Resources.Load("Material/MaskMaterial") as Material;
+
     public List<BoundaryPoint> NewRightBoundary { get => _newRightBoundary; private set { _newRightBoundary = value; } }
     public List<BoundaryPoint> NewLeftBoundary { get => _newLeftBoundary; private set { _newLeftBoundary = value; } }
-
-    public bool Cut(SpriteShapeController shape, Material textureMat, Material maskMat, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles, out GameObject mask)
+    public bool Cut(SpriteShapeController shape, Material textureMat, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles, out GameObject mask)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
         List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
@@ -70,7 +71,7 @@ public class Cutter
                 maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f, 0.0f, -0.5f);
                 maskObj.GetComponent<MeshFilter>().mesh = newMaskMesh;
                 maskObj.name = "mask";
-                maskObj.GetComponent<MeshRenderer>().material = maskMat;
+                maskObj.GetComponent<MeshRenderer>().material = maskMaterial;
                 //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);                
 
                 mask = maskObj;
