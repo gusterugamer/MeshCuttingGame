@@ -13,11 +13,12 @@ public class Cutter
     public List<BoundaryPoint> NewRightBoundary { get => _newRightBoundary; private set { _newRightBoundary = value; } }
     public List<BoundaryPoint> NewLeftBoundary { get => _newLeftBoundary; private set { _newLeftBoundary = value; } }
 
-    public bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles, out GameObject mask)
+    public bool Cut(SpriteShapeController shape, Material textureMat, Material maskMat, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles, out GameObject mask)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
         List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
 
+        //Decides which value is bigger to create the size of texture square
         float spriteSquareSize = Mathf.Max(_boundaryBox.MaxX, _boundaryBox.MaxY);       
 
         if (intersectionPoints.Count == 2)
@@ -25,7 +26,7 @@ public class Cutter
             bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.00001f;
             if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
-
+                //Generates a 3d mesh out of cutted polygon (generatedMesh) and uses it's frontface as mask (maskMesh)
                 MeshProperties[] newMeshes = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, spriteSquareSize);
                 MeshProperties generatedMesh = newMeshes[0];
                 MeshProperties maskMesh = newMeshes[1];
@@ -55,7 +56,7 @@ public class Cutter
                 generatedObj.AddComponent<MeshRenderer>();
                 generatedObj.name = "Generated";
                 generatedObj.GetComponent<MeshFilter>().mesh = newMesh;
-                generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;              
+                generatedObj.GetComponent<MeshRenderer>().material = textureMat;              
 
                 generatedObjParent.AddComponent<Rigidbody>().angularDrag = 0.0f;
                 generatedObjParent.GetComponent<Rigidbody>().AddForce(new Vector3(0.0f, 1000.0f, -150.0f));
@@ -69,7 +70,7 @@ public class Cutter
                 maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f, 0.0f, -0.5f);
                 maskObj.GetComponent<MeshFilter>().mesh = newMaskMesh;
                 maskObj.name = "mask";
-                maskObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/MaskMaterial") as Material;
+                maskObj.GetComponent<MeshRenderer>().material = maskMat;
                 //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);                
 
                 mask = maskObj;

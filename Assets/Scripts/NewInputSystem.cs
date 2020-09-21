@@ -1,7 +1,6 @@
 ﻿using BlastProof;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Experimental.XR.Interaction;
 using UnityEngine.U2D;
 
 public class NewInputSystem : MonoBehaviour
@@ -18,6 +17,9 @@ public class NewInputSystem : MonoBehaviour
 
     private Cutter cutter;
     private Vector2[] polygon;
+
+    private Material maskMat;
+    private Material textureMat;
 
     private TrailRenderer trailrenderer;
 
@@ -39,6 +41,12 @@ public class NewInputSystem : MonoBehaviour
     private bool hasEnded = false;
     private bool isEnabled = true;
     private bool hasStartedOutside = false;
+
+    private void Awake()
+    {
+        textureMat = Resources.Load("Material/SignMaterial") as Material;
+        maskMat = Resources.Load("Material/MaskMaterial") as Material;       
+    }
 
     void Start()
     {
@@ -137,8 +145,8 @@ public class NewInputSystem : MonoBehaviour
                     //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
                     Vector3 cutDirection = (_endPos - _startPos).normalized;
                     _endPos = position + cutDirection * _PREDICTION_FACTOR;
-                    if (cutter.Cut(victim, capMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
-                    {
+                    if (cutter.Cut(victim, textureMat, maskMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
+                    {                       
                         LM.AddPieceToList(ref cuttedPiece);
                         polygon = cbm.ToArray();
                         hasEnded = true;
@@ -163,11 +171,13 @@ public class NewInputSystem : MonoBehaviour
         }
     }
 
+
+
     public void ReEnable()
     {
         isEnabled = true;
         polygon = cbm.ToArray();
-    }
+    }    
 }
 
 

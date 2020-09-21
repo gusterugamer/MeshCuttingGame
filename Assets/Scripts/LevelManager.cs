@@ -8,9 +8,6 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private CustomBoundryBox cbm;
     [SerializeField] private NewInputSystem InputSystem;
 
-    private Material maskMat;
-    private Material textureMat;
-
     private static Score score;
     private List<GameObject> obstacles = new List<GameObject>();
     private List<GameObject> cuttedObjects = new List<GameObject>();   
@@ -25,14 +22,17 @@ public class LevelManager : MonoBehaviour
     public event ScoreChangeDelegate OnScoreChange;
     public event CutOBjectDelegate OnCuttingObject;
     public event ResetSceneDelegate OnResetScene;
-   
+
+    private void Awake()
+    {
+        Application.targetFrameRate = 60;
+    }
+
     void Start()
     {
         //startShape = new CustomBoundryBox(cbm);
-        Score = new Score(cbm.Area);
-        textureMat = Resources.Load("Material/SignMaterial") as Material;
-        maskMat = Resources.Load("Material/MaskMaterial") as Material;
-
+        Score = new Score(cbm.Area);  
+        
        // CreateObjectsInScene();
     } 
 
