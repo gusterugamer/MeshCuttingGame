@@ -21,11 +21,7 @@ public class NewInputSystem : MonoBehaviour
 
     private TrailRenderer trailrenderer;
 
-    private Circle circleBig;
-    private Circle circleSmall;
-    private Circle currentCircle;
-
-    //public LayerMask layer;
+    private Circle circle;     
 
     private Vector3 _startPos;
     private Vector3 _endPos;
@@ -33,8 +29,7 @@ public class NewInputSystem : MonoBehaviour
     private float distanceFromCam;
     private float lastCutTime = 0.0f;
 
-    private const float _BIG_CIRCLE_RADIUS = 1.25f;
-    private const float _SMALL_CIRCLE_RADIUS = 2.25f;
+    private const float _CIRCLE_RADIUS = 1.25f;  
     private const float _COOLDOWN_TIME = 0.15f;
     private const float _PREDICTION_FACTOR = 4f;
     private const float _LOOP_TIME = 0.008333f;
@@ -50,8 +45,7 @@ public class NewInputSystem : MonoBehaviour
         trailrenderer = GetComponent<TrailRenderer>();
         trailrenderer.forceRenderingOff = true;
 
-        circleBig = new Circle(transform.position, _BIG_CIRCLE_RADIUS);
-        circleSmall = new Circle(transform.position, _SMALL_CIRCLE_RADIUS);
+        circle = new Circle(transform.position, _CIRCLE_RADIUS);     
 
         _mainCam = Camera.main;
         polygon = cbm.ToArray();
@@ -59,7 +53,7 @@ public class NewInputSystem : MonoBehaviour
         _endPos = cbm.PolygonCenter;       
 
         cutter = new Cutter();
-        distanceFromCam = Vector3.Distance(_mainCam.transform.position, cbm.PolygonCenter);
+        distanceFromCam = Mathf.Abs(_mainCam.transform.position.z - victim.transform.position.z);
         StartCoroutine(Loop());
     }
 
@@ -83,13 +77,10 @@ public class NewInputSystem : MonoBehaviour
         position = _mainCam.ScreenToWorldPoint(position);
         transform.position = position;
 
-        circleBig.UpdatePosition(position);
-        circleSmall.UpdatePosition(position);
-
-        currentCircle = circleBig;
-
-        bool isOutside = Physics2D.Linecast(position, cbm.PolygonCenter, polygonLayer) || (!Mathematics.PointInPolygon(position,polygon) ? true: false);
-        var intersections = currentCircle.GetIntersections(polygon);             
+        circle.UpdatePosition(position);        
+       
+        bool isOutside = Physics2D.Linecast(position, cbm.PolygonCenter, polygonLayer) || (Mathematics.PointInPolygon(position,polygon) ? false:true);
+        var intersections = circle.GetIntersections(polygon);             
 
         if (Input.GetMouseButton(0) && isEnabled)
         {
@@ -120,7 +111,7 @@ public class NewInputSystem : MonoBehaviour
                         if (!hasStarted)
                         {
                             Vector3 dirToIntersection = (intersections[0]._pos - transform.position).normalized;
-                            _startPos = transform.position + 2 * currentCircle.Radius * dirToIntersection;
+                            _startPos = transform.position + _PREDICTION_FACTOR * dirToIntersection;
                             hasStarted = true;
                             hasEnded = false;
                         }

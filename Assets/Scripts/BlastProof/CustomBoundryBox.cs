@@ -26,10 +26,10 @@ public struct BoundaryPoint
 
 public class CustomBoundryBox : MonoBehaviour
 {
-    [SerializeField] private SpriteShapeController m_toCutObject;
-    
-    public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();   
-    
+    [SerializeField] private SpriteShapeController m_toCutObject;    
+
+    public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();
+
     private Transform trans;
 
     private EdgeCollider2D polyCol;
@@ -37,6 +37,12 @@ public class CustomBoundryBox : MonoBehaviour
     private Vector3 polygonCenter;
 
     private float _area = 0.0f;
+
+    //Used to calculate length and height
+    private float maxY = -Mathf.Infinity;
+    private float maxX = -Mathf.Infinity;  
+
+    //Used to calculated UVs on generated objects 
 
     public float Area
     {
@@ -47,6 +53,10 @@ public class CustomBoundryBox : MonoBehaviour
     {
         get { return polygonCenter; }
     }
+    public float MaxY { get => maxY;}
+    public float MaxX { get => maxX;}
+
+    public float ratio = 0.0f;
 
     [SerializeField] private Material levelMaterial;
 
@@ -54,13 +64,13 @@ public class CustomBoundryBox : MonoBehaviour
 
     private void Awake()
     {
-        CreateCustomBoundary();
+        CreateCustomBoundary();       
     }
 
     // Start is called before the first frame update
     void Start()
-    {        
-       trans = m_toCutObject.GetComponent<Transform>();       
+    {
+        trans = m_toCutObject.GetComponent<Transform>();        
     }
 
     public void CreateCustomBoundary()
@@ -70,13 +80,14 @@ public class CustomBoundryBox : MonoBehaviour
         polyCol = GetComponent<EdgeCollider2D>();
         int length = m_toCutObject.spline.GetPointCount();
 
-        Vector2[] points = new Vector2[length+1];
+        Vector2[] points = new Vector2[length + 1];
 
-        for (int i=0;i<length;i++)
+        for (int i = 0; i < length; i++)
         {
             points[i] = m_toCutObject.spline.GetPosition(i);
             pointsSum += points[i];
             m_CustomBox.Add(new BoundaryPoint(points[i]));
+            GetMinMaxXY(points[i]);
         }
         points[length] = points[0];
         polygonCenter = pointsSum / length;
@@ -84,7 +95,12 @@ public class CustomBoundryBox : MonoBehaviour
 
         //polyCol.pathCount = 1;
         polyCol.points = points;
-        GetArea();
+        GetArea();       
+
+        ratio = 512f/Mathf.Max(MaxX, MaxY);
+
+        int pixelPerUnit = Mathf.CeilToInt(ratio);
+        m_toCutObject.fillPixelsPerUnit = pixelPerUnit;
     }
 
     public void UpdateCustomBoundary(List<BoundaryPoint> boundary)
@@ -95,14 +111,14 @@ public class CustomBoundryBox : MonoBehaviour
         UpdateCenter();
         GetArea();
 
-        Vector2[] points = new Vector2[m_CustomBox.Count+1];
+        Vector2[] points = new Vector2[m_CustomBox.Count + 1];
         for (int i = 0; i <= m_CustomBox.Count; i++)
-        {           
+        {
             points[i] = m_CustomBox[i % m_CustomBox.Count].m_pos;
         }
 
         //polyCol.pathCount = 1;
-        polyCol.points = points;        
+        polyCol.points = points;
     }
 
     private void OnDrawGizmosSelected()
@@ -119,7 +135,7 @@ public class CustomBoundryBox : MonoBehaviour
         int length = m_CustomBox.Count;
         Vector3 pointsSum = Vector2.zero;
         for (int i = 0; i < length; i++)
-        {           
+        {
             pointsSum += m_CustomBox[i].m_pos;
         }
         polygonCenter = pointsSum / length;
@@ -132,7 +148,7 @@ public class CustomBoundryBox : MonoBehaviour
 
         int length = m_CustomBox.Count;
 
-        for (int i=0;i<m_CustomBox.Count;i++)
+        for (int i = 0; i < m_CustomBox.Count; i++)
         {
             Vector3 tempStartPos = trans.transform.InverseTransformPoint(startPoint);
             Vector3 tempEndPos = trans.transform.InverseTransformPoint(endPoint);
@@ -141,17 +157,17 @@ public class CustomBoundryBox : MonoBehaviour
             BoundaryPoint nextBP = m_CustomBox[(i + 1) % length];
 
             if (BlastProof.Mathematics.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
-            {                
-                pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x,intersPoint.y, 0.0f), i, (i + 1)));                
+            {
+                pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x, intersPoint.y, 0.0f), i, (i + 1)));
             }
-        }      
+        }
         return pointsList;
     }
-    
+
     public Vector2[] ToArray()
     {
         Vector2[] arr = new Vector2[m_CustomBox.Count];
-        for (int i=0;i<m_CustomBox.Count;i++)
+        for (int i = 0; i < m_CustomBox.Count; i++)
         {
             arr[i] = m_CustomBox[i].m_pos;
         }
@@ -162,7 +178,7 @@ public class CustomBoundryBox : MonoBehaviour
     {
         List<BoundaryPoint> list = new List<BoundaryPoint>();
         BoundaryPoint lastAdded = BoundaryPoint.zero;
-        for(int i=0;i<m_CustomBox.Count;i++)
+        for (int i = 0; i < m_CustomBox.Count; i++)
         {
             if (lastAdded.m_pos != Vector3.zero)
             {
@@ -190,15 +206,21 @@ public class CustomBoundryBox : MonoBehaviour
                     list.Add(m_CustomBox[i]);
                     lastAdded = m_CustomBox[i];
                 }
-            }          
+            }
         }
-        m_CustomBox = list;        
-    }    
+        m_CustomBox = list;
+    }
 
     private void GetArea()
     {
         _area = Mathematics.PolygonArea(m_CustomBox);
     }
+
+    private void GetMinMaxXY(Vector3 vec)
+    {
+        maxX = maxX < vec.x ? vec.x : maxX;        
+        maxY = maxY < vec.y ? vec.y : maxY;   
+    } 
 
     public void ResetShape()
     {

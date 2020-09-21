@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine.U2D;
 using BlastProof;
 using System;
+using UnityEngine.Rendering;
 
 public class Cutter
 {
@@ -15,7 +16,9 @@ public class Cutter
     public bool Cut(SpriteShapeController shape, Material capMaterial, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles, out GameObject mask)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
-        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);       
+        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
+
+        float spriteSquareSize = Mathf.Max(_boundaryBox.MaxX, _boundaryBox.MaxY);       
 
         if (intersectionPoints.Count == 2)
         {
@@ -23,7 +26,7 @@ public class Cutter
             if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
 
-                MeshProperties[] newMeshes = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, 16.0f);
+                MeshProperties[] newMeshes = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, spriteSquareSize);
                 MeshProperties generatedMesh = newMeshes[0];
                 MeshProperties maskMesh = newMeshes[1];
 
@@ -52,7 +55,7 @@ public class Cutter
                 generatedObj.AddComponent<MeshRenderer>();
                 generatedObj.name = "Generated";
                 generatedObj.GetComponent<MeshFilter>().mesh = newMesh;
-                generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;
+                generatedObj.GetComponent<MeshRenderer>().material = Resources.Load("Material/SignMaterial") as Material;              
 
                 generatedObjParent.AddComponent<Rigidbody>().angularDrag = 0.0f;
                 generatedObjParent.GetComponent<Rigidbody>().AddForce(new Vector3(0.0f, 1000.0f, -150.0f));
