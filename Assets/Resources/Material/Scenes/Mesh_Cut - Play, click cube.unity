@@ -1161,7 +1161,7 @@ MonoBehaviour:
   m_Spline:
     m_IsOpenEnded: 0
     m_ControlPoints:
-    - position: {x: 2.1136265, y: 19.977514, z: 0}
+    - position: {x: 18.15, y: 29.4, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1170,7 +1170,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 7.250692, y: 24.428339, z: 0}
+    - position: {x: 23.25, y: 33.75, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1179,7 +1179,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 14.518962, y: 20.015373, z: 0}
+    - position: {x: 20.55, y: 27.45, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1188,7 +1188,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 12.01618, y: 9.938431, z: 0}
+    - position: {x: 28.95, y: 32.25, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1197,7 +1197,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 18.64525, y: 15.20876, z: 0}
+    - position: {x: 21.15, y: 16.95, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1206,7 +1206,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 17.523735, y: 9.627036, z: 0}
+    - position: {x: 15, y: 15, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1215,7 +1215,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 10.121683, y: 7.0024843, z: 0}
+    - position: {x: 8.25, y: 16.95, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1224,7 +1224,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 10.444214, y: 2.0572767, z: 0}
+    - position: {x: 1.0500002, y: 32.25, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1233,7 +1233,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 7.026882, y: 2.3318968, z: 0}
+    - position: {x: 9.45, y: 27.45, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1242,7 +1242,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 6.081453, y: 6.8600087, z: 0}
+    - position: {x: 6.75, y: 33.75, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1251,7 +1251,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 2.6280053, y: 7.374009, z: 0}
+    - position: {x: 11.85, y: 29.4, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1260,16 +1260,7 @@ MonoBehaviour:
       bevelSize: 0
       spriteIndex: 0
       corner: 1
-    - position: {x: 2.4911547, y: 9.712578, z: 0}
-      leftTangent: {x: 0, y: 0, z: 0}
-      rightTangent: {x: 0, y: 0, z: 0}
-      mode: 0
-      height: 1
-      bevelCutoff: 0
-      bevelSize: 0
-      spriteIndex: 0
-      corner: 1
-    - position: {x: 5.6654053, y: 9.809479, z: 0}
+    - position: {x: 15, y: 40.2, z: 0}
       leftTangent: {x: 0, y: 0, z: 0}
       rightTangent: {x: 0, y: 0, z: 0}
       mode: 0
@@ -1335,11 +1326,11 @@ SpriteShapeRenderer:
   m_SortingOrder: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_MaskInteraction: 0
-  m_ShapeTexture: {fileID: 2800000, guid: 7f47daefa77bb204f8184537057d3a20, type: 3}
+  m_ShapeTexture: {fileID: 2800000, guid: 7b1c3afa80fdb5f4b92f8aba621da834, type: 3}
   m_Sprites: []
   m_LocalAABB:
-    m_Center: {x: 9.322625, y: 12.2141695, z: 0}
-    m_Extent: {x: 9.322625, y: 12.2141695, z: 0}
+    m_Center: {x: 14.475, y: 20.1, z: 0}
+    m_Extent: {x: 14.475, y: 20.1, z: 0}
 --- !u!4 &1707939980
 Transform:
   m_ObjectHideFlags: 0
