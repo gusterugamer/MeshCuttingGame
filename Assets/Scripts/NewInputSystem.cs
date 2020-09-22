@@ -137,6 +137,8 @@ public class NewInputSystem : MonoBehaviour
                         hasEnded = true;
                         hasStarted = false;
                         hasStartedOutside = false;
+                        _startPos = position;
+                        _endPos = position;
                         LM.UpdateScore();                       
                         lastCutTime = Time.unscaledTime;
                     }
@@ -147,6 +149,8 @@ public class NewInputSystem : MonoBehaviour
         {          
             hasStarted = false;
             hasEnded = false;
+            _startPos = position;
+            _endPos = position;
             hasStartedOutside = false;
             trailrenderer.forceRenderingOff = true;
         }

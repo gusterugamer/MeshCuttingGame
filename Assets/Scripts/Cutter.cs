@@ -20,7 +20,7 @@ public class Cutter
         List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
 
         //Decides which value is bigger to create the size of texture square
-        float spriteSquareSize = Mathf.Max(_boundaryBox.MaxX, _boundaryBox.MaxY);       
+        float spriteSquareSize = Mathf.Max(_boundaryBox.MaxX, _boundaryBox.MaxY);
 
         if (intersectionPoints.Count == 2)
         {
@@ -57,7 +57,7 @@ public class Cutter
                 generatedObj.AddComponent<MeshRenderer>();
                 generatedObj.name = "Generated";
                 generatedObj.GetComponent<MeshFilter>().mesh = newMesh;
-                generatedObj.GetComponent<MeshRenderer>().material = textureMat;              
+                generatedObj.GetComponent<MeshRenderer>().material = textureMat;
 
                 generatedObjParent.AddComponent<Rigidbody>().angularDrag = 0.0f;
                 generatedObjParent.GetComponent<Rigidbody>().AddForce(new Vector3(0.0f, 1000.0f, -150.0f));
@@ -68,7 +68,7 @@ public class Cutter
                 GameObject maskObj = new GameObject();
                 maskObj.AddComponent<MeshFilter>();
                 maskObj.AddComponent<MeshRenderer>();
-                maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f, 0.0f, -0.5f);
+                maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f, 0.0f, -0.001f);
                 maskObj.GetComponent<MeshFilter>().mesh = newMaskMesh;
                 maskObj.name = "mask";
                 maskObj.GetComponent<MeshRenderer>().material = maskMaterial;
@@ -88,7 +88,7 @@ public class Cutter
         return false;
     }
 
-    private bool CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint,List<GameObject> obstacles)
+    private bool CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint, List<GameObject> obstacles)
     {
         //picking first and second intersection point indicies by looking who is closest to the start of the ppolygon
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
@@ -97,46 +97,50 @@ public class Cutter
         Plane plane = Mathematics.SlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos, Camera.main.transform.forward);
 
         int count;
-        if (IsObjectsOnSameSide(plane, obstacles, out count))
+
+        NewLeftBoundary = new List<BoundaryPoint>();
+        NewRightBoundary = new List<BoundaryPoint>();
+
+        for (int i = 0; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint; i++)
         {
+            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
+        }
 
-            NewLeftBoundary = new List<BoundaryPoint>();
-            NewRightBoundary = new List<BoundaryPoint>();
+        NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
+        NewLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
 
-            for (int i = 0; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint; i++)
-            {
-                NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
-            }
+        for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Count; i++)
+        {
+            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
+        }
 
-            NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
-            NewLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+        //rightside
+        int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
 
-            for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Count; i++)
-            {
-                NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
-            }
+        NewRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+        NewRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
 
-            //rightside
-            int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
-
-            NewRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
-            NewRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
-
-            for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
-            {
-                NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
-            }
-            if (count < 0)
-            {
-                List<BoundaryPoint> tempB = NewLeftBoundary;
-                NewLeftBoundary = NewRightBoundary;
-                NewRightBoundary = tempB;
-            }
+        for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
+        {
+            NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
+        }
+        if (IsObstaclesInSamePolygon(NewRightBoundary, obstacles,out count))
+        {
+            List<BoundaryPoint> tempB = NewLeftBoundary;
+            NewLeftBoundary = NewRightBoundary;
+            NewRightBoundary = tempB;
             return true;
         }
-        return false;
+        if (count == 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
-    private bool IsObjectsOnSameSide(Plane plane, List<GameObject>obstacles, out int _count)
+    private bool IsObjectsOnSameSide(Plane plane, List<GameObject> obstacles, out int _count)
     {
         int count = 0;
         foreach (var go in obstacles)
@@ -145,5 +149,21 @@ public class Cutter
         }
         _count = count;
         return Math.Abs(count) == obstacles.Count;
+    }
+
+    private bool IsObstaclesInSamePolygon(List<BoundaryPoint> _bp, List<GameObject> obstacles, out int _count)
+    {
+        Vector2[] points = new Vector2[_bp.Count];
+        for (int i=0;i<_bp.Count;i++)
+        {
+            points[i] = _bp[i].m_pos;
+        }
+        int count = 0;
+        foreach (var go in obstacles)
+        {
+            count += Mathematics.IsPointInPolygon(go.transform.position, points) ? 1 : 0;
+        }
+        _count = count;
+        return count == obstacles.Count;
     }
 }
