@@ -6,6 +6,7 @@ public class LevelManager : MonoBehaviour
 {
     [SerializeField] private CustomBoundryBox cbm;
     [SerializeField] private NewInputSystem InputSystem;
+    [SerializeField] private JsonReader _jr;
 
     private Camera _mainCam;
 
@@ -41,6 +42,7 @@ public class LevelManager : MonoBehaviour
         CreateObjectsInScene();
         _mainCam = Camera.main;
         _mainCam.transform.position = new Vector3(cbm.PolygonCenter.x, cbm.PolygonCenter.y, _mainCam.transform.position.z);
+        Debug.Log(_jr.loadedLevel.points[0]);            
     }
 
     public void UpdateScore()

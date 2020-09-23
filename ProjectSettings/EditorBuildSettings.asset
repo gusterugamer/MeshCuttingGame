@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Resources/Material/Scenes/Mesh_Cut - Play, click cube.unity
+    path: Assets/Scenes/LevelsScene.unity
+    guid: 6a5c9c6be426280458ca904f05d523c5
+  - enabled: 1
+    path: Assets/Scenes/SelectedLevelScene.unity
     guid: 11d928b7f36024f079bef9251b5cdca5
   m_configObjects: {}

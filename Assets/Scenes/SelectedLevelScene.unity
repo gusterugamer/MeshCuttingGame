@@ -233,7 +233,7 @@ MonoBehaviour:
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 823
 --- !u!114 &37700764
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,6 +496,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cbm: {fileID: 1707939981}
   InputSystem: {fileID: 1120229800}
+  _jr: {fileID: 11400000, guid: 28c5662f7ac3136438b17f5b07867b91, type: 2}
 --- !u!4 &698130950
 Transform:
   m_ObjectHideFlags: 0
@@ -1326,7 +1327,7 @@ SpriteShapeRenderer:
   m_SortingOrder: 0
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_MaskInteraction: 0
-  m_ShapeTexture: {fileID: 2800000, guid: 7b1c3afa80fdb5f4b92f8aba621da834, type: 3}
+  m_ShapeTexture: {fileID: 2800000, guid: 7f47daefa77bb204f8184537057d3a20, type: 3}
   m_Sprites: []
   m_LocalAABB:
     m_Center: {x: 14.475, y: 20.1, z: 0}
