@@ -104,7 +104,7 @@ public static class MeshGenerator
             GetNormalsForVerts(verts, v2);
             GetUVsWithSize(verts, v1, Faces.forward, spriteSquareSize);
             GetUVsWithSize(verts, v2, Faces.forward, spriteSquareSize);
-        }
+        }     
 
         //Generating Side Triangles
         for (int i = 1; i < verts.Count / 2; i += 6)

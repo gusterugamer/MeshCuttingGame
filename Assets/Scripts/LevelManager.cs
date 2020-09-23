@@ -8,6 +8,8 @@ public class LevelManager : MonoBehaviour
     [SerializeField] private NewInputSystem InputSystem;
     [SerializeField] private JsonReader _jr;
 
+    private SpriteShapeController sprite;
+
     private Camera _mainCam;
 
     private static Score score;
@@ -32,7 +34,15 @@ public class LevelManager : MonoBehaviour
         Application.targetFrameRate = 60;
         textureMat = Resources.Load("Material/random") as Material;
         InputSystem.UpdateMats(textureMat);
-        cbm.GetComponent<SpriteShapeController>().spriteShape.fillTexture = textureMat.mainTexture as Texture2D;
+        sprite = cbm.GetComponent<SpriteShapeController>();
+        sprite.spline.Clear();
+        
+        for (int i=0;i<_jr.loadedLevel.points.Length;i++)
+        {
+            sprite.spline.InsertPointAt(i, _jr.loadedLevel.points[i]);
+        }
+
+        sprite.spriteShape.fillTexture = textureMat.mainTexture as Texture2D;
         cbm.TextureSize(textureMat.mainTexture.width);        
     }
 

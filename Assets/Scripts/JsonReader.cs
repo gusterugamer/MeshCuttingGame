@@ -12,16 +12,14 @@ public class JsonReader : ScriptableObject
     
     [SerializeField] private LevelsData levelsD;
 
+    [SerializeField] private TextAsset jsonFile;
+
     public LevelData loadedLevel;
    
     public void Load()
-    {
-        string path = Application.dataPath + "/" + fileName + ".json";
-        using (StreamReader stream = new StreamReader(path))
-        {
-            string json = stream.ReadToEnd();
-            levelsD = JsonUtility.FromJson<LevelsData>(json);
-        }        
+    {        
+        string json = jsonFile.text;
+        levelsD = JsonUtility.FromJson<LevelsData>(json);              
     }     
 
     public void LoadLevel(int i)
