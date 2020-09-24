@@ -10,21 +10,21 @@ public class JsonReader : ScriptableObject
 {
     [SerializeField] private string fileName;
     
-    [SerializeField] private LevelsData levelsD;
+    [SerializeField] private LevelsData levelsDataWrapper;
 
     [SerializeField] private TextAsset jsonFile;
 
     public LevelData loadedLevel;
    
     public void Load()
-    {        
+    { 
         string json = jsonFile.text;
-        levelsD = JsonUtility.FromJson<LevelsData>(json);              
+        levelsDataWrapper = JsonUtility.FromJson<LevelsData>(json);              
     }     
 
     public void LoadLevel(int i)
     {
-        loadedLevel = levelsD.levels[i];
+        loadedLevel = levelsDataWrapper.levels[i];
     }
 
     [Serializable]

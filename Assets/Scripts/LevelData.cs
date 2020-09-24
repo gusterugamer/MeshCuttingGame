@@ -5,4 +5,5 @@ using UnityEngine;
 public class LevelData
 {
    public Vector2[] points;
+   public bool isClockWise;
 }

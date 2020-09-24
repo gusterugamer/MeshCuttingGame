@@ -8,6 +8,8 @@ public class  LevelObstacle : MonoBehaviour
 
     private Vector3 _startPos;
 
+    private const float _SPEED = 10.0f;
+
     public Vector3 StartPos { get => _startPos;}
 
     private void Awake()
@@ -21,13 +23,13 @@ public class  LevelObstacle : MonoBehaviour
 
     private void Init()
     {
-        float randomX = Random.Range(-10f, 10f);
-        float randomY = Random.Range(-10f, 10f);
+        float randomX = Random.Range(-1f, 1f);
+        float randomY = Random.Range(-1f, 1f);
         rb = GetComponent<Rigidbody2D>();
         rb.angularDrag = 0.0f;
         rb.drag = 0.0f;
         rb.gravityScale = 0.0f;
-        rb.velocity = new Vector2(randomX, randomY);
+        rb.velocity = new Vector2(randomX, randomY).normalized * _SPEED;
         gameObject.layer = LayerMask.NameToLayer("Obstacles");
     }
 
