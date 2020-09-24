@@ -1,4 +1,5 @@
 ﻿using BlastProof;
+using System.Collections.Generic;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.U2D;
@@ -17,7 +18,7 @@ public class NewInputSystem : MonoBehaviour
 
     private Cutter cutter;
     private Vector2[] polygon;
-    
+
     private Material _textureMat;
 
     private TrailRenderer trailrenderer;
@@ -31,7 +32,7 @@ public class NewInputSystem : MonoBehaviour
     private float lastCutTime = 0.0f;
 
     private const float _CIRCLE_RADIUS = 1.25f;
-    private const float _COOLDOWN_TIME = 0.15f;
+    private const float _COOLDOWN_TIME = 0.10f;
     private const float _PREDICTION_FACTOR = 2f;
     private const float _LOOP_TIME = 0.008333f;
 
@@ -100,7 +101,7 @@ public class NewInputSystem : MonoBehaviour
                 if (!isOutside && hasStartedOutside)
                 {
                     hasStarted = true;
-                    hasEnded = false;                  
+                    hasEnded = false;
                 }
 
                 if (intersections.Count > 0 && !isOutside && !hasStarted)
@@ -130,6 +131,8 @@ public class NewInputSystem : MonoBehaviour
                     //Pushing the point out of the polygon on the same cutting direction to avoid intersection problems
                     Vector3 cutDirection = (_endPos - _startPos).normalized;
                     _endPos = position + cutDirection * _PREDICTION_FACTOR;
+
+
                     if (cutter.Cut(victim, _textureMat, _startPos, _endPos, LM.Obstacles, out GameObject cuttedPiece))
                     {
                         LM.AddPieceToList(ref cuttedPiece);
@@ -139,14 +142,15 @@ public class NewInputSystem : MonoBehaviour
                         hasStartedOutside = false;
                         _startPos = position;
                         _endPos = position;
-                        LM.UpdateScore();                       
+                        LM.UpdateScore();
                         lastCutTime = Time.unscaledTime;
                     }
+
                 }
             }
         }
         else
-        {          
+        {
             hasStarted = false;
             hasEnded = false;
             _startPos = position;

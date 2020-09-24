@@ -43,22 +43,8 @@ public class LevelManager : MonoBehaviour
     {
         Score = new Score(cbm.Area);
         CreateObjectsInScene();
-        _mainCam.transform.position = new Vector3(cbm.PolygonCenter.x, cbm.PolygonCenter.y, -Mathf.Max(cbm.MaxX, cbm.MaxY));
-        WidthToWorld();
-        Debug.Log(_jr.loadedLevel.points[0]);
-    }
-
-    private void WidthToWorld()
-    {
-        float distance = Vector3.Distance(cbm.PolygonCenter, _mainCam.transform.position);
-
-        Vector3 viewport = new Vector3(1, 1, distance);
-        Vector3 viewportCenter = new Vector3(0, 0, distance);
-        Vector3 viewPortToWorld = _mainCam.ViewportToWorldPoint(viewport);
-        Vector3 viewPortCenterToWorld = _mainCam.ViewportToWorldPoint(viewportCenter);
-
-        float WidthToWorld = Mathf.Abs(Mathf.Abs(viewPortToWorld.x) - Mathf.Abs(viewPortCenterToWorld.x));        
-    }
+        _mainCam.transform.position = new Vector3(cbm.PolygonCenter.x, cbm.PolygonCenter.y, -Mathf.Max(cbm.MaxX, cbm.MaxY));               
+    }   
 
     private void CreateSprite()
     {
@@ -96,18 +82,37 @@ public class LevelManager : MonoBehaviour
 
     private void CreateObjectsInScene()
     {
-        for (int i = -1; i < 2; i++)
+        if (_jr.loadedLevel.objectsPosition.Length != 0)
         {
-            GameObject prefabcube = Resources.Load("Prefab/Cube") as GameObject;
-            GameObject cube = Instantiate(prefabcube);
-            cube.name = "object" + i;
-            cube.transform.localScale = Vector3.one;
-            Vector3 newPosition = new Vector3(cbm.PolygonCenter.x, cbm.PolygonCenter.y + i * 6.5f, cbm.PolygonCenter.z);
-            cube.transform.position = newPosition;
-            cube.AddComponent<LevelObstacle>().SetStartPosition(newPosition);
-            cube.tag = "Obstacle";
-            Obstacles.Add(cube);
+            for (int i = 0; i < 3; i++)
+            {
+                GameObject prefabcube = Resources.Load("Prefab/Cube") as GameObject;
+                GameObject cube = Instantiate(prefabcube);
+                cube.name = "object" + i;
+                cube.transform.localScale = Vector3.one;
+                Vector3 newPosition = _jr.loadedLevel.objectsPosition[i];
+                cube.transform.position = newPosition;
+                cube.AddComponent<LevelObstacle>().SetStartPosition(newPosition);
+                cube.tag = "Obstacle";
+                Obstacles.Add(cube);
+            }
         }
+        else
+        {
+            for (int i = -1; i < 2; i++)
+            {
+                GameObject prefabcube = Resources.Load("Prefab/Cube") as GameObject;
+                GameObject cube = Instantiate(prefabcube);
+                cube.name = "object" + i;
+                cube.transform.localScale = Vector3.one;
+                Vector3 newPosition = new Vector3(cbm.PolygonCenter.x, cbm.PolygonCenter.y + i * 6.5f, cbm.PolygonCenter.z);
+                cube.transform.position = newPosition;
+                cube.AddComponent<LevelObstacle>().SetStartPosition(newPosition);
+                cube.tag = "Obstacle";
+                Obstacles.Add(cube);
+            }
+        }
+
     }
 
     public void AddPieceToList(ref GameObject piece)

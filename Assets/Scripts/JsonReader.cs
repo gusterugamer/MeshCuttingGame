@@ -7,29 +7,17 @@ using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewLevel", menuName = "Level")]
 public class JsonReader : ScriptableObject
-{
-    [SerializeField] private string fileName;
-    
-    [SerializeField] private LevelsData levelsDataWrapper;
-
-    [SerializeField] private TextAsset jsonFile;
+{   
+    public LevelData levelsData;
 
     public LevelData loadedLevel;
    
-    public void Load()
-    { 
-        string json = jsonFile.text;
-        levelsDataWrapper = JsonUtility.FromJson<LevelsData>(json);              
-    }     
-
-    public void LoadLevel(int i)
+    public LevelData Load(int i)
     {
-        loadedLevel = levelsDataWrapper.levels[i];
-    }
-
-    [Serializable]
-    private class LevelsData
-    {
-        public LevelData[] levels; 
-    }
+        string path = "levels/" + i.ToString();
+        string json = Resources.Load<TextAsset>(path).text;
+        levelsData = JsonUtility.FromJson<LevelData>(json);
+        loadedLevel = levelsData;
+        return levelsData;
+    }  
 }

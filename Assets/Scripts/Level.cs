@@ -12,12 +12,12 @@ public class Level : MonoBehaviour
 
     private void Awake()
     {
-        id = int.Parse(transform.name) - 1;           
+        id = int.Parse(transform.name);           
     }
 
     public void StartLevel()
     {
-        jr.LoadLevel(id);
+        jr.Load(id);
         SceneManager.LoadSceneAsync("SelectedLevelScene", LoadSceneMode.Single);           
     } 
 }

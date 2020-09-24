@@ -8,8 +8,5 @@ public class LevelSceneLoader : MonoBehaviour
 
     private List<LevelData> levelData;
     
-    private void Awake()
-    {
-       levels.Load();      
-    }   
+   
 }
