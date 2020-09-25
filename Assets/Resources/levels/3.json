@@ -15,5 +15,6 @@
                  "isClockWise" : true,
                  "objectsPosition" :[{"x":10, "y": 22 }, 
 		                               {"x":20, "y": 22 },
-		                               {"x":30, "y": 22 }]
+		                               {"x":30, "y": 22 }],
+                 "scaleFactor" : 0.5
 }

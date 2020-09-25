@@ -13,5 +13,6 @@
                           {"x":8.25 , "y": 16.95}
                         ],
     "isClockWise" : false,
-    "objectsPosition" : null
+    "objectsPosition" : null,
+    "scaleFactor" : 0.5
 }            
