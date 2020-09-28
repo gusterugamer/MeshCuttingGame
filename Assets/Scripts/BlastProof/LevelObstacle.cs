@@ -29,7 +29,7 @@ public class  LevelObstacle : MonoBehaviour
         rb.angularDrag = 0.0f;
         rb.drag = 0.0f;
         rb.gravityScale = 0.0f;
-        //rb.velocity = new Vector2(randomX, randomY).normalized * _SPEED;
+        rb.velocity = new Vector2(randomX, randomY).normalized * _SPEED;
         gameObject.layer = LayerMask.NameToLayer("Obstacles");
     }
 

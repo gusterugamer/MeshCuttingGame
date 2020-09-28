@@ -27,8 +27,12 @@ public class NewInputSystem : MonoBehaviour
 
     private Vector3 _startPos;
     private Vector3 _endPos;
+    private Vector3 _currentPos;
+
+    private Vector3 pointlast;
 
     private List<IntersectionPoint> _intersectionPoints = new List<IntersectionPoint>();
+    IntersectionPoint lastPoint = IntersectionPoint.zero;
 
     private float distanceFromCam;
     private float lastCutTime = 0.0f;
@@ -52,8 +56,8 @@ public class NewInputSystem : MonoBehaviour
 
         _mainCam = Camera.main;
         polygon = cbm.ToArray();
-        _startPos = Vector3.zero;
-        _endPos = Vector3.zero;
+        _startPos = cbm.PolygonCenter;
+        _endPos = cbm.PolygonCenter;
 
         cutter = new Cutter();
         distanceFromCam = Mathf.Abs(_mainCam.transform.position.z - victim.transform.position.z);
@@ -68,8 +72,8 @@ public class NewInputSystem : MonoBehaviour
     }
 
     private void OnDrawGizmos()
-    {
-        Gizmos.DrawLine(_startPos, _endPos);
+    {       
+        Gizmos.DrawLine(pointlast, _currentPos);
     }
 
     //Blade is generated when player swipes
@@ -85,32 +89,64 @@ public class NewInputSystem : MonoBehaviour
         bool isOutside = (Mathematics.PointInPolygon(position, polygon) ? false : true);
         var intersections = circle.GetIntersections(polygon);
 
+        if (lastPoint!= IntersectionPoint.zero &&
+            Physics2D.Linecast(lastPoint._pos, _currentPos, obstacleLayer) && !isOutside)
+        {
+            LM.CollidedWithObject();
+            isEnabled = false;
+        }      
+
         if (Input.GetMouseButton(0) && isEnabled)
         {
             trailrenderer.forceRenderingOff = false;
 
             if (Time.unscaledTime > lastCutTime + _COOLDOWN_TIME)
             {
+                _intersectionPoints.Clear();
+
                 _startPos = _endPos;
-                _endPos = position;
-               
-                List<IntersectionPoint> ip = cbm.GetIntersections(_startPos, _endPos);
-                IntersectionPoint lastPoint = ip.Count>0 ? ip[ip.Count - 1] : IntersectionPoint.zero;
-                foreach(var interpoint in ip)
+                _currentPos = position;
+
+                if (!isOutside)
+                {
+                    Vector3 cutDirection = (_currentPos - _startPos).normalized;
+                    _endPos = _startPos + cutDirection * _PREDICTION_FACTOR;
+                }
+                else
+                {
+                    _endPos = _currentPos;
+                }
+
+                if (lastPoint != IntersectionPoint.zero && !isOutside)
+                {
+                    _intersectionPoints.Add(lastPoint);
+                }
+                else
+                {
+                    lastPoint = IntersectionPoint.zero;
+                }
+
+                List<IntersectionPoint> ip = cbm.GetIntersections(_startPos, _endPos);     
+                
+                if (ip.Count > 0)
+                {
+                    pointlast = ip[ip.Count - 1]._pos;
+                }              
+
+                foreach (var interpoint in ip)
                 {                    
-                    Debug.Log("PCT1: " + interpoint._pos);
                     _intersectionPoints.Add(interpoint);
                 }
-                Cut();   
+                Cut();
                 lastCutTime = Time.unscaledTime;
-            }    
+            }
         }
         else
         {
             hasStarted = false;
-            hasEnded = false;
-            _startPos = position;
-            _endPos = position;
+            hasEnded = false;           
+            _startPos = cbm.PolygonCenter;
+            _endPos = cbm.PolygonCenter;
             hasStartedOutside = false;
             trailrenderer.forceRenderingOff = true;
             _intersectionPoints.Clear();
@@ -120,41 +156,38 @@ public class NewInputSystem : MonoBehaviour
 
     private void Cut()
     {
-        if (!hasEnded)
+        lastPoint = _intersectionPoints.Count > 0 ? _intersectionPoints[_intersectionPoints.Count - 1] : IntersectionPoint.zero;
+        for (int i = 1; i < _intersectionPoints.Count; i += 2)
         {
-            for (int i = 1; i < _intersectionPoints.Count; i++)
+            Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
+
+            bool isMiddleInside = (Mathematics.PointInPolygon(middlePoint, polygon));
+
+            Matrix4x4 scaleMatrix = Mathematics.ScaleMatrix(1.0001f);
+
+            _intersectionPoints[i - 1]._pos = scaleMatrix.MultiplyPoint(_intersectionPoints[i - 1]._pos);
+            _intersectionPoints[i]._pos = scaleMatrix.MultiplyPoint(_intersectionPoints[i]._pos);
+
+            Vector3 newMiddlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
+
+            Vector3 transVec = middlePoint - newMiddlePoint;
+
+            Matrix4x4 transMatrix = Mathematics.TranslateMatrix(transVec);
+
+            _intersectionPoints[i - 1]._pos = transMatrix.MultiplyPoint(_intersectionPoints[i - 1]._pos);
+            _intersectionPoints[i]._pos = transMatrix.MultiplyPoint(_intersectionPoints[i]._pos);
+
+            if (cutter.Cut(victim, _textureMat, _intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos, LM.Obstacles, out GameObject cuttedPiece) && isMiddleInside)
             {
-                Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;               
-
-                bool isMidPointInside = Mathematics.IsPointInPolygon(middlePoint, polygon);
-                if (isMidPointInside)
-                {
-                    Matrix4x4 scaleMatrix = Mathematics.ScaleMatrix(1.0001f);
-
-                    _intersectionPoints[i - 1]._pos = scaleMatrix.MultiplyPoint(_intersectionPoints[i - 1]._pos);
-                    _intersectionPoints[i]._pos = scaleMatrix.MultiplyPoint(_intersectionPoints[i]._pos);
-
-                    Vector3 newMiddlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
-
-                    Vector3 transVec = middlePoint - newMiddlePoint;
-
-                    Matrix4x4 transMatrix = Mathematics.TranslateMatrix(transVec);
-
-                    _intersectionPoints[i - 1]._pos = transMatrix.MultiplyPoint(_intersectionPoints[i - 1]._pos);
-                    _intersectionPoints[i]._pos = transMatrix.MultiplyPoint(_intersectionPoints[i]._pos);
-
-                    if (cutter.Cut(victim, _textureMat, _intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos, LM.Obstacles, out GameObject cuttedPiece))
-                    {
-                        polygon = cbm.ToArray();
-                        LM.AddPieceToList(ref cuttedPiece);                       
-                        hasEnded = true;
-                        hasStarted = false;
-                        hasStartedOutside = false;
-                        LM.UpdateScore();
-                        lastCutTime = Time.unscaledTime;
-                    }
-                }
-            }           
+                polygon = cbm.ToArray();
+                LM.AddPieceToList(ref cuttedPiece);
+                hasEnded = true;
+                hasStarted = false;
+                hasStartedOutside = false;
+                lastPoint = IntersectionPoint.zero;
+                LM.UpdateScore();
+                lastCutTime = Time.unscaledTime;
+            }
         }
     }
 
@@ -173,6 +206,14 @@ public class NewInputSystem : MonoBehaviour
 
     public void ReEnable()
     {
+        hasStarted = false;
+        hasEnded = false;
+        _startPos = cbm.PolygonCenter;
+        _endPos = cbm.PolygonCenter;
+        hasStartedOutside = false;
+        trailrenderer.forceRenderingOff = true;
+        _intersectionPoints.Clear();
+        lastPoint = IntersectionPoint.zero;
         isEnabled = true;
         polygon = cbm.ToArray();
     }
