@@ -97,18 +97,13 @@ public class NewInputSystem : MonoBehaviour
                 List<IntersectionPoint> ip = cbm.GetIntersections(_startPos, _endPos);
                 IntersectionPoint lastPoint = ip.Count>0 ? ip[ip.Count - 1] : IntersectionPoint.zero;
                 foreach(var interpoint in ip)
-                {
-                    if (hasAtMostOneCommonEdge(lastPoint,interpoint))
-                    {
-                        _intersectionPoints.Add(interpoint);
-                    }
+                {                    
+                    Debug.Log("PCT1: " + interpoint._pos);
+                    _intersectionPoints.Add(interpoint);
                 }
                 Cut();   
                 lastCutTime = Time.unscaledTime;
             }    
-               
-
-   
         }
         else
         {
@@ -118,31 +113,49 @@ public class NewInputSystem : MonoBehaviour
             _endPos = position;
             hasStartedOutside = false;
             trailrenderer.forceRenderingOff = true;
+            _intersectionPoints.Clear();
         }
     }
 
 
     private void Cut()
     {
-        for (int i=1;i<_intersectionPoints.Count-1;i++)
+        if (!hasEnded)
         {
-            Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
-            bool isMidPointInside = Mathematics.IsPointInPolygon(middlePoint, polygon);
-            if (isMidPointInside)
+            for (int i = 1; i < _intersectionPoints.Count; i++)
             {
-                if (cutter.Cut(victim, _textureMat, _intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos, LM.Obstacles, out GameObject cuttedPiece))
+                Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;               
+
+                bool isMidPointInside = Mathematics.IsPointInPolygon(middlePoint, polygon);
+                if (isMidPointInside)
                 {
-                    LM.AddPieceToList(ref cuttedPiece);
-                    polygon = cbm.ToArray();
-                    hasEnded = true;
-                    hasStarted = false;
-                    hasStartedOutside = false;
-                    LM.UpdateScore();
-                    lastCutTime = Time.unscaledTime;
+                    Matrix4x4 scaleMatrix = Mathematics.ScaleMatrix(1.0001f);
+
+                    _intersectionPoints[i - 1]._pos = scaleMatrix.MultiplyPoint(_intersectionPoints[i - 1]._pos);
+                    _intersectionPoints[i]._pos = scaleMatrix.MultiplyPoint(_intersectionPoints[i]._pos);
+
+                    Vector3 newMiddlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
+
+                    Vector3 transVec = middlePoint - newMiddlePoint;
+
+                    Matrix4x4 transMatrix = Mathematics.TranslateMatrix(transVec);
+
+                    _intersectionPoints[i - 1]._pos = transMatrix.MultiplyPoint(_intersectionPoints[i - 1]._pos);
+                    _intersectionPoints[i]._pos = transMatrix.MultiplyPoint(_intersectionPoints[i]._pos);
+
+                    if (cutter.Cut(victim, _textureMat, _intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos, LM.Obstacles, out GameObject cuttedPiece))
+                    {
+                        polygon = cbm.ToArray();
+                        LM.AddPieceToList(ref cuttedPiece);                       
+                        hasEnded = true;
+                        hasStarted = false;
+                        hasStartedOutside = false;
+                        LM.UpdateScore();
+                        lastCutTime = Time.unscaledTime;
+                    }
                 }
-            }
+            }           
         }
-        _intersectionPoints.Clear();
     }
 
     public void UpdateMats(Material textureMat)
