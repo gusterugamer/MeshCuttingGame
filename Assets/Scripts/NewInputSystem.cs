@@ -116,8 +116,7 @@ public class NewInputSystem : MonoBehaviour
                 _intersectionPoints.Clear();
 
                 _startPos = _endPos;
-                _currentPos = position;              
-                _endPos = _currentPos;                
+                _endPos = position;                           
 
                 if (lastPoint != IntersectionPoint.zero)
                 {
@@ -133,14 +132,7 @@ public class NewInputSystem : MonoBehaviour
                 {
                     ip = cbm.GetIntersections(_startPos, _endPos);
                 }
-
-                if (ip.Count > 1)
-                {
-                   if (ip[ip.Count - 1]._nextBoundaryPoint > ip[0]._previousBoundaryPoint)
-                   {
-                       ip.Reverse();
-                   }
-                }
+                
                 int i = 0;
                 foreach (var interpoint in ip)
                 {
@@ -149,6 +141,14 @@ public class NewInputSystem : MonoBehaviour
                     testobj.Add(cube);
                     _intersectionPoints.Add(interpoint);
                     Debug.Log("point" + (i++) + interpoint._pos);
+                }
+
+                if (_intersectionPoints.Count > 1)
+                {
+                    if (_intersectionPoints[_intersectionPoints.Count - 1]._nextBoundaryPoint > _intersectionPoints[0]._previousBoundaryPoint)
+                    {
+                        _intersectionPoints.Reverse();
+                    }
                 }
 
                 Cut();
