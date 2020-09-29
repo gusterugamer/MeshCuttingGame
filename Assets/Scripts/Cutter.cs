@@ -14,17 +14,16 @@ public class Cutter
 
     public List<BoundaryPoint> NewRightBoundary { get => _newRightBoundary; private set { _newRightBoundary = value; } }
     public List<BoundaryPoint> NewLeftBoundary { get => _newLeftBoundary; private set { _newLeftBoundary = value; } }
-    public bool Cut(SpriteShapeController shape, Material textureMat, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles, out GameObject mask)
+    public bool Cut(SpriteShapeController shape, Material textureMat, List<IntersectionPoint> intersectionPoints, List<GameObject> obstacles, out GameObject mask)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
-        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
-
+        
         //Decides which value is bigger to create the size of texture square
         float spriteSquareSize = Mathf.Max(_boundaryBox.MaxX, _boundaryBox.MaxY);
 
         if (intersectionPoints.Count == 2)
         {
-            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.00001f;
+            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.5f;
             if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
                 //Generates a 3d mesh out of cutted polygon (generatedMesh) and uses it's frontface as mask (maskMesh)

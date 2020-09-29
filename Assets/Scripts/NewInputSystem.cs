@@ -47,6 +47,8 @@ public class NewInputSystem : MonoBehaviour
     private bool isEnabled = true;
     private bool hasStartedOutside = false;
 
+    List<GameObject> testobj = new List<GameObject>();
+
     void Start()
     {
         trailrenderer = GetComponent<TrailRenderer>();
@@ -94,7 +96,16 @@ public class NewInputSystem : MonoBehaviour
         {
             LM.CollidedWithObject();
             isEnabled = false;
-        }      
+        }     
+
+        if (Input.GetKey(KeyCode.S))
+        {
+            _intersectionPoints.Clear();
+            foreach (var go in testobj)
+            {
+                Destroy(go);
+            }
+        }
 
         if (Input.GetMouseButton(0) && isEnabled)
         {
@@ -105,19 +116,10 @@ public class NewInputSystem : MonoBehaviour
                 _intersectionPoints.Clear();
 
                 _startPos = _endPos;
-                _currentPos = position;
+                _currentPos = position;              
+                _endPos = _currentPos;                
 
-                if (!isOutside)
-                {
-                    Vector3 cutDirection = (_currentPos - _startPos).normalized;
-                    _endPos = _startPos + cutDirection * _PREDICTION_FACTOR;
-                }
-                else
-                {
-                    _endPos = _currentPos;
-                }
-
-                if (lastPoint != IntersectionPoint.zero && !isOutside)
+                if (lastPoint != IntersectionPoint.zero)
                 {
                     _intersectionPoints.Add(lastPoint);
                 }
@@ -126,28 +128,37 @@ public class NewInputSystem : MonoBehaviour
                     lastPoint = IntersectionPoint.zero;
                 }
 
-                List<IntersectionPoint> ip = cbm.GetIntersections(_startPos, _endPos);     
-                
-                if (ip.Count > 0)
+                List<IntersectionPoint> ip = new List<IntersectionPoint>();
+                if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
                 {
-                    pointlast = ip[ip.Count - 1]._pos;
-                }              
-
-                foreach (var interpoint in ip)
-                {                    
-                    _intersectionPoints.Add(interpoint);
+                    ip = cbm.GetIntersections(_startPos, _endPos);
                 }
+
+                if (ip.Count > 1)
+                {
+                   if (ip[ip.Count - 1]._nextBoundaryPoint > ip[0]._previousBoundaryPoint)
+                   {
+                       ip.Reverse();
+                   }
+                }
+                int i = 0;
+                foreach (var interpoint in ip)
+                {
+                    GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    cube.transform.position = interpoint._pos;
+                    testobj.Add(cube);
+                    _intersectionPoints.Add(interpoint);
+                    Debug.Log("point" + (i++) + interpoint._pos);
+                }
+
                 Cut();
                 lastCutTime = Time.unscaledTime;
             }
         }
         else
-        {
-            hasStarted = false;
-            hasEnded = false;           
+        {                
             _startPos = cbm.PolygonCenter;
-            _endPos = cbm.PolygonCenter;
-            hasStartedOutside = false;
+            _endPos = cbm.PolygonCenter;           
             trailrenderer.forceRenderingOff = true;
             _intersectionPoints.Clear();
         }
@@ -157,36 +168,27 @@ public class NewInputSystem : MonoBehaviour
     private void Cut()
     {
         lastPoint = _intersectionPoints.Count > 0 ? _intersectionPoints[_intersectionPoints.Count - 1] : IntersectionPoint.zero;
-        for (int i = 1; i < _intersectionPoints.Count; i += 2)
+        for (int i = 1; i < _intersectionPoints.Count; i++)
         {
             Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
+            bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
 
-            bool isMiddleInside = (Mathematics.PointInPolygon(middlePoint, polygon));
-
-            Matrix4x4 scaleMatrix = Mathematics.ScaleMatrix(1.0001f);
-
-            _intersectionPoints[i - 1]._pos = scaleMatrix.MultiplyPoint(_intersectionPoints[i - 1]._pos);
-            _intersectionPoints[i]._pos = scaleMatrix.MultiplyPoint(_intersectionPoints[i]._pos);
-
-            Vector3 newMiddlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
-
-            Vector3 transVec = middlePoint - newMiddlePoint;
-
-            Matrix4x4 transMatrix = Mathematics.TranslateMatrix(transVec);
-
-            _intersectionPoints[i - 1]._pos = transMatrix.MultiplyPoint(_intersectionPoints[i - 1]._pos);
-            _intersectionPoints[i]._pos = transMatrix.MultiplyPoint(_intersectionPoints[i]._pos);
-
-            if (cutter.Cut(victim, _textureMat, _intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos, LM.Obstacles, out GameObject cuttedPiece) && isMiddleInside)
+            if (isMidInside)
             {
-                polygon = cbm.ToArray();
-                LM.AddPieceToList(ref cuttedPiece);
-                hasEnded = true;
-                hasStarted = false;
-                hasStartedOutside = false;
-                lastPoint = IntersectionPoint.zero;
-                LM.UpdateScore();
-                lastCutTime = Time.unscaledTime;
+                List<IntersectionPoint> tempList = new List<IntersectionPoint>();
+                tempList.Add(_intersectionPoints[i - 1]);
+                tempList.Add(_intersectionPoints[i]);
+
+                var x = cutter.Cut(victim, _textureMat, tempList, LM.Obstacles, out GameObject cuttedPiece);
+
+                if (x)
+                {
+                    polygon = cbm.ToArray();
+                    LM.AddPieceToList(ref cuttedPiece);                  
+                    lastPoint = IntersectionPoint.zero;
+                    LM.UpdateScore();
+                    lastCutTime = Time.unscaledTime;
+                }
             }
         }
     }
