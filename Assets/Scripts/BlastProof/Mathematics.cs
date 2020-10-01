@@ -158,9 +158,7 @@ namespace BlastProof
 
         public static Vector3 ScaleIndirection(Vector3 origScale, float scaling, Vector3 normal)
         {
-
             return origScale + (scaling - 1.0f) * Vector3.Project(origScale, normal);
-
         }
 
         public static Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float i)
@@ -355,6 +353,55 @@ namespace BlastProof
                 f += (point.x * point2.y) - (point2.x * point.y);
             }
             return (Mathf.Abs(f) / 2f);
+        }
+
+        public static bool LineLine(Vector2 l1_p1, Vector2 l1_p2, Vector2 l2_p1, Vector2 l2_p2, out Vector2 point,bool shouldIncludeEndPoints)
+        {
+            //To avoid floating point precision issues we can use a small value
+            float epsilon = Mathf.Epsilon;
+
+            bool isIntersecting = false;
+
+            float denominator = (l2_p2.y - l2_p1.y) * (l1_p2.x - l1_p1.x) - (l2_p2.x - l2_p1.x) * (l1_p2.y - l1_p1.y);
+
+            //Make sure the denominator is > 0, if so the lines are parallel
+            if (denominator != 0f)
+            {
+                float u_a = ((l2_p2.x - l2_p1.x) * (l1_p1.y - l2_p1.y) - (l2_p2.y - l2_p1.y) * (l1_p1.x - l2_p1.x)) / denominator;
+                float u_b = ((l1_p2.x - l1_p1.x) * (l1_p1.y - l2_p1.y) - (l1_p2.y - l1_p1.y) * (l1_p1.x - l2_p1.x)) / denominator;
+
+                //Are the line segments intersecting if the end points are the same
+                if (shouldIncludeEndPoints)
+                {
+                    //Is intersecting if u_a and u_b are between 0 and 1 or exactly 0 or 1
+                    if (u_a >= 0f + epsilon && u_a <= 1f - epsilon && u_b >= 0f + epsilon && u_b <= 1f - epsilon)
+                    {
+                        isIntersecting = true;
+                    }
+                }
+                else
+                {
+                    //Is intersecting if u_a and u_b are between 0 and 1
+                    if (u_a > 0f + epsilon && u_a < 1f - epsilon && u_b > 0f + epsilon && u_b < 1f - epsilon)
+                    {
+                        isIntersecting = true;
+                    }
+                }
+
+            }
+            point = GetLineLineIntersectionPoint(l1_p1, l1_p2, l2_p1, l2_p2);
+            return isIntersecting;
+        }
+        
+        public static Vector2 GetLineLineIntersectionPoint(Vector2 l1_p1, Vector2 l1_p2, Vector2 l2_p1, Vector2 l2_p2)
+        {
+            float denominator = (l2_p2.y - l2_p1.y) * (l1_p2.x - l1_p1.x) - (l2_p2.x - l2_p1.x) * (l1_p2.y - l1_p1.y);
+
+            float u_a = ((l2_p2.x - l2_p1.x) * (l1_p1.y - l2_p1.y) - (l2_p2.y - l2_p1.y) * (l1_p1.x - l2_p1.x)) / denominator;
+
+           Vector2 intersectionPoint = l1_p1 + u_a * (l1_p2 - l1_p1);
+
+            return intersectionPoint;
         }
 
         //Verifies is 2 lines intersect and returns the intersection point in intersectionPoint parameter

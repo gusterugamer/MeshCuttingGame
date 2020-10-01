@@ -1,6 +1,8 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 
-public class IntersectionPoint
+public class IntersectionPoint : IComparable<IntersectionPoint>
 {
     public Vector3 _pos;
 
@@ -35,12 +37,27 @@ public class IntersectionPoint
     }
 
     public static bool operator ==(IntersectionPoint point1, IntersectionPoint point2)
-    {
+    {        
         return point1._pos == point2._pos;
     }
     public override bool Equals(object obj) =>
            ((obj != null) ? ReferenceEquals(this, obj) : true);
 
     public override int GetHashCode() =>
-            base.GetHashCode();    
+            base.GetHashCode();
+
+    public int CompareTo(IntersectionPoint other)
+    {
+        if (_previousBoundaryPoint > other._previousBoundaryPoint)
+        {
+            return 1;
+        }
+
+        else if (_previousBoundaryPoint < other._previousBoundaryPoint)
+        {
+            return -1;
+        }
+        else
+            return 0;
+    }    
 }

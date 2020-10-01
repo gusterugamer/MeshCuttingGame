@@ -26,7 +26,7 @@ public struct BoundaryPoint
 
 public class CustomBoundryBox : MonoBehaviour
 {
-    [SerializeField] private SpriteShapeController m_toCutObject;    
+    [SerializeField] private SpriteShapeController m_toCutObject;
 
     public List<BoundaryPoint> m_CustomBox = new List<BoundaryPoint>();
 
@@ -42,21 +42,22 @@ public class CustomBoundryBox : MonoBehaviour
 
     //Used to calculate length and height
     private float maxY = -Mathf.Infinity;
-    private float maxX = -Mathf.Infinity;  
+    private float maxX = -Mathf.Infinity;
 
     //Used to calculated UVs on generated objects 
 
     public float Area
     {
-        get { return _area; } private set { _area = value; }
+        get { return _area; }
+        private set { _area = value; }
     }
 
     public Vector3 PolygonCenter
     {
         get { return polygonCenter; }
     }
-    public float MaxY { get => maxY;}
-    public float MaxX { get => maxX;}
+    public float MaxY { get => maxY; }
+    public float MaxX { get => maxX; }
 
     public float ratio = 0.0f;
 
@@ -66,13 +67,13 @@ public class CustomBoundryBox : MonoBehaviour
 
     private void Awake()
     {
-        CreateCustomBoundary();       
+        CreateCustomBoundary();
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        trans = m_toCutObject.GetComponent<Transform>();        
+        trans = m_toCutObject.GetComponent<Transform>();
     }
 
     public void CreateCustomBoundary()
@@ -90,6 +91,10 @@ public class CustomBoundryBox : MonoBehaviour
             pointsSum += points[i];
             m_CustomBox.Add(new BoundaryPoint(points[i]));
             GetMinMaxXY(points[i]);
+
+            //GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            //cube.transform.position = points[i];
+            //cube.transform.name = i.ToString(); ;
         }
         points[length] = points[0];
         polygonCenter = pointsSum / length;
@@ -97,12 +102,12 @@ public class CustomBoundryBox : MonoBehaviour
 
         //polyCol.pathCount = 1;
         polyCol.points = points;
-        GetArea();       
+        GetArea();
 
-        ratio = _textureSize/Mathf.Max(MaxX, MaxY);
+        ratio = _textureSize / Mathf.Max(MaxX, MaxY);
 
         int pixelPerUnit = Mathf.CeilToInt(ratio);
-        m_toCutObject.fillPixelsPerUnit = pixelPerUnit;
+        m_toCutObject.fillPixelsPerUnit = pixelPerUnit;       
     }
 
     public void UpdateCustomBoundary(List<BoundaryPoint> boundary)
@@ -152,8 +157,8 @@ public class CustomBoundryBox : MonoBehaviour
 
         for (int i = 0; i < m_CustomBox.Count; i++)
         {
-            Vector3 tempStartPos = trans.transform.InverseTransformPoint(startPoint);
-            Vector3 tempEndPos = trans.transform.InverseTransformPoint(endPoint);
+            Vector3 tempStartPos = trans.InverseTransformPoint(startPoint);
+            Vector3 tempEndPos = trans.InverseTransformPoint(endPoint);
 
             BoundaryPoint currentBP = m_CustomBox[i];
             BoundaryPoint nextBP = m_CustomBox[(i + 1) % length];
@@ -220,9 +225,9 @@ public class CustomBoundryBox : MonoBehaviour
 
     private void GetMinMaxXY(Vector3 vec)
     {
-        maxX = maxX < Mathf.Abs(vec.x) ? Mathf.Abs(vec.x) : maxX;        
-        maxY = maxY < Mathf.Abs(vec.y) ? Mathf.Abs(vec.y) : maxY;   
-    } 
+        maxX = maxX < Mathf.Abs(vec.x) ? Mathf.Abs(vec.x) : maxX;
+        maxY = maxY < Mathf.Abs(vec.y) ? Mathf.Abs(vec.y) : maxY;
+    }
 
     public void ResetShape()
     {
