@@ -44,6 +44,11 @@ public class CustomBoundryBox : MonoBehaviour
     private float maxY = -Mathf.Infinity;
     private float maxX = -Mathf.Infinity;
 
+    private int currentCount = 0;
+    private int oldCount = 0;
+
+    private int removedPointsCount = 0;
+
     //Used to calculated UVs on generated objects 
 
     public float Area
@@ -58,6 +63,7 @@ public class CustomBoundryBox : MonoBehaviour
     }
     public float MaxY { get => maxY; }
     public float MaxX { get => maxX; }
+    public int RemovedPointsCount { get => removedPointsCount;}
 
     public float ratio = 0.0f;
 
@@ -107,7 +113,10 @@ public class CustomBoundryBox : MonoBehaviour
         ratio = _textureSize / Mathf.Max(MaxX, MaxY);
 
         int pixelPerUnit = Mathf.CeilToInt(ratio);
-        m_toCutObject.fillPixelsPerUnit = pixelPerUnit;       
+        m_toCutObject.fillPixelsPerUnit = pixelPerUnit;
+
+        currentCount = m_CustomBox.Count;
+        oldCount = m_CustomBox.Count;
     }
 
     public void UpdateCustomBoundary(List<BoundaryPoint> boundary)
@@ -126,6 +135,11 @@ public class CustomBoundryBox : MonoBehaviour
 
         //polyCol.pathCount = 1;
         polyCol.points = points;
+
+        oldCount = currentCount;
+        currentCount = m_CustomBox.Count;
+
+        removedPointsCount = oldCount - currentCount;
     }
 
     private void OnDrawGizmosSelected()
@@ -215,7 +229,12 @@ public class CustomBoundryBox : MonoBehaviour
                 }
             }
         }
+
+        Debug.Log("UNNECESSARY POINTS: " + (m_CustomBox.Count - list.Count).ToString());
+
         m_CustomBox = list;
+
+       
     }
 
     private void GetArea()

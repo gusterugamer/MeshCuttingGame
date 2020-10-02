@@ -35,7 +35,8 @@ public class NewInputSystem : MonoBehaviour
     private Vector3 pointlast;
 
     private List<IntersectionPoint> _intersectionPoints = new List<IntersectionPoint>();
-    IntersectionPoint lastPointIntersection = IntersectionPoint.zero;
+    IntersectionPoint lastIntersectionPoint = IntersectionPoint.zero;
+    IntersectionPoint correctedLastIntersectionPoint = IntersectionPoint.zero;
 
     private float distanceFromCam;
     private float lastCutTime = 0.0f;
@@ -66,7 +67,7 @@ public class NewInputSystem : MonoBehaviour
 
         cutter = new Cutter();
         distanceFromCam = Mathf.Abs(_mainCam.transform.position.z - victim.transform.position.z);
-        //StartCoroutine(Loop());
+        StartCoroutine(Loop());
     }
 
     private IEnumerator Loop()
@@ -78,13 +79,8 @@ public class NewInputSystem : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        Gizmos.DrawLine(lastPointIntersection._pos, _endPos);
-    }
-
-    private void Update()
-    {
-        MoveBlade();
-    }
+        Gizmos.DrawLine(lastIntersectionPoint._pos, _endPos);
+    }  
 
     //Blade is generated when player swipes
     private void MoveBlade()
@@ -99,8 +95,8 @@ public class NewInputSystem : MonoBehaviour
         bool isOutside = (Mathematics.PointInPolygon(position, polygon) ? false : true);
         var intersections = circle.GetIntersections(polygon);
 
-        if (lastPointIntersection != IntersectionPoint.zero &&
-            Physics2D.Linecast(lastPointIntersection._pos, position, obstacleLayer) && !isOutside
+        if (lastIntersectionPoint != IntersectionPoint.zero &&
+            Physics2D.Linecast(lastIntersectionPoint._pos, position, obstacleLayer) && !isOutside
             && position != Vector3.zero)
         {
             LM.CollidedWithObject();
@@ -122,7 +118,7 @@ public class NewInputSystem : MonoBehaviour
 
 
             if (Time.unscaledTime > lastCutTime + _COOLDOWN_TIME)
-            {              
+            {
 
                 _startPos = _endPos;
                 _endPos = position;
@@ -132,8 +128,13 @@ public class NewInputSystem : MonoBehaviour
                 {
                     if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
                     {
+                        if (lastIntersectionPoint != IntersectionPoint.zero)
+                        {
+                            CorrectLastIntersectionPoint();
+                        }
+
                         NewIntersections(_startPos, _endPos);
-                        Cut();
+                        Cut();                      
 
                         if (_intersectionPoints.Count > 1)
                         {
@@ -147,7 +148,7 @@ public class NewInputSystem : MonoBehaviour
                 if (isOutside)
                 {
                     hasStarted = false;
-                    lastPointIntersection = IntersectionPoint.zero;
+                    lastIntersectionPoint = IntersectionPoint.zero;
                 }
             }
         }
@@ -156,8 +157,31 @@ public class NewInputSystem : MonoBehaviour
             _startPos = cbm.PolygonCenter;
             _endPos = cbm.PolygonCenter;
             hasStarted = false;
-            lastPointIntersection = IntersectionPoint.zero;
-            trailrenderer.forceRenderingOff = true;            
+            lastIntersectionPoint = IntersectionPoint.zero;
+            trailrenderer.forceRenderingOff = true;
+        }
+    }
+
+    private void CorrectLastIntersectionPoint(int removedPoints)
+    {
+        correctedLastIntersectionPoint._previousBoundaryPoint = lastIntersectionPoint._previousBoundaryPoint - removedPoints;
+        correctedLastIntersectionPoint._nextBoundaryPoint= lastIntersectionPoint._nextBoundaryPoint - removedPoints;
+        correctedLastIntersectionPoint._pos = lastIntersectionPoint._pos;
+    }
+
+    private void CorrectLastIntersectionPoint()
+    {
+        for (int i=1;i<=cbm.m_CustomBox.Count;i++)
+        {
+            float distance = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
+            float startToPoint = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, lastIntersectionPoint._pos);
+            float PointToEnd = Vector3.Distance(lastIntersectionPoint._pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
+
+            if (Mathf.Approximately(distance,(startToPoint + PointToEnd)))
+            {
+                lastIntersectionPoint._previousBoundaryPoint = (i - 1);
+                lastIntersectionPoint._nextBoundaryPoint = i % cbm.m_CustomBox.Count;
+            }
         }
     }
 
@@ -165,21 +189,21 @@ public class NewInputSystem : MonoBehaviour
     {
         _intersectionPoints.Clear();
         List<IntersectionPoint> ip = cbm.GetIntersections(startPos, endPos);
-       
+
         List<IntersectionPoint> ipWithLastPoint;
-        if (lastPointIntersection != IntersectionPoint.zero)
+        if (lastIntersectionPoint != IntersectionPoint.zero)
         {
-            _intersectionPoints.Add(lastPointIntersection);
-            ipWithLastPoint = cbm.GetIntersections(lastPointIntersection._pos, _currentPos);
+            _intersectionPoints.Add(lastIntersectionPoint);
+            ipWithLastPoint = cbm.GetIntersections(lastIntersectionPoint._pos, _currentPos);
 
             if (ipWithLastPoint.Count > 0)
-            {              
-                for (int i=0;i<ipWithLastPoint.Count;i++)
+            {
+                for (int i = 0; i < ipWithLastPoint.Count; i++)
                 {
-                    IntersectionPoint tempPoint = ipWithLastPoint[i];                   
+                    IntersectionPoint tempPoint = ipWithLastPoint[i];
                     int count = 0;
 
-                    for (int j=0;j<ip.Count;j++)
+                    for (int j = 0; j < ip.Count; j++)
                     {
                         if (tempPoint._previousBoundaryPoint != ip[j]._previousBoundaryPoint &&
                             tempPoint._nextBoundaryPoint != ip[j]._nextBoundaryPoint)
@@ -187,10 +211,10 @@ public class NewInputSystem : MonoBehaviour
                             count++;
                         }
                     }
-                    
+
                     if (tempPoint != IntersectionPoint.zero &&
-                        tempPoint._previousBoundaryPoint != lastPointIntersection._previousBoundaryPoint&&
-                        tempPoint._nextBoundaryPoint != lastPointIntersection._nextBoundaryPoint &&                     
+                        tempPoint._previousBoundaryPoint != lastIntersectionPoint._previousBoundaryPoint &&
+                        tempPoint._nextBoundaryPoint != lastIntersectionPoint._nextBoundaryPoint &&
                         count == ip.Count
                         )
                     {
@@ -200,10 +224,10 @@ public class NewInputSystem : MonoBehaviour
             }
         }
 
-        for(int i=0;i<ip.Count;i++)
+        for (int i = 0; i < ip.Count; i++)
         {
             _intersectionPoints.Add(ip[i]);
-        }      
+        }     
 
         if (_intersectionPoints.Count > 0)
         {
@@ -212,25 +236,25 @@ public class NewInputSystem : MonoBehaviour
                 hasStarted = true;
             }
 
-            lastPointIntersection = _intersectionPoints[_intersectionPoints.Count - 1];
+            lastIntersectionPoint = _intersectionPoints[_intersectionPoints.Count - 1];
 
-            _intersectionPoints.Sort();
+            Debug.Log("Last Point: " + lastIntersectionPoint._previousBoundaryPoint.ToString() + "," + lastIntersectionPoint._nextBoundaryPoint.ToString());
 
-            if (_intersectionPoints.Count > 1 && (_intersectionPoints[0]._nextBoundaryPoint < _intersectionPoints[_intersectionPoints.Count-1]._nextBoundaryPoint))
+            if (_intersectionPoints.Count > 0)
             {
-                _intersectionPoints.Reverse();
-            }
+                _intersectionPoints.Sort();              
+            }            
         }
-
-
     }
 
     private void Cut()
-    {       
+    {
         for (int i = 1; i < _intersectionPoints.Count; i++)
         {
             Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
             bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
+
+
 
             if (isMidInside)
             {
@@ -238,14 +262,29 @@ public class NewInputSystem : MonoBehaviour
                 tempList.Add(_intersectionPoints[i - 1]);
                 tempList.Add(_intersectionPoints[i]);
 
+                //int j = 0;
+                //foreach (var item in tempList)
+                //{
+                //    GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                //    cube.transform.position = item._pos;
+
+                //    var name = "POINT: " + " " + j.ToString() + " " + item._previousBoundaryPoint.ToString() + "," + item._nextBoundaryPoint.ToString();
+
+                //    Debug.Log(name);
+                //    cube.name = name;
+
+                //    j++;
+                //}
+
                 var x = cutter.Cut(victim, _textureMat, tempList, LM.Obstacles, out GameObject cuttedPiece);
 
                 if (x)
                 {
                     polygon = cbm.ToArray();
                     LM.AddPieceToList(ref cuttedPiece);
-                    LM.UpdateScore();                   
+                    LM.UpdateScore();
                     lastCutTime = Time.unscaledTime;
+                    //lastPointIntersection = IntersectionPoint.zero;
                 }
             }
         }
@@ -273,7 +312,7 @@ public class NewInputSystem : MonoBehaviour
         hasStartedOutside = false;
         trailrenderer.forceRenderingOff = true;
         _intersectionPoints.Clear();
-        lastPointIntersection = IntersectionPoint.zero;
+        lastIntersectionPoint = IntersectionPoint.zero;
         isEnabled = true;
         polygon = cbm.ToArray();
     }

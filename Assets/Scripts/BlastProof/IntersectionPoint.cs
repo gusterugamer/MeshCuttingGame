@@ -48,12 +48,12 @@ public class IntersectionPoint : IComparable<IntersectionPoint>
 
     public int CompareTo(IntersectionPoint other)
     {
-        if (_previousBoundaryPoint > other._previousBoundaryPoint)
+        if (_previousBoundaryPoint < other._previousBoundaryPoint)
         {
             return 1;
         }
 
-        else if (_previousBoundaryPoint < other._previousBoundaryPoint)
+        else if (_previousBoundaryPoint > other._previousBoundaryPoint)
         {
             return -1;
         }
