@@ -4,6 +4,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.U2D;
 using System.Runtime.CompilerServices;
+using MEC;
 
 public class NewInputSystem : MonoBehaviour
 {
@@ -67,24 +68,37 @@ public class NewInputSystem : MonoBehaviour
 
         cutter = new Cutter();
         distanceFromCam = Mathf.Abs(_mainCam.transform.position.z - victim.transform.position.z);
-        StartCoroutine(Loop());
+
+        coroutine = Timing.RunCoroutine(Loop(), Segment.RealtimeUpdate, gameObject);
     }
 
-    private IEnumerator Loop()
+    CoroutineHandle coroutine;
+    private IEnumerator<float> Loop()
     {
-        yield return new WaitForSeconds(_LOOP_TIME);
+        yield return Timing.WaitForSeconds(_LOOP_TIME);
         MoveBlade();
-        StartCoroutine(Loop());
+        coroutine = Timing.RunCoroutine(Loop(), Segment.RealtimeUpdate, gameObject);
+    }
+
+    private void OnDestroy()
+    {
+        Timing.KillCoroutines(coroutine);
     }
 
     private void OnDrawGizmos()
     {
         Gizmos.DrawLine(lastIntersectionPoint._pos, _endPos);
-    }  
+    }
 
     //Blade is generated when player swipes
     private void MoveBlade()
     {
+        if (_mainCam == null)
+        {
+            Timing.KillCoroutines(coroutine);
+            return;
+        }
+
         Vector3 position = Input.mousePosition;
         position.z = distanceFromCam - 0.5f;
         position = _mainCam.ScreenToWorldPoint(position);
@@ -128,13 +142,13 @@ public class NewInputSystem : MonoBehaviour
                 {
                     if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
                     {
-                        if (lastIntersectionPoint != IntersectionPoint.zero)
+                        if (lastIntersectionPoint != IntersectionPoint.zero && cbm.RemovedPointsCount != 0)
                         {
                             CorrectLastIntersectionPoint();
                         }
 
                         NewIntersections(_startPos, _endPos);
-                        Cut();                      
+                        Cut();
 
                         if (_intersectionPoints.Count > 1)
                         {
@@ -165,19 +179,19 @@ public class NewInputSystem : MonoBehaviour
     private void CorrectLastIntersectionPoint(int removedPoints)
     {
         correctedLastIntersectionPoint._previousBoundaryPoint = lastIntersectionPoint._previousBoundaryPoint - removedPoints;
-        correctedLastIntersectionPoint._nextBoundaryPoint= lastIntersectionPoint._nextBoundaryPoint - removedPoints;
+        correctedLastIntersectionPoint._nextBoundaryPoint = lastIntersectionPoint._nextBoundaryPoint - removedPoints;
         correctedLastIntersectionPoint._pos = lastIntersectionPoint._pos;
     }
 
     private void CorrectLastIntersectionPoint()
     {
-        for (int i=1;i<=cbm.m_CustomBox.Count;i++)
+        for (int i = 1; i <= cbm.m_CustomBox.Count; i++)
         {
             float distance = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
             float startToPoint = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, lastIntersectionPoint._pos);
             float PointToEnd = Vector3.Distance(lastIntersectionPoint._pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
 
-            if (Mathf.Approximately(distance,(startToPoint + PointToEnd)))
+            if (Mathf.Approximately(distance, (startToPoint + PointToEnd)))
             {
                 lastIntersectionPoint._previousBoundaryPoint = (i - 1);
                 lastIntersectionPoint._nextBoundaryPoint = i;
@@ -227,7 +241,7 @@ public class NewInputSystem : MonoBehaviour
         for (int i = 0; i < ip.Count; i++)
         {
             _intersectionPoints.Add(ip[i]);
-        }     
+        }
 
         if (_intersectionPoints.Count > 0)
         {
@@ -242,8 +256,8 @@ public class NewInputSystem : MonoBehaviour
 
             if (_intersectionPoints.Count > 0)
             {
-                _intersectionPoints.Sort();              
-            }               
+                _intersectionPoints.Sort();
+            }
         }
     }
 
@@ -252,39 +266,43 @@ public class NewInputSystem : MonoBehaviour
         for (int i = 1; i < _intersectionPoints.Count; i++)
         {
             Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
-            bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
 
 
-
-            if (isMidInside)
+            if (_intersectionPoints[i - 1]._previousBoundaryPoint != _intersectionPoints[i]._previousBoundaryPoint &&
+                _intersectionPoints[i - 1]._nextBoundaryPoint != _intersectionPoints[i]._nextBoundaryPoint)
             {
-                List<IntersectionPoint> tempList = new List<IntersectionPoint>();
-                tempList.Add(_intersectionPoints[i - 1]);
-                tempList.Add(_intersectionPoints[i]);
+                bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
 
-                //int j = 0;
-                //foreach (var item in tempList)
-                //{
-                //    GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                //    cube.transform.position = item._pos;
-
-                //    var name = "POINT: " + " " + j.ToString() + " " + item._previousBoundaryPoint.ToString() + "," + item._nextBoundaryPoint.ToString();
-
-                //    Debug.Log(name);
-                //    cube.name = name;
-
-                //    j++;
-                //}
-
-                var x = cutter.Cut(victim, _textureMat, tempList, LM.Obstacles, out GameObject cuttedPiece);
-
-                if (x)
+                if (isMidInside)
                 {
-                    polygon = cbm.ToArray();
-                    LM.AddPieceToList(ref cuttedPiece);
-                    LM.UpdateScore();
-                    lastCutTime = Time.unscaledTime;
-                    //lastPointIntersection = IntersectionPoint.zero;
+                    List<IntersectionPoint> tempList = new List<IntersectionPoint>();
+                    tempList.Add(_intersectionPoints[i - 1]);
+                    tempList.Add(_intersectionPoints[i]);
+
+                    //int j = 0;
+                    //foreach (var item in tempList)
+                    //{
+                    //    GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    //    cube.transform.position = item._pos;
+
+                    //    var name = "POINT: " + " " + j.ToString() + " " + item._previousBoundaryPoint.ToString() + "," + item._nextBoundaryPoint.ToString();
+
+                    //    Debug.Log(name);
+                    //    cube.name = name;
+
+                    //    j++;
+                    //}
+
+                    var x = cutter.Cut(victim, _textureMat, tempList, LM.Obstacles, out GameObject cuttedPiece);
+
+                    if (x)
+                    {
+                        polygon = cbm.ToArray();
+                        LM.AddPieceToList(ref cuttedPiece);
+                        LM.UpdateScore();
+                        lastCutTime = Time.unscaledTime;
+                        //lastPointIntersection = IntersectionPoint.zero;
+                    }
                 }
             }
         }
