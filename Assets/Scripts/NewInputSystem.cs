@@ -95,11 +95,11 @@ public class NewInputSystem : MonoBehaviour
             LM.CollidedWithObject();
             isEnabled = false;
         }
-        trailrenderer.emitting = true;
+        trailrenderer.forceRenderingOff = false;
 
         Touch[] touch = Input.touches;
 
-        if (isEnabled && touch.Length > 0)
+        if (isEnabled && Input.GetMouseButton(0))
         {
 
             _startPos = _endPos;
@@ -133,14 +133,14 @@ public class NewInputSystem : MonoBehaviour
                 lastIntersectionPoint = IntersectionPoint.zero;
             }
         }
-
-        if (touch.Length > 0 && (touch[0].phase == TouchPhase.Canceled || touch[0].phase == TouchPhase.Ended))
+        else
         {
             _startPos = cbm.PolygonCenter;
             _endPos = cbm.PolygonCenter;
             hasStarted = false;
             lastIntersectionPoint = IntersectionPoint.zero;
-            trailrenderer.emitting = false;
+            trailrenderer.forceRenderingOff = true;
+            trailrenderer.Clear();
         }
     }
 
