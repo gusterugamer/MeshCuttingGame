@@ -43,7 +43,7 @@ public class NewInputSystem : MonoBehaviour
     private float lastCutTime = 0.0f;
 
     private const float _CIRCLE_RADIUS = 1.25f;
-    private const float _COOLDOWN_TIME = 0.15f;
+    private const float _COOLDOWN_TIME = 0.0f;
     private const float _PREDICTION_FACTOR = 2f;
     private const float _LOOP_TIME = 0.008333f;
 
@@ -51,8 +51,6 @@ public class NewInputSystem : MonoBehaviour
     private bool hasEnded = false;
     private bool isEnabled = true;
     private bool hasStartedOutside = false;
-
-    List<GameObject> testobj = new List<GameObject>();
 
     void Start()
     {
@@ -69,35 +67,16 @@ public class NewInputSystem : MonoBehaviour
         cutter = new Cutter();
         distanceFromCam = Mathf.Abs(_mainCam.transform.position.z - victim.transform.position.z);
 
-        coroutine = Timing.RunCoroutine(Loop(), Segment.RealtimeUpdate, gameObject);
     }
 
-    CoroutineHandle coroutine;
-    private IEnumerator<float> Loop()
+    private void Update()
     {
-        yield return Timing.WaitForSeconds(_LOOP_TIME);
         MoveBlade();
-        coroutine = Timing.RunCoroutine(Loop(), Segment.RealtimeUpdate, gameObject);
-    }
-
-    private void OnDestroy()
-    {
-        Timing.KillCoroutines(coroutine);
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawLine(lastIntersectionPoint._pos, _endPos);
     }
 
     //Blade is generated when player swipes
     private void MoveBlade()
     {
-        if (_mainCam == null)
-        {
-            Timing.KillCoroutines(coroutine);
-            return;
-        }
 
         Vector3 position = Input.mousePosition;
         position.z = distanceFromCam - 0.5f;
@@ -116,63 +95,52 @@ public class NewInputSystem : MonoBehaviour
             LM.CollidedWithObject();
             isEnabled = false;
         }
+        trailrenderer.emitting = true;
 
-        if (Input.GetKey(KeyCode.S))
+        Touch[] touch = Input.touches;
+
+        if (isEnabled && touch.Length > 0)
         {
-            _intersectionPoints.Clear();
-            foreach (var go in testobj)
+
+            _startPos = _endPos;
+            _endPos = position;
+            _currentPos = position;
+
+            if (Vector3.Distance(_startPos, _endPos) > 0.3f)
             {
-                Destroy(go);
-            }
-        }
-
-        if (Input.GetMouseButton(0) && isEnabled)
-        {
-            trailrenderer.forceRenderingOff = false;
-
-
-            if (Time.unscaledTime > lastCutTime + _COOLDOWN_TIME)
-            {
-
-                _startPos = _endPos;
-                _endPos = position;
-                _currentPos = position;
-
-                if (Vector3.Distance(_startPos, _endPos) > 0.3f)
+                if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
                 {
-                    if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
+                    if (lastIntersectionPoint != IntersectionPoint.zero)
                     {
-                        if (lastIntersectionPoint != IntersectionPoint.zero && cbm.RemovedPointsCount != 0)
-                        {
-                            CorrectLastIntersectionPoint();
-                        }
-
-                        NewIntersections(_startPos, _endPos);
-                        Cut();
-
-                        if (_intersectionPoints.Count > 1)
-                        {
-                            hasStarted = false;
-                        }
-
-                        lastCutTime = Time.unscaledTime;
+                        CorrectLastIntersectionPoint();
                     }
-                }
 
-                if (isOutside)
-                {
-                    hasStarted = false;
-                    lastIntersectionPoint = IntersectionPoint.zero;
+                    NewIntersections(_startPos, _endPos);
+                    Cut();
+
+                    if (_intersectionPoints.Count > 1)
+                    {
+                        hasStarted = false;
+                    }
+
+                    lastCutTime = Time.unscaledTime;
                 }
             }
+
+            if (isOutside)
+            {
+                hasStarted = false;
+                lastIntersectionPoint = IntersectionPoint.zero;
+            }
         }
-        else
+
+        if (touch.Length > 0 && (touch[0].phase == TouchPhase.Canceled || touch[0].phase == TouchPhase.Ended))
         {
             _startPos = cbm.PolygonCenter;
             _endPos = cbm.PolygonCenter;
             hasStarted = false;
             lastIntersectionPoint = IntersectionPoint.zero;
-            trailrenderer.forceRenderingOff = true;
+            trailrenderer.emitting = false;
         }
     }
 
@@ -205,6 +173,7 @@ public class NewInputSystem : MonoBehaviour
         List<IntersectionPoint> ip = cbm.GetIntersections(startPos, endPos);
 
         List<IntersectionPoint> ipWithLastPoint;
+
         if (lastIntersectionPoint != IntersectionPoint.zero)
         {
             _intersectionPoints.Add(lastIntersectionPoint);
@@ -300,7 +269,6 @@ public class NewInputSystem : MonoBehaviour
                         polygon = cbm.ToArray();
                         LM.AddPieceToList(ref cuttedPiece);
                         LM.UpdateScore();
-                        lastCutTime = Time.unscaledTime;
                         //lastPointIntersection = IntersectionPoint.zero;
                     }
                 }
