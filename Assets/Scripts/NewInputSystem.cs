@@ -180,7 +180,7 @@ public class NewInputSystem : MonoBehaviour
             if (Mathf.Approximately(distance,(startToPoint + PointToEnd)))
             {
                 lastIntersectionPoint._previousBoundaryPoint = (i - 1);
-                lastIntersectionPoint._nextBoundaryPoint = i % cbm.m_CustomBox.Count;
+                lastIntersectionPoint._nextBoundaryPoint = i;
             }
         }
     }
@@ -243,7 +243,7 @@ public class NewInputSystem : MonoBehaviour
             if (_intersectionPoints.Count > 0)
             {
                 _intersectionPoints.Sort();              
-            }            
+            }               
         }
     }
 
