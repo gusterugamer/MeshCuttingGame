@@ -106,7 +106,7 @@ public class NewInputSystem : MonoBehaviour
             _endPos = position;
             _currentPos = position;
 
-            if (Vector3.Distance(_startPos, _endPos) > 0.3f)
+            if (Vector3.Distance(_startPos, _endPos) > 0.5f)
             {
                 if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
                 {

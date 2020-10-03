@@ -196,14 +196,21 @@ public class Cutter
         {
             NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
         }
-        if (IsObstaclesInSamePolygon(NewRightBoundary, obstacles,out count))
+
+        if (NewRightBoundary.Count < 3)
+        {
+            return false;
+        }
+
+        else if (IsObstaclesInSamePolygon(NewRightBoundary, obstacles,out count))
         {
             List<BoundaryPoint> tempB = NewLeftBoundary;
             NewLeftBoundary = NewRightBoundary;
             NewRightBoundary = tempB;
             return true;
         }
-        if (count == 0)
+
+        else if (count == 0)
         {
             return true;
         }
