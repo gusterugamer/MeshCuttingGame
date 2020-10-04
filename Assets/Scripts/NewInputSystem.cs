@@ -69,7 +69,7 @@ public class NewInputSystem : MonoBehaviour
 
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         MoveBlade();
     }
@@ -97,34 +97,22 @@ public class NewInputSystem : MonoBehaviour
         }
         trailrenderer.forceRenderingOff = false;
 
-        Touch[] touch = Input.touches;
+        Touch[] touch = Input.touches;      
 
         if (isEnabled && Input.GetMouseButton(0))
         {
-
             _startPos = _endPos;
             _endPos = position;
             _currentPos = position;
 
-            if (Vector3.Distance(_startPos, _endPos) > 0.5f)
+            if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
             {
-                if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
-                {
-                    NewIntersections(_startPos, _endPos);
-                    Cut();
-
-                    if (_intersectionPoints.Count > 1)
-                    {
-                        hasStarted = false;
-                    }
-
-                    lastCutTime = Time.unscaledTime;
-                }
+                NewIntersections(_startPos, _endPos);
+                Cut();
             }
 
             if (isOutside)
             {
-                hasStarted = false;
                 lastIntersectionPoint = IntersectionPoint.zero;
             }
         }
@@ -243,19 +231,19 @@ public class NewInputSystem : MonoBehaviour
                     tempList.Add(_intersectionPoints[i - 1]);
                     tempList.Add(_intersectionPoints[i]);
 
-                    //int j = 0;
-                    //foreach (var item in tempList)
-                    //{
-                    //    GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    //    cube.transform.position = item._pos;
+                    int j = 0;
+                    foreach (var item in tempList)
+                    {
+                        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                        cube.transform.position = item._pos;
 
-                    //    var name = "POINT: " + " " + j.ToString() + " " + item._previousBoundaryPoint.ToString() + "," + item._nextBoundaryPoint.ToString();
+                        var name = "POINT: " + " " + j.ToString() + " " + item._previousBoundaryPoint.ToString() + "," + item._nextBoundaryPoint.ToString();
 
-                    //    Debug.Log(name);
-                    //    cube.name = name;
+                        Debug.Log(name);
+                        cube.name = name;
 
-                    //    j++;
-                    //}
+                        j++;
+                    }
 
                     var x = cutter.Cut(victim, _textureMat, tempList, LM.Obstacles, out GameObject cuttedPiece);
 
@@ -269,6 +257,7 @@ public class NewInputSystem : MonoBehaviour
                         {
                             CorrectLastIntersectionPoint();
                         }
+                        lastCutTime = Time.unscaledTime;
                         //lastPointIntersection = IntersectionPoint.zero;
                     }
                 }
