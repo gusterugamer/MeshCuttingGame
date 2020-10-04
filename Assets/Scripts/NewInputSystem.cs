@@ -110,11 +110,6 @@ public class NewInputSystem : MonoBehaviour
             {
                 if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
                 {
-                    if (lastIntersectionPoint != IntersectionPoint.zero)
-                    {
-                        CorrectLastIntersectionPoint();
-                    }
-
                     NewIntersections(_startPos, _endPos);
                     Cut();
 
@@ -269,6 +264,11 @@ public class NewInputSystem : MonoBehaviour
                         polygon = cbm.ToArray();
                         LM.AddPieceToList(ref cuttedPiece);
                         LM.UpdateScore();
+
+                        if (lastIntersectionPoint != IntersectionPoint.zero)
+                        {
+                            CorrectLastIntersectionPoint();
+                        }
                         //lastPointIntersection = IntersectionPoint.zero;
                     }
                 }
