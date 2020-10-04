@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.U2D;
 using System.Runtime.CompilerServices;
 using MEC;
+using Boo.Lang.Environments;
 
 public class NewInputSystem : MonoBehaviour
 {
@@ -138,11 +139,9 @@ public class NewInputSystem : MonoBehaviour
     {
         for (int i = 1; i <= cbm.m_CustomBox.Count; i++)
         {
-            float distance = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
-            float startToPoint = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, lastIntersectionPoint._pos);
-            float PointToEnd = Vector3.Distance(lastIntersectionPoint._pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
+            bool isCloseEnough = Mathematics.DistancePointLine2D(lastIntersectionPoint._pos, cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos) < 0.1f;
 
-            if (Mathf.Approximately(distance, (startToPoint + PointToEnd)))
+            if (isCloseEnough)
             {
                 lastIntersectionPoint._previousBoundaryPoint = (i - 1);
                 lastIntersectionPoint._nextBoundaryPoint = i;

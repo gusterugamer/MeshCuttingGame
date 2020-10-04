@@ -203,7 +203,8 @@ public class CustomBoundryBox : MonoBehaviour
         {
             if (lastAdded.m_pos != Vector3.zero)
             {
-                int j = (i + 1) % m_CustomBox.Count;
+                int j = (i + 1) % m_CustomBox.Count;              
+                
                 float distanceKJ = Vector3.Distance(lastAdded.m_pos, m_CustomBox[j].m_pos);
                 float distanceKI = Vector3.Distance(lastAdded.m_pos, m_CustomBox[i].m_pos);
                 float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);
