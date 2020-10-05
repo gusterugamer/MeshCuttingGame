@@ -567,7 +567,8 @@ namespace BlastProof
 
         public static bool IsVectorsAproximately(Vector2 v1, Vector2 v2)
         {
-            return Mathf.Approximately(v1.x, v2.x) && Mathf.Approximately(v1.y, v2.y);
+            return (Mathf.Approximately(v1.x, v2.x) && Mathf.Approximately(v1.y, v2.y)) ||
+                    v1 == v2;
         }
         public static float nfmod(float a, float b)
         {

@@ -23,7 +23,7 @@ public class Cutter
 
         if (intersectionPoints.Count == 2)
         {
-            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.2f;
+            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.5f;
             if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
                 //Generates a 3d mesh out of cutted polygon (generatedMesh) and uses it's frontface as mask (maskMesh)
@@ -85,80 +85,7 @@ public class Cutter
         }
         mask = null;
         return false;
-    }
-    public bool Cut(SpriteShapeController shape, Material textureMat, Vector3 startPos, Vector3 endPos, List<GameObject> obstacles, out GameObject mask)
-    {
-        CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
-        List<IntersectionPoint> intersectionPoints = _boundaryBox.GetIntersections(startPos, endPos);
-
-        //Decides which value is bigger to create the size of texture square
-        float spriteSquareSize = Mathf.Max(_boundaryBox.MaxX, _boundaryBox.MaxY);
-
-        if (intersectionPoints.Count == 2)
-        {
-            bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.00001f;
-            if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
-            {
-                //Generates a 3d mesh out of cutted polygon (generatedMesh) and uses it's frontface as mask (maskMesh)
-                MeshProperties[] newMeshes = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, spriteSquareSize);
-                MeshProperties generatedMesh = newMeshes[0];
-                MeshProperties maskMesh = newMeshes[1];
-
-                Mesh newMaskMesh = new Mesh();
-                newMaskMesh.name = "GenMaskMesh";
-                newMaskMesh.SetVertices(maskMesh.mesh_vertices);
-                newMaskMesh.SetTriangles(maskMesh.mesh_indicies, 0);
-
-
-                Mesh newMesh = new Mesh();
-                newMesh.name = "GenObjectMesh";
-                newMesh.SetVertices(generatedMesh.mesh_vertices);
-                newMesh.SetTriangles(generatedMesh.mesh_indicies, 0);
-                newMesh.SetNormals(generatedMesh.mesh_normals);
-                newMesh.SetUVs(0, generatedMesh.mesh_uvs);
-
-                GameObject generatedObj = new GameObject();
-                GameObject generatedObjParent = new GameObject();
-                generatedObjParent.name = "GeneratedParent";
-                generatedObjParent.transform.position = generatedMesh.mesh_center;
-                generatedObj.transform.parent = generatedObjParent.transform;
-
-                generatedObj.name = "right side";
-                generatedObj.transform.position = Vector3.zero;
-                generatedObj.AddComponent<MeshFilter>();
-                generatedObj.AddComponent<MeshRenderer>();
-                generatedObj.name = "Generated";
-                generatedObj.GetComponent<MeshFilter>().mesh = newMesh;
-                generatedObj.GetComponent<MeshRenderer>().material = textureMat;
-
-                generatedObjParent.AddComponent<Rigidbody>().angularDrag = 0.0f;
-                generatedObjParent.GetComponent<Rigidbody>().AddForce(new Vector3(0.0f, 1000.0f, -150.0f));
-                generatedObjParent.GetComponent<Rigidbody>().AddTorque(new Vector3(-100.0f, 0.0f, 0.0f));
-                generatedObjParent.GetComponent<Rigidbody>().mass = 100.0f;
-                generatedObjParent.AddComponent<DestroyMyself>();
-
-                GameObject maskObj = new GameObject();
-                maskObj.AddComponent<MeshFilter>();
-                maskObj.AddComponent<MeshRenderer>();
-                maskObj.transform.position = shape.GetComponent<Transform>().position + new Vector3(0.0f, 0.0f, -0.001f);
-                maskObj.GetComponent<MeshFilter>().mesh = newMaskMesh;
-                maskObj.name = "mask";
-                maskObj.GetComponent<MeshRenderer>().material = maskMaterial;
-                //testobj.AddComponent<Rigidbody>().AddForce(new Vector3(100.1f, 150f, 130f), ForceMode.Force);                
-
-                mask = maskObj;
-                _boundaryBox.UpdateCustomBoundary(NewLeftBoundary);
-                return true;
-            }
-            else
-            {
-                mask = null;
-                return false;
-            }
-        }
-        mask = null;
-        return false;
-    }
+    }   
 
     private bool CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint, List<GameObject> obstacles)
     {
@@ -174,16 +101,33 @@ public class Cutter
         NewRightBoundary = new List<BoundaryPoint>();
 
         for (int i = 0; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint; i++)
-        {
-            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
+        {            
+            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);            
         }
 
-        NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
-        NewLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
-
-        for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Count; i++)
+        if (!Mathematics.IsVectorsAproximately(NewLeftBoundary[NewLeftBoundary.Count - 1].m_pos, intersectionPoint[firstPointIndex]._pos))
         {
-            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
+            NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
+            NewLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+        }
+
+        if (!Mathematics.IsVectorsAproximately(NewLeftBoundary[NewLeftBoundary.Count - 1].m_pos, _boundaryBox.m_CustomBox[intersectionPoint[secondPointIndex]._nextBoundaryPoint % _boundaryBox.m_CustomBox.Count].m_pos))
+        {
+            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[intersectionPoint[secondPointIndex]._nextBoundaryPoint % _boundaryBox.m_CustomBox.Count]);
+        }
+
+        for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint + 1; i < _boundaryBox.m_CustomBox.Count; i++)
+        {           
+            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);            
+        }
+
+        int dup = 0;
+        for (int i = 1; i < NewLeftBoundary.Count; i++)
+        {
+            if (Mathematics.IsVectorsAproximately(NewLeftBoundary[i-1].m_pos, NewLeftBoundary[i].m_pos))
+            {
+                dup++;                
+            }
         }
 
         //rightside
@@ -193,8 +137,17 @@ public class Cutter
         NewRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
 
         for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
+        {            
+            NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);            
+        }
+
+        int dup2 = 0;
+        for (int i = 1; i < NewLeftBoundary.Count; i++)
         {
-            NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
+            if (Mathematics.IsVectorsAproximately(NewLeftBoundary[i - 1].m_pos, NewLeftBoundary[i].m_pos))
+            {
+                dup2++;
+            }
         }
 
         if (NewRightBoundary.Count < 3)
@@ -228,6 +181,12 @@ public class Cutter
         }
         _count = count;
         return Math.Abs(count) == obstacles.Count;
+    }
+
+    private bool isInBetweenHeads(IntersectionPoint point, List<BoundaryPoint> cb)
+    {
+        return !Mathematics.IsVectorsAproximately(point._pos, cb[point._previousBoundaryPoint % cb.Count].m_pos) &&
+               !Mathematics.IsVectorsAproximately(point._pos, cb[point._nextBoundaryPoint % cb.Count].m_pos);
     }
 
     private bool IsObstaclesInSamePolygon(List<BoundaryPoint> _bp, List<GameObject> obstacles, out int _count)

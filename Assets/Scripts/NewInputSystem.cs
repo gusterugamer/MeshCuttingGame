@@ -244,8 +244,9 @@ public class NewInputSystem : MonoBehaviour
             Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
 
 
-            if (_intersectionPoints[i - 1]._previousBoundaryPoint != _intersectionPoints[i]._previousBoundaryPoint ||
-                _intersectionPoints[i - 1]._nextBoundaryPoint != _intersectionPoints[i]._nextBoundaryPoint)
+            if ((_intersectionPoints[i - 1]._previousBoundaryPoint != _intersectionPoints[i]._previousBoundaryPoint ||
+                _intersectionPoints[i - 1]._nextBoundaryPoint != _intersectionPoints[i]._nextBoundaryPoint) && 
+                (!Mathematics.IsVectorsAproximately(_intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos)))
             {
                 bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
 
