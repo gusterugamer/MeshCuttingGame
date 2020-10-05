@@ -24,7 +24,7 @@ public class Cutter
         if (intersectionPoints.Count == 2)
         {
             bool distanceBeetWeenPoints = Vector3.Distance(intersectionPoints[0]._pos, intersectionPoints[1]._pos) > 0.5f;
-            if (CreateNewBoundary(_boundaryBox, ref intersectionPoints, obstacles) && distanceBeetWeenPoints)
+            if (CreateNewBoundary(_boundaryBox, intersectionPoints, obstacles) && distanceBeetWeenPoints)
             {
                 //Generates a 3d mesh out of cutted polygon (generatedMesh) and uses it's frontface as mask (maskMesh)
                 MeshProperties[] newMeshes = MeshGenerator.CreateMesh(NewRightBoundary, shape.transform, spriteSquareSize);
@@ -87,7 +87,7 @@ public class Cutter
         return false;
     }   
 
-    private bool CreateNewBoundary(in CustomBoundryBox _boundaryBox, ref List<IntersectionPoint> intersectionPoint, List<GameObject> obstacles)
+    private bool CreateNewBoundary(in CustomBoundryBox _boundaryBox, List<IntersectionPoint> intersectionPoint, List<GameObject> obstacles)
     {
         //picking first and second intersection point indicies by looking who is closest to the start of the ppolygon
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
@@ -107,16 +107,15 @@ public class Cutter
 
         if (!Mathematics.IsVectorsAproximately(NewLeftBoundary[NewLeftBoundary.Count - 1].m_pos, intersectionPoint[firstPointIndex]._pos))
         {
-            NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
-            NewLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+            NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());           
         }
 
-        if (!Mathematics.IsVectorsAproximately(NewLeftBoundary[NewLeftBoundary.Count - 1].m_pos, _boundaryBox.m_CustomBox[intersectionPoint[secondPointIndex]._nextBoundaryPoint % _boundaryBox.m_CustomBox.Count].m_pos))
+        if (!Mathematics.IsVectorsAproximately(NewLeftBoundary[NewLeftBoundary.Count - 1].m_pos, intersectionPoint[secondPointIndex]._pos))
         {
-            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[intersectionPoint[secondPointIndex]._nextBoundaryPoint % _boundaryBox.m_CustomBox.Count]);
-        }
+            NewLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
+        }      
 
-        for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint + 1; i < _boundaryBox.m_CustomBox.Count; i++)
+        for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Count; i++)
         {           
             NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);            
         }
@@ -136,7 +135,12 @@ public class Cutter
         NewRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
         NewRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
 
-        for (int i = intersectionPoint[firstPointIndex]._nextBoundaryPoint; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
+        if (!Mathematics.IsVectorsAproximately(NewRightBoundary[NewRightBoundary.Count - 1].m_pos, _boundaryBox.m_CustomBox[intersectionPoint[firstPointIndex]._nextBoundaryPoint].m_pos))
+        {
+            NewRightBoundary.Add(_boundaryBox.m_CustomBox[intersectionPoint[firstPointIndex]._nextBoundaryPoint]);
+        }
+
+        for (int i = (intersectionPoint[firstPointIndex]._nextBoundaryPoint + 1); i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
         {            
             NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);            
         }

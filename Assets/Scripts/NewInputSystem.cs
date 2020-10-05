@@ -1,11 +1,7 @@
 ﻿using BlastProof;
 using System.Collections.Generic;
-using System.Collections;
 using UnityEngine;
 using UnityEngine.U2D;
-using System.Runtime.CompilerServices;
-using MEC;
-using Boo.Lang.Environments;
 
 public class NewInputSystem : MonoBehaviour
 {
@@ -98,7 +94,7 @@ public class NewInputSystem : MonoBehaviour
         }
         trailrenderer.forceRenderingOff = false;
 
-        Touch[] touch = Input.touches;      
+        Touch[] touch = Input.touches;
 
         if (isEnabled && Input.GetMouseButton(0))
         {
@@ -141,7 +137,7 @@ public class NewInputSystem : MonoBehaviour
         {
             float distanceKJ = Vector3.Distance(lastIntersectionPoint._pos, cbm.m_CustomBox[i - 1].m_pos);
             float distanceKI = Vector3.Distance(lastIntersectionPoint._pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
-            float distanceIJ = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);           
+            float distanceIJ = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
 
             //bool isCloseEnough = Mathematics.DistancePointLine2D(lastIntersectionPoint._pos, cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos) < 0.1f;
 
@@ -204,7 +200,7 @@ public class NewInputSystem : MonoBehaviour
 
                     if (tempPoint != IntersectionPoint.zero &&
                         (tempPoint._previousBoundaryPoint != lastIntersectionPoint._previousBoundaryPoint ||
-                        tempPoint._nextBoundaryPoint != lastIntersectionPoint._nextBoundaryPoint )&&
+                        tempPoint._nextBoundaryPoint != lastIntersectionPoint._nextBoundaryPoint) &&
                         count == ip.Count
                         )
                     {
@@ -232,7 +228,7 @@ public class NewInputSystem : MonoBehaviour
 
             if (_intersectionPoints.Count > 0)
             {
-               _intersectionPoints.Sort();
+                _intersectionPoints.Sort();
             }
         }
     }
@@ -241,16 +237,13 @@ public class NewInputSystem : MonoBehaviour
     {
         for (int i = 1; i < _intersectionPoints.Count; i++)
         {
-            Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
-
-
             if ((_intersectionPoints[i - 1]._previousBoundaryPoint != _intersectionPoints[i]._previousBoundaryPoint ||
-                _intersectionPoints[i - 1]._nextBoundaryPoint != _intersectionPoints[i]._nextBoundaryPoint) && 
+                _intersectionPoints[i - 1]._nextBoundaryPoint != _intersectionPoints[i]._nextBoundaryPoint) &&
                 (!Mathematics.IsVectorsAproximately(_intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos)))
             {
-                bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
+                //bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
 
-                if (isMidInside)
+                if (isIntersectionLineInPolygon(_intersectionPoints[i - 1], _intersectionPoints[i]))
                 {
                     List<IntersectionPoint> tempList = new List<IntersectionPoint>();
                     tempList.Add(_intersectionPoints[i - 1]);
@@ -291,18 +284,39 @@ public class NewInputSystem : MonoBehaviour
         }
     }
 
+    private bool isIntersectionLineInPolygon(IntersectionPoint tempPoint1, IntersectionPoint tempPoint2)
+    {
+        IntersectionPoint point1 = new IntersectionPoint(tempPoint1);
+        IntersectionPoint point2 = new IntersectionPoint(tempPoint2);
+
+        Vector3 center = (point1._pos + point2._pos) / 2f;
+
+        Matrix4x4 scaleMatrix = Mathematics.ScaleMatrix(0.5f);
+
+        point1._pos = scaleMatrix.MultiplyPoint(point1._pos);
+        point2._pos = scaleMatrix.MultiplyPoint(point2._pos);
+
+        Vector3 scaledCenter = (point1._pos + point2._pos) / 2f;
+
+        Matrix4x4 transMatrix = Mathematics.TranslateMatrix(center - scaledCenter);
+
+        point1._pos = transMatrix.MultiplyPoint(point1._pos);
+        point2._pos = transMatrix.MultiplyPoint(point2._pos);
+
+        int edgesHit = Physics2D.LinecastAll(point1._pos, point2._pos).Length;
+
+        if (Mathematics.PointInPolygon(point1._pos, polygon) && Mathematics.PointInPolygon(point2._pos, polygon) && edgesHit == 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public void UpdateMats(Material textureMat)
     {
         _textureMat = textureMat;
-    }
-
-    private bool hasAtMostOneCommonEdge(IntersectionPoint point1, IntersectionPoint point2)
-    {
-        bool diffNextdiffPrev1 = point1._nextBoundaryPoint == point2._nextBoundaryPoint && point1._previousBoundaryPoint == point2._previousBoundaryPoint;
-        bool diffNextdiffPrev2 = point1._nextBoundaryPoint == point2._previousBoundaryPoint && point1._previousBoundaryPoint == point2._nextBoundaryPoint;
-
-        return !diffNextdiffPrev1 && !diffNextdiffPrev2;
-    }
+    }  
 
     public void ReEnable()
     {
