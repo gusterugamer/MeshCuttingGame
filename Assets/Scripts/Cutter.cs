@@ -187,7 +187,7 @@ public class Cutter
         }
 
         //rightside
-        int intersectionPointDistance = Math.Abs(intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint);
+        int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
 
         NewRightBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
         NewRightBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());

@@ -139,12 +139,37 @@ public class NewInputSystem : MonoBehaviour
     {
         for (int i = 1; i <= cbm.m_CustomBox.Count; i++)
         {
-            bool isCloseEnough = Mathematics.DistancePointLine2D(lastIntersectionPoint._pos, cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos) < 0.1f;
+            float distanceKJ = Vector3.Distance(lastIntersectionPoint._pos, cbm.m_CustomBox[i - 1].m_pos);
+            float distanceKI = Vector3.Distance(lastIntersectionPoint._pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
+            float distanceIJ = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);           
 
-            if (isCloseEnough)
+            //bool isCloseEnough = Mathematics.DistancePointLine2D(lastIntersectionPoint._pos, cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos) < 0.1f;
+
+            if (Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
             {
                 lastIntersectionPoint._previousBoundaryPoint = (i - 1);
                 lastIntersectionPoint._nextBoundaryPoint = i;
+            }
+        }
+    }
+
+    private void CorrectIntersectionPointsLeft(int index)
+    {
+        for (; index < _intersectionPoints.Count; index++)
+        {
+            for (int i = 1; i <= cbm.m_CustomBox.Count; i++)
+            {
+                float distanceKJ = Vector3.Distance(_intersectionPoints[index]._pos, cbm.m_CustomBox[i - 1].m_pos);
+                float distanceKI = Vector3.Distance(_intersectionPoints[index]._pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
+                float distanceIJ = Vector3.Distance(cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos);
+
+                //bool isCloseEnough = Mathematics.DistancePointLine2D(lastIntersectionPoint._pos, cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos) < 0.1f;
+
+                if (Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
+                {
+                    _intersectionPoints[index]._previousBoundaryPoint = (i - 1);
+                    _intersectionPoints[index]._nextBoundaryPoint = i;
+                }
             }
         }
     }
@@ -170,7 +195,7 @@ public class NewInputSystem : MonoBehaviour
 
                     for (int j = 0; j < ip.Count; j++)
                     {
-                        if (tempPoint._previousBoundaryPoint != ip[j]._previousBoundaryPoint &&
+                        if (tempPoint._previousBoundaryPoint != ip[j]._previousBoundaryPoint ||
                             tempPoint._nextBoundaryPoint != ip[j]._nextBoundaryPoint)
                         {
                             count++;
@@ -178,8 +203,8 @@ public class NewInputSystem : MonoBehaviour
                     }
 
                     if (tempPoint != IntersectionPoint.zero &&
-                        tempPoint._previousBoundaryPoint != lastIntersectionPoint._previousBoundaryPoint &&
-                        tempPoint._nextBoundaryPoint != lastIntersectionPoint._nextBoundaryPoint &&
+                        (tempPoint._previousBoundaryPoint != lastIntersectionPoint._previousBoundaryPoint ||
+                        tempPoint._nextBoundaryPoint != lastIntersectionPoint._nextBoundaryPoint )&&
                         count == ip.Count
                         )
                     {
@@ -207,7 +232,7 @@ public class NewInputSystem : MonoBehaviour
 
             if (_intersectionPoints.Count > 0)
             {
-                _intersectionPoints.Sort();
+               _intersectionPoints.Sort();
             }
         }
     }
@@ -219,7 +244,7 @@ public class NewInputSystem : MonoBehaviour
             Vector3 middlePoint = (_intersectionPoints[i - 1]._pos + _intersectionPoints[i]._pos) / 2f;
 
 
-            if (_intersectionPoints[i - 1]._previousBoundaryPoint != _intersectionPoints[i]._previousBoundaryPoint &&
+            if (_intersectionPoints[i - 1]._previousBoundaryPoint != _intersectionPoints[i]._previousBoundaryPoint ||
                 _intersectionPoints[i - 1]._nextBoundaryPoint != _intersectionPoints[i]._nextBoundaryPoint)
             {
                 bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
@@ -230,19 +255,19 @@ public class NewInputSystem : MonoBehaviour
                     tempList.Add(_intersectionPoints[i - 1]);
                     tempList.Add(_intersectionPoints[i]);
 
-                    int j = 0;
-                    foreach (var item in tempList)
-                    {
-                        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                        cube.transform.position = item._pos;
+                    //int j = 0;
+                    //foreach (var item in tempList)
+                    //{
+                    //    GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    //    cube.transform.position = item._pos;
 
-                        var name = "POINT: " + " " + j.ToString() + " " + item._previousBoundaryPoint.ToString() + "," + item._nextBoundaryPoint.ToString();
+                    //    var name = "POINT: " + " " + j.ToString() + " " + item._previousBoundaryPoint.ToString() + "," + item._nextBoundaryPoint.ToString();
 
-                        Debug.Log(name);
-                        cube.name = name;
+                    //    Debug.Log(name);
+                    //    cube.name = name;
 
-                        j++;
-                    }
+                    //    j++;
+                    //}
 
                     var x = cutter.Cut(victim, _textureMat, tempList, LM.Obstacles, out GameObject cuttedPiece);
 
@@ -255,6 +280,7 @@ public class NewInputSystem : MonoBehaviour
                         if (lastIntersectionPoint != IntersectionPoint.zero)
                         {
                             CorrectLastIntersectionPoint();
+                            CorrectIntersectionPointsLeft(i + 1);
                         }
                         lastCutTime = Time.unscaledTime;
                         //lastPointIntersection = IntersectionPoint.zero;

@@ -197,8 +197,26 @@ public class CustomBoundryBox : MonoBehaviour
 
     private void ClearUnnecessaryPoints()
     {
-        List<BoundaryPoint> list = new List<BoundaryPoint>();
+        List<BoundaryPoint> noDuplicatesList = new List<BoundaryPoint>();
+
+        noDuplicatesList.Add(m_CustomBox[0]);
+
+        int lastIndex = 0;
+        for (int i=1;i<m_CustomBox.Count;i++)
+        {
+            if (!Mathematics.IsVectorsAproximately(noDuplicatesList[lastIndex].m_pos,m_CustomBox[i].m_pos))
+            {
+                noDuplicatesList.Add(m_CustomBox[i]);
+                lastIndex++;
+            }
+        }
+
+        m_CustomBox = noDuplicatesList;
+
+
+        List<BoundaryPoint> cleanList = new List<BoundaryPoint>();
         BoundaryPoint lastAdded = BoundaryPoint.zero;
+        
         for (int i = 0; i < m_CustomBox.Count; i++)
         {
             if (lastAdded.m_pos != Vector3.zero)
@@ -207,13 +225,13 @@ public class CustomBoundryBox : MonoBehaviour
                 
                 float distanceKJ = Vector3.Distance(lastAdded.m_pos, m_CustomBox[j].m_pos);
                 float distanceKI = Vector3.Distance(lastAdded.m_pos, m_CustomBox[i].m_pos);
-                float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);
+                float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);               
 
-                if (!Mathf.Approximately(distanceKI + distanceIJ, distanceKJ))
+                if (!Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
                 {
-                    list.Add(m_CustomBox[i]);
+                    cleanList.Add(m_CustomBox[i]);
                     lastAdded = m_CustomBox[i];
-                }
+                }                
             }
             else
             {
@@ -223,17 +241,17 @@ public class CustomBoundryBox : MonoBehaviour
                 float distanceKI = Vector3.Distance(m_CustomBox[k].m_pos, m_CustomBox[i].m_pos);
                 float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);
 
-                if (!Mathf.Approximately(distanceKI + distanceIJ, distanceKJ))
+                if (!Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
                 {
-                    list.Add(m_CustomBox[i]);
+                    cleanList.Add(m_CustomBox[i]);
                     lastAdded = m_CustomBox[i];
                 }
             }
         }
 
-        Debug.Log("UNNECESSARY POINTS: " + (m_CustomBox.Count - list.Count).ToString());
+        Debug.Log("UNNECESSARY POINTS: " + (m_CustomBox.Count - cleanList.Count).ToString());
 
-        m_CustomBox = list;
+        m_CustomBox = cleanList;
 
        
     }
