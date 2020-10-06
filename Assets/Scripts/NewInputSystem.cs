@@ -222,23 +222,6 @@ public class NewInputSystem : MonoBehaviour
                 hasStarted = true;
             }
 
-            List<IntersectionPoint> noDuplicates = new List<IntersectionPoint>();
-
-            if (_intersectionPoints.Count > 0)
-            {
-                noDuplicates.Add(_intersectionPoints[0]);
-            }
-
-            for (int i = 1; i < _intersectionPoints.Count; i++)
-            {
-                if (!Mathematics.IsVectorsAproximately(_intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos))
-                {
-                    noDuplicates.Add(_intersectionPoints[i]);
-                }
-            }
-
-            _intersectionPoints = noDuplicates;
-
             lastIntersectionPoint = _intersectionPoints[_intersectionPoints.Count - 1];
 
             Debug.Log("Last Point: " + lastIntersectionPoint._previousBoundaryPoint.ToString() + "," + lastIntersectionPoint._nextBoundaryPoint.ToString());
@@ -257,7 +240,7 @@ public class NewInputSystem : MonoBehaviour
             if ((_intersectionPoints[i - 1]._previousBoundaryPoint != _intersectionPoints[i]._previousBoundaryPoint ||
                 _intersectionPoints[i - 1]._nextBoundaryPoint != _intersectionPoints[i]._nextBoundaryPoint) &&
                 (!Mathematics.IsVectorsAproximately(_intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos)) &&
-                Vector3.Distance(_intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos) > 2.5f)
+                Vector3.Distance(_intersectionPoints[i - 1]._pos, _intersectionPoints[i]._pos) > 0.5f)
             {
                 //bool isMidInside = Mathematics.PointInPolygon(middlePoint, polygon);
 
@@ -322,9 +305,8 @@ public class NewInputSystem : MonoBehaviour
         point2._pos = transMatrix.MultiplyPoint(point2._pos);
 
         int edgesHit = Physics2D.LinecastAll(point1._pos, point2._pos).Length;
-        int edgesHitUnscaled = Physics2D.LinecastAll(tempPoint1._pos, tempPoint2._pos).Length;
 
-        if (Mathematics.PointInPolygon(point1._pos, polygon) && Mathematics.PointInPolygon(point2._pos, polygon) && edgesHit == 0 && edgesHitUnscaled < 3)
+        if (Mathematics.PointInPolygon(point1._pos, polygon) && Mathematics.PointInPolygon(point2._pos, polygon) && edgesHit == 0)
         {
             return true;
         }

@@ -63,7 +63,7 @@ public class CustomBoundryBox : MonoBehaviour
     }
     public float MaxY { get => maxY; }
     public float MaxX { get => maxX; }
-    public int RemovedPointsCount { get => removedPointsCount; }
+    public int RemovedPointsCount { get => removedPointsCount;}
 
     public float ratio = 0.0f;
 
@@ -179,21 +179,8 @@ public class CustomBoundryBox : MonoBehaviour
 
             if (BlastProof.Mathematics.LineSegmentsIntersection(tempStartPos, tempEndPos, currentBP.m_pos, nextBP.m_pos, out Vector2 intersPoint))
             {
-                if (Mathematics.IsVectorsAproximately(intersPoint, currentBP.m_pos))
-                {
-                    pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x, intersPoint.y, 0.0f), i, i));
-                }
-                else if (Mathematics.IsVectorsAproximately(intersPoint, nextBP.m_pos))
-                {
-                    pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x, intersPoint.y, 0.0f), i + 1, i + 1));
-                }
-                else
-                {
-                    pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x, intersPoint.y, 0.0f), i, i + 1));
-                }
+                pointsList.Add(new IntersectionPoint(new Vector3(intersPoint.x, intersPoint.y, 0.0f), i, (i + 1)));
             }
-
-
         }
         return pointsList;
     }
@@ -210,24 +197,41 @@ public class CustomBoundryBox : MonoBehaviour
 
     private void ClearUnnecessaryPoints()
     {
+        List<BoundaryPoint> noDuplicatesList = new List<BoundaryPoint>();
+
+        noDuplicatesList.Add(m_CustomBox[0]);
+
+        int lastIndex = 0;
+        for (int i=1;i<m_CustomBox.Count;i++)
+        {
+            if (!Mathematics.IsVectorsAproximately(noDuplicatesList[lastIndex].m_pos,m_CustomBox[i].m_pos))
+            {
+                noDuplicatesList.Add(m_CustomBox[i]);
+                lastIndex++;
+            }
+        }
+
+        m_CustomBox = noDuplicatesList;
+
+
         List<BoundaryPoint> cleanList = new List<BoundaryPoint>();
         BoundaryPoint lastAdded = BoundaryPoint.zero;
-
+        
         for (int i = 0; i < m_CustomBox.Count; i++)
         {
             if (lastAdded.m_pos != Vector3.zero)
             {
-                int j = (i + 1) % m_CustomBox.Count;
-
+                int j = (i + 1) % m_CustomBox.Count;              
+                
                 float distanceKJ = Vector3.Distance(lastAdded.m_pos, m_CustomBox[j].m_pos);
                 float distanceKI = Vector3.Distance(lastAdded.m_pos, m_CustomBox[i].m_pos);
-                float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);
+                float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);               
 
                 if (!Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
                 {
                     cleanList.Add(m_CustomBox[i]);
                     lastAdded = m_CustomBox[i];
-                }
+                }                
             }
             else
             {
@@ -249,7 +253,7 @@ public class CustomBoundryBox : MonoBehaviour
 
         m_CustomBox = cleanList;
 
-
+       
     }
 
     private void GetArea()

@@ -121,7 +121,16 @@ public class Cutter
             {
                 NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
             }
-        }    
+        }
+
+        int dup = 0;
+        for (int i = 1; i < NewLeftBoundary.Count; i++)
+        {
+            if (Mathematics.IsVectorsAproximately(NewLeftBoundary[i - 1].m_pos, NewLeftBoundary[i].m_pos))
+            {
+                dup++;
+            }
+        }
 
         //rightside
         int intersectionPointDistance = intersectionPoint[secondPointIndex]._previousBoundaryPoint - intersectionPoint[firstPointIndex]._previousBoundaryPoint;
@@ -180,7 +189,23 @@ public class Cutter
         {
             return false;
         }
-    }    
+    }
+    private bool IsObjectsOnSameSide(Plane plane, List<GameObject> obstacles, out int _count)
+    {
+        int count = 0;
+        foreach (var go in obstacles)
+        {
+            count += plane.GetSide(go.transform.position) ? 1 : -1;
+        }
+        _count = count;
+        return Math.Abs(count) == obstacles.Count;
+    }
+
+    private bool isInBetweenHeads(IntersectionPoint point, List<BoundaryPoint> cb)
+    {
+        return !Mathematics.IsVectorsAproximately(point._pos, cb[point._previousBoundaryPoint % cb.Count].m_pos) &&
+               !Mathematics.IsVectorsAproximately(point._pos, cb[point._nextBoundaryPoint % cb.Count].m_pos);
+    }
 
     private bool IsObstaclesInSamePolygon(List<BoundaryPoint> _bp, List<GameObject> obstacles, out int _count)
     {
