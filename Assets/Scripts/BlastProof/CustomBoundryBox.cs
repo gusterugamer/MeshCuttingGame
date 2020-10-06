@@ -123,7 +123,7 @@ public class CustomBoundryBox : MonoBehaviour
     {
         m_CustomBox = boundary;
 
-        ClearUnnecessaryPoints();
+        //ClearUnnecessaryPoints();
         UpdateCenter();
         GetArea();
 
@@ -197,23 +197,6 @@ public class CustomBoundryBox : MonoBehaviour
 
     private void ClearUnnecessaryPoints()
     {
-        List<BoundaryPoint> noDuplicatesList = new List<BoundaryPoint>();
-
-        noDuplicatesList.Add(m_CustomBox[0]);
-
-        int lastIndex = 0;
-        for (int i=1;i<m_CustomBox.Count;i++)
-        {
-            if (!Mathematics.IsVectorsAproximately(noDuplicatesList[lastIndex].m_pos,m_CustomBox[i].m_pos))
-            {
-                noDuplicatesList.Add(m_CustomBox[i]);
-                lastIndex++;
-            }
-        }
-
-        m_CustomBox = noDuplicatesList;
-
-
         List<BoundaryPoint> cleanList = new List<BoundaryPoint>();
         BoundaryPoint lastAdded = BoundaryPoint.zero;
         

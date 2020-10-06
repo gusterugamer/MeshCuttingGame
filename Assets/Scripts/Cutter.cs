@@ -149,24 +149,7 @@ public class Cutter
             {
                 NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
             }
-        }
-
-        List<BoundaryPoint> noDuplicates = new List<BoundaryPoint>();
-
-        if (NewRightBoundary.Count > 0)
-        {
-            noDuplicates.Add(NewRightBoundary[0]);
-        }
-
-        for (int i = 1; i < NewRightBoundary.Count; i++)
-        {
-            if (!Mathematics.IsVectorsAproximately(NewRightBoundary[i - 1].m_pos, NewRightBoundary[i].m_pos))
-            {
-                noDuplicates.Add(NewRightBoundary[i]);
-            }
-        }
-
-        NewRightBoundary = noDuplicates;
+        }       
 
         if (NewRightBoundary.Count < 3)
         {

@@ -211,7 +211,8 @@ public class NewInputSystem : MonoBehaviour
                     if (tempPoint != IntersectionPoint.zero &&
                         (tempPoint._previousBoundaryPoint != lastIntersectionPoint._previousBoundaryPoint ||
                         tempPoint._nextBoundaryPoint != lastIntersectionPoint._nextBoundaryPoint) &&
-                        count == ip.Count
+                        count == ip.Count &&
+                        !Mathematics.IsVectorsAproximately(tempPoint._pos, _intersectionPoints[_intersectionPoints.Count-1]._pos)
                         )
                     {
                         _intersectionPoints.Add(tempPoint);
