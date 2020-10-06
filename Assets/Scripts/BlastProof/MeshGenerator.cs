@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Poly2Tri;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR;
 
@@ -77,9 +78,36 @@ public static class MeshGenerator
             verts[i].position = transMatrix.MultiplyPoint(verts[i].position);
         }
 
+        var newGenPolyArrFront = new List<Poly2Tri.PolygonPoint>();
+
+        for(int i = 0; i<genPolyArrFront.Length;i++)
+        {
+            var point = new Poly2Tri.PolygonPoint(genPolyArrFront[i].x, genPolyArrFront[i].y);
+            point.index = i;
+            newGenPolyArrFront.Add(point);
+        }
+
+        Poly2Tri.Polygon poly = new Poly2Tri.Polygon(newGenPolyArrFront);
+
+        DTSweepContext tcx = new DTSweepContext();
+        tcx.PrepareTriangulation(poly);
+        DTSweep.Triangulate(tcx);
+        tcx = null;        
+
+        List<int> indiciesFromTriangulator = new List<int>();
+
+        foreach (var triangle in poly.Triangles)
+        {
+            foreach (var point in triangle.Points)
+            {
+                indiciesFromTriangulator.Add(point.index);
+            }
+        }
+
+        indiciesFromTriangulator.Reverse();
 
         Triangulator tri = new Triangulator(genPolyArrFront);
-        int[] triangledPoly = tri.Triangulate();
+        int[] triangledPoly = indiciesFromTriangulator.ToArray();
 
         //FrontFaceIndicies
         for (int i = 0; i < triangledPoly.Length; i++)

@@ -38,6 +38,7 @@ namespace Poly2Tri {
 
 		public TriangulationPoint( double x, double y ) { X=x; Y=y; }
 
+		public int index = -1;
 		public override string ToString() {
 			return "[" + X + "," + Y + "]";
 		}

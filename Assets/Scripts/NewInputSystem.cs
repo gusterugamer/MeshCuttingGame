@@ -161,7 +161,17 @@ public class NewInputSystem : MonoBehaviour
 
                 //bool isCloseEnough = Mathematics.DistancePointLine2D(lastIntersectionPoint._pos, cbm.m_CustomBox[i - 1].m_pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos) < 0.1f;
 
-                if (Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
+                if (Mathematics.IsVectorsAproximately(_intersectionPoints[index]._pos, cbm.m_CustomBox[i - 1].m_pos))
+                {
+                    _intersectionPoints[index]._previousBoundaryPoint = i - 1;
+                    _intersectionPoints[index]._nextBoundaryPoint = i-1;
+                }
+                else if (Mathematics.IsVectorsAproximately(_intersectionPoints[index]._pos, cbm.m_CustomBox[i % cbm.m_CustomBox.Count].m_pos))
+                {
+                    _intersectionPoints[index]._previousBoundaryPoint = i;
+                    _intersectionPoints[index]._nextBoundaryPoint = i;
+                }
+                else if (Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
                 {
                     _intersectionPoints[index]._previousBoundaryPoint = (i - 1);
                     _intersectionPoints[index]._nextBoundaryPoint = i;
@@ -305,6 +315,16 @@ public class NewInputSystem : MonoBehaviour
         point2._pos = transMatrix.MultiplyPoint(point2._pos);
 
         int edgesHit = Physics2D.LinecastAll(point1._pos, point2._pos).Length;
+        RaycastHit2D[] edgesHitUnscaled = Physics2D.LinecastAll(tempPoint1._pos, tempPoint2._pos);  
+
+        for(int i=0;i<edgesHitUnscaled.Length;i++)
+        {
+            Vector2 hittedPoint = edgesHitUnscaled[i].point;
+            if (!Mathematics.IsVectorsAproximately(tempPoint1._pos, hittedPoint) && !Mathematics.IsVectorsAproximately(tempPoint2._pos, hittedPoint))
+            {
+                edgesHit++;
+            }
+        }
 
         if (Mathematics.PointInPolygon(point1._pos, polygon) && Mathematics.PointInPolygon(point2._pos, polygon) && edgesHit == 0)
         {
