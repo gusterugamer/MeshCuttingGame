@@ -17,7 +17,7 @@ public class Cutter
     public bool Cut(SpriteShapeController shape, Material textureMat, List<IntersectionPoint> intersectionPoints, List<GameObject> obstacles, out GameObject mask)
     {
         CustomBoundryBox _boundaryBox = shape.GetComponent<CustomBoundryBox>();
-        
+
         //Decides which value is bigger to create the size of texture square
         float spriteSquareSize = Mathf.Max(_boundaryBox.MaxX, _boundaryBox.MaxY);
 
@@ -85,7 +85,7 @@ public class Cutter
         }
         mask = null;
         return false;
-    }   
+    }
 
     private bool CreateNewBoundary(in CustomBoundryBox _boundaryBox, List<IntersectionPoint> intersectionPoint, List<GameObject> obstacles)
     {
@@ -93,7 +93,7 @@ public class Cutter
         int firstPointIndex = intersectionPoint[0]._nextBoundaryPoint < intersectionPoint[1]._nextBoundaryPoint ? 0 : 1;
         int secondPointIndex = 1 - firstPointIndex;
 
-       // Plane plane = Mathematics.SlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos, Camera.main.transform.forward);
+        // Plane plane = Mathematics.SlicePlane(intersectionPoint[firstPointIndex]._pos, intersectionPoint[secondPointIndex]._pos, Camera.main.transform.forward);
 
         int count;
 
@@ -101,31 +101,34 @@ public class Cutter
         NewRightBoundary = new List<BoundaryPoint>();
 
         for (int i = 0; i < intersectionPoint[firstPointIndex]._nextBoundaryPoint; i++)
-        {            
-            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);            
+        {
+            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
         }
 
         if (!Mathematics.IsVectorsAproximately(NewLeftBoundary[NewLeftBoundary.Count - 1].m_pos, intersectionPoint[firstPointIndex]._pos))
         {
-            NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());           
+            NewLeftBoundary.Add(intersectionPoint[firstPointIndex].toBoundaryPoint());
         }
 
         if (!Mathematics.IsVectorsAproximately(NewLeftBoundary[NewLeftBoundary.Count - 1].m_pos, intersectionPoint[secondPointIndex]._pos))
         {
             NewLeftBoundary.Add(intersectionPoint[secondPointIndex].toBoundaryPoint());
-        }      
+        }
 
         for (int i = intersectionPoint[secondPointIndex]._nextBoundaryPoint; i < _boundaryBox.m_CustomBox.Count; i++)
-        {           
-            NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);            
+        {
+            if (!Mathematics.IsVectorsAproximately(NewLeftBoundary[NewLeftBoundary.Count - 1].m_pos, _boundaryBox.m_CustomBox[i].m_pos))
+            {
+                NewLeftBoundary.Add(_boundaryBox.m_CustomBox[i]);
+            }
         }
 
         int dup = 0;
         for (int i = 1; i < NewLeftBoundary.Count; i++)
         {
-            if (Mathematics.IsVectorsAproximately(NewLeftBoundary[i-1].m_pos, NewLeftBoundary[i].m_pos))
+            if (Mathematics.IsVectorsAproximately(NewLeftBoundary[i - 1].m_pos, NewLeftBoundary[i].m_pos))
             {
-                dup++;                
+                dup++;
             }
         }
 
@@ -141,25 +144,36 @@ public class Cutter
         }
 
         for (int i = (intersectionPoint[firstPointIndex]._nextBoundaryPoint + 1); i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
-        {            
-            NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);            
-        }
-
-        int dup2 = 0;
-        for (int i = 1; i < NewLeftBoundary.Count; i++)
         {
-            if (Mathematics.IsVectorsAproximately(NewLeftBoundary[i - 1].m_pos, NewLeftBoundary[i].m_pos))
+            if (!Mathematics.IsVectorsAproximately(NewRightBoundary[NewRightBoundary.Count - 1].m_pos, _boundaryBox.m_CustomBox[i].m_pos))
             {
-                dup2++;
+                NewRightBoundary.Add(_boundaryBox.m_CustomBox[i]);
             }
         }
+
+        List<BoundaryPoint> noDuplicates = new List<BoundaryPoint>();
+
+        if (NewRightBoundary.Count > 0)
+        {
+            noDuplicates.Add(NewRightBoundary[0]);
+        }
+
+        for (int i = 1; i < NewRightBoundary.Count; i++)
+        {
+            if (!Mathematics.IsVectorsAproximately(NewRightBoundary[i - 1].m_pos, NewRightBoundary[i].m_pos))
+            {
+                noDuplicates.Add(NewRightBoundary[i]);
+            }
+        }
+
+        NewRightBoundary = noDuplicates;
 
         if (NewRightBoundary.Count < 3)
         {
             return false;
         }
 
-        else if (IsObstaclesInSamePolygon(NewRightBoundary, obstacles,out count))
+        else if (IsObstaclesInSamePolygon(NewRightBoundary, obstacles, out count))
         {
             List<BoundaryPoint> tempB = NewLeftBoundary;
             NewLeftBoundary = NewRightBoundary;
@@ -196,7 +210,7 @@ public class Cutter
     private bool IsObstaclesInSamePolygon(List<BoundaryPoint> _bp, List<GameObject> obstacles, out int _count)
     {
         Vector2[] points = new Vector2[_bp.Count];
-        for (int i=0;i<_bp.Count;i++)
+        for (int i = 0; i < _bp.Count; i++)
         {
             points[i] = _bp[i].m_pos;
         }

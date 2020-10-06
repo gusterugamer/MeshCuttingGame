@@ -96,7 +96,7 @@ public class NewInputSystem : MonoBehaviour
 
         Touch[] touch = Input.touches;
 
-        if (isEnabled && Input.GetMouseButton(0))
+        if (isEnabled && Input.GetMouseButton(0) && touch.Length < 2)
         {
             _startPos = _endPos;
             _endPos = position;
