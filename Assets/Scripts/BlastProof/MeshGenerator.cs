@@ -107,7 +107,7 @@ public static class MeshGenerator
         indiciesFromTriangulator.Reverse();
 
         Triangulator tri = new Triangulator(genPolyArrFront);
-        int[] triangledPoly = indiciesFromTriangulator.ToArray();
+        int[] triangledPoly = tri.Triangulate(); //indiciesFromTriangulator.ToArray();
 
         //FrontFaceIndicies
         for (int i = 0; i < triangledPoly.Length; i++)

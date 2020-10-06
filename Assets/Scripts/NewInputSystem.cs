@@ -209,7 +209,7 @@ public class NewInputSystem : MonoBehaviour
                     }
 
                     if (tempPoint != IntersectionPoint.zero &&
-                        (tempPoint._previousBoundaryPoint != lastIntersectionPoint._previousBoundaryPoint ||
+                        (tempPoint._previousBoundaryPoint != lastIntersectionPoint._previousBoundaryPoint &&
                         tempPoint._nextBoundaryPoint != lastIntersectionPoint._nextBoundaryPoint) &&
                         count == ip.Count &&
                         !Mathematics.IsVectorsAproximately(tempPoint._pos, _intersectionPoints[_intersectionPoints.Count-1]._pos)
@@ -223,7 +223,17 @@ public class NewInputSystem : MonoBehaviour
 
         for (int i = 0; i < ip.Count; i++)
         {
-            _intersectionPoints.Add(ip[i]);
+            if (_intersectionPoints.Count > 0)
+            {
+                if (!Mathematics.IsVectorsAproximately(ip[i]._pos, _intersectionPoints[_intersectionPoints.Count - 1]._pos))
+                {
+                    _intersectionPoints.Add(ip[i]);
+                }
+            }
+            else if (_intersectionPoints.Count <= 0)
+            {
+                _intersectionPoints.Add(ip[i]);
+            }
         }
 
         if (_intersectionPoints.Count > 0)
