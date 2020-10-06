@@ -102,7 +102,7 @@ public class NewInputSystem : MonoBehaviour
             _endPos = position;
             _currentPos = position;
 
-            if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter && touch.Length < 2)
+            if (_startPos != cbm.PolygonCenter && _endPos != cbm.PolygonCenter)
             {
                 NewIntersections(_startPos, _endPos);
                 Cut();
