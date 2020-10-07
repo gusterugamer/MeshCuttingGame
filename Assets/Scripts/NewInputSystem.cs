@@ -295,9 +295,10 @@ public class NewInputSystem : MonoBehaviour
 
                         if (lastIntersectionPoint != IntersectionPoint.zero)
                         {
-                            CorrectLastIntersectionPoint();
-                            CorrectIntersectionPointsLeft(i + 1);
+                            CorrectLastIntersectionPoint();                            
                         }
+                        CorrectIntersectionPointsLeft(i + 1);
+
                         lastCutTime = Time.unscaledTime;
                         //lastPointIntersection = IntersectionPoint.zero;
                     }

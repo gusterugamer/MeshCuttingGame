@@ -143,7 +143,7 @@ public class Cutter
             NewRightBoundary.Add(_boundaryBox.m_CustomBox[intersectionPoint[firstPointIndex]._nextBoundaryPoint]);
         }
 
-        for (int i = (intersectionPoint[firstPointIndex]._nextBoundaryPoint + 1); i < intersectionPoint[firstPointIndex]._nextBoundaryPoint + intersectionPointDistance; i++)
+        for (int i = (intersectionPoint[firstPointIndex]._nextBoundaryPoint + 1); i < intersectionPoint[secondPointIndex]._nextBoundaryPoint;i++)
         {
             if (!Mathematics.IsVectorsAproximately(NewRightBoundary[NewRightBoundary.Count - 1].m_pos, _boundaryBox.m_CustomBox[i].m_pos))
             {

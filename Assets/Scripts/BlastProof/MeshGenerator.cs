@@ -91,8 +91,7 @@ public static class MeshGenerator
 
         DTSweepContext tcx = new DTSweepContext();
         tcx.PrepareTriangulation(poly);
-        DTSweep.Triangulate(tcx);
-        tcx = null;        
+        DTSweep.Triangulate(tcx);          
 
         List<int> indiciesFromTriangulator = new List<int>();
 
@@ -107,7 +106,7 @@ public static class MeshGenerator
         indiciesFromTriangulator.Reverse();
 
         Triangulator tri = new Triangulator(genPolyArrFront);
-        int[] triangledPoly = tri.Triangulate(); //indiciesFromTriangulator.ToArray();
+        int[] triangledPoly = indiciesFromTriangulator.ToArray();
 
         //FrontFaceIndicies
         for (int i = 0; i < triangledPoly.Length; i++)

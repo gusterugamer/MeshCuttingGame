@@ -36,6 +36,23 @@ public class CustomBoundryBox : MonoBehaviour
 
     private Vector3 polygonCenter;
 
+    /// <summary>
+    /// DEBUG
+    /// 
+    /// 
+    /// </summary>
+    /// 
+
+    List<GameObject> cubes = new List<GameObject>();
+
+    /// <summary>
+    /// DEBUG
+    /// 
+    /// 
+    /// </summary>
+    /// 
+
+
     private float _area = 0.0f;
 
     private float _textureSize = 0.0f;
@@ -98,9 +115,11 @@ public class CustomBoundryBox : MonoBehaviour
             m_CustomBox.Add(new BoundaryPoint(points[i]));
             GetMinMaxXY(points[i]);
 
-            //GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            //cube.transform.position = points[i];
-            //cube.transform.name = i.ToString(); ;
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.position = points[i];
+            cube.transform.name = i.ToString();
+            cube.transform.localScale = Vector3.one * 0.1f;
+            cubes.Add(cube);
         }
         points[length] = points[0];
         polygonCenter = pointsSum / length;
@@ -123,6 +142,15 @@ public class CustomBoundryBox : MonoBehaviour
     {
         m_CustomBox = boundary;
 
+        foreach(GameObject go in cubes)
+        {
+            Destroy(go);
+        }
+
+        cubes.Clear();
+
+
+
         //ClearUnnecessaryPoints();
         UpdateCenter();
         GetArea();
@@ -131,6 +159,12 @@ public class CustomBoundryBox : MonoBehaviour
         for (int i = 0; i <= m_CustomBox.Count; i++)
         {
             points[i] = m_CustomBox[i % m_CustomBox.Count].m_pos;
+
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.position = points[i];
+            cube.transform.name = i.ToString(); ;
+            cube.transform.localScale = Vector3.one * 0.1f;
+            cubes.Add(cube);
         }
 
         //polyCol.pathCount = 1;
@@ -148,6 +182,15 @@ public class CustomBoundryBox : MonoBehaviour
         for (int i = 0; i < length; i++)
         {
             Debug.DrawLine((transform.position + m_CustomBox[i].m_pos), (transform.position + m_CustomBox[(i + 1) % length].m_pos), Color.red);
+        }
+    }
+
+    private void OnDrawGizmos()
+    {
+        int length = m_CustomBox.Count;
+        for (int i = 0; i < length; i++)
+        {
+            Gizmos.DrawSphere((transform.position + m_CustomBox[i].m_pos), 0.1f);
         }
     }
 
@@ -204,13 +247,17 @@ public class CustomBoundryBox : MonoBehaviour
         {
             if (lastAdded.m_pos != Vector3.zero)
             {
-                int j = (i + 1) % m_CustomBox.Count;              
-                
-                float distanceKJ = Vector3.Distance(lastAdded.m_pos, m_CustomBox[j].m_pos);
-                float distanceKI = Vector3.Distance(lastAdded.m_pos, m_CustomBox[i].m_pos);
-                float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);               
+                int j = (i + 1) % m_CustomBox.Count;
 
-                if (!Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
+                Vector3 worldLastPoint = transform.TransformPoint(lastAdded.m_pos);
+                Vector3 worldI = transform.TransformPoint(m_CustomBox[i].m_pos);
+                Vector3 worldJ = transform.TransformPoint(m_CustomBox[j].m_pos);
+
+                float distanceKJ = Vector3.Distance(worldLastPoint, worldJ);
+                float distanceKI = Vector3.Distance(worldLastPoint, worldI);
+                float distanceIJ = Vector3.Distance(worldI, worldJ);
+
+                if (Mathf.Abs(distanceIJ - distanceKI - distanceKJ) > 0.01f)
                 {
                     cleanList.Add(m_CustomBox[i]);
                     lastAdded = m_CustomBox[i];
@@ -220,11 +267,16 @@ public class CustomBoundryBox : MonoBehaviour
             {
                 int j = (i + 1) % m_CustomBox.Count;
                 int k = (int)Mathematics.nfmod((i - 1), m_CustomBox.Count);
-                float distanceKJ = Vector3.Distance(m_CustomBox[k].m_pos, m_CustomBox[j].m_pos);
-                float distanceKI = Vector3.Distance(m_CustomBox[k].m_pos, m_CustomBox[i].m_pos);
-                float distanceIJ = Vector3.Distance(m_CustomBox[i].m_pos, m_CustomBox[j].m_pos);
 
-                if (!Mathf.Approximately(distanceKI + distanceKJ, distanceIJ))
+                Vector3 worldK = transform.TransformPoint(m_CustomBox[k].m_pos);
+                Vector3 worldI = transform.TransformPoint(m_CustomBox[i].m_pos);
+                Vector3 worldJ = transform.TransformPoint(m_CustomBox[j].m_pos);               
+
+                float distanceKJ = Vector3.Distance(worldK, worldJ);
+                float distanceKI = Vector3.Distance(worldK, worldI);
+                float distanceIJ = Vector3.Distance(worldI, worldJ);
+
+                if (Mathf.Abs(distanceIJ - distanceKI - distanceKJ) > 0.01f)
                 {
                     cleanList.Add(m_CustomBox[i]);
                     lastAdded = m_CustomBox[i];
