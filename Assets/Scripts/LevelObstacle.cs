@@ -3,8 +3,7 @@
 [RequireComponent(typeof(Rigidbody2D),typeof(BoxCollider2D))]
 public class  LevelObstacle : MonoBehaviour
 {
-    private Rigidbody2D rb;
-    private BoxCollider2D bc;
+    private Rigidbody2D _rb;   
 
     private Vector3 _startPos;
 
@@ -25,11 +24,11 @@ public class  LevelObstacle : MonoBehaviour
     {
         float randomX = Random.Range(-1f, 1f);
         float randomY = Random.Range(-1f, 1f);
-        rb = GetComponent<Rigidbody2D>();
-        rb.angularDrag = 0.0f;
-        rb.drag = 0.0f;
-        rb.gravityScale = 0.0f;
-        rb.velocity = new Vector2(randomX, randomY).normalized * _SPEED;
+        _rb = GetComponent<Rigidbody2D>();
+        _rb.angularDrag = 0.0f;
+        _rb.drag = 0.0f;
+        _rb.gravityScale = 0.0f;
+        _rb.velocity = new Vector2(randomX, randomY).normalized * _SPEED;
         gameObject.layer = LayerMask.NameToLayer("Obstacles");
     }
 

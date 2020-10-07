@@ -6,18 +6,18 @@ using UnityEngine.SceneManagement;
 
 public class Level : MonoBehaviour
 {
-    private int id;
+    private int _id;
 
-    [SerializeField] private JsonReader jr;
+    [SerializeField] private JsonReader _jr;
 
     private void Awake()
     {
-        id = int.Parse(transform.name);           
+        _id = int.Parse(transform.name);           
     }
 
     public void StartLevel()
     {
-        jr.Load(id);
+        _jr.Load(_id);
         SceneManager.LoadSceneAsync("SelectedLevelScene", LoadSceneMode.Single);           
     } 
 }

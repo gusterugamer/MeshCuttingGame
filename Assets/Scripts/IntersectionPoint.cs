@@ -4,11 +4,9 @@ using UnityEngine;
 
 public class IntersectionPoint : IComparable<IntersectionPoint>
 {
-    public Vector3 _pos;
-
-    //TODO: find way to put them private
-    public int _previousBoundaryPoint;
-    public int _nextBoundaryPoint;
+    private Vector3 _pos;   
+    private int _previousBoundaryPoint;
+    private int _nextBoundaryPoint;
 
     public BoundaryPoint toBoundaryPoint()
     {
@@ -30,6 +28,10 @@ public class IntersectionPoint : IComparable<IntersectionPoint>
     }
 
     public static IntersectionPoint zero => new IntersectionPoint(new Vector3(0.0f, 0.0f, 0.0f), -1, -1);
+
+    public Vector3 Pos { get => _pos;}
+    public int PreviousBoundaryPoint { get => _previousBoundaryPoint;}
+    public int NextBoundaryPoint { get => _nextBoundaryPoint; }
 
     public static bool operator !=(IntersectionPoint point1, IntersectionPoint point2)
     {
@@ -60,4 +62,10 @@ public class IntersectionPoint : IComparable<IntersectionPoint>
         else
             return 0;
     }    
+
+    public void ChangePrevNextPoints(int newPrev, int newNext)
+    {
+        _previousBoundaryPoint = newPrev;
+        _nextBoundaryPoint = newNext;
+    }
 }

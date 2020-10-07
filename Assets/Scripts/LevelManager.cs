@@ -6,22 +6,22 @@ using BlastProof;
 
 public class LevelManager : MonoBehaviour
 {
-    [SerializeField] private CustomBoundryBox cbm;
-    [SerializeField] private NewInputSystem InputSystem;
+    [SerializeField] private CustomBoundryBox _cb;
+    [SerializeField] private NewInputSystem _inputSystem;
     [SerializeField] private JsonReader _jr;
 
-    private SpriteShapeController sprite;
+    private SpriteShapeController _sprite;
 
     private Camera _mainCam;
 
-    private static Score score;
-    private List<GameObject> obstacles = new List<GameObject>();
-    private List<GameObject> cuttedObjects = new List<GameObject>();
+    private static Score _score;
+    private List<GameObject> _obstacles = new List<GameObject>();
+    private List<GameObject> _cuttedObjects = new List<GameObject>();
 
-    private Material textureMat;
+    private Material _textureMat;
 
-    public Score Score { get => score; private set => score = value; }
-    public List<GameObject> Obstacles { get => obstacles; private set => obstacles = value; }
+    public Score Score { get => _score;}
+    public List<GameObject> Obstacles { get => _obstacles; }
 
     public delegate void ScoreChangeDelegate();
     public delegate void ResetSceneDelegate();
@@ -35,21 +35,21 @@ public class LevelManager : MonoBehaviour
     {
         _mainCam = Camera.main;
         Application.targetFrameRate = 60;
-        textureMat = Resources.Load("Material/random") as Material;
-        InputSystem.UpdateMats(textureMat);
+        _textureMat = Resources.Load("Material/random") as Material;
+        _inputSystem.UpdateMats(_textureMat);
         CreateSprite();        
     }
     void Start()
     {
-        Score = new Score(cbm.Area);
+        _score = new Score(_cb.Area);
         CreateObjectsInScene();
-        _mainCam.transform.position = new Vector3(cbm.PolygonCenter.x, cbm.PolygonCenter.y, -Mathf.Max(cbm.MaxX, cbm.MaxY));               
+        _mainCam.transform.position = new Vector3(_cb.PolygonCenter.x, _cb.PolygonCenter.y, -Mathf.Max(_cb.MaxX, _cb.MaxY));               
     }   
 
     private void CreateSprite()
     {
-        sprite = cbm.GetComponent<SpriteShapeController>();
-        sprite.spline.Clear();
+        _sprite = _cb.GetComponent<SpriteShapeController>();
+        _sprite.spline.Clear();
 
         bool isClockWise = _jr.loadedLevel.isClockWise;  
 
@@ -58,7 +58,7 @@ public class LevelManager : MonoBehaviour
             int j = 0;
             for (int i = _jr.loadedLevel.points.Length-1; i >=0 ; i--)
             {
-                sprite.spline.InsertPointAt(j, _jr.loadedLevel.points[i]);
+                _sprite.spline.InsertPointAt(j, _jr.loadedLevel.points[i]);
                 j++;
             }
         }
@@ -66,17 +66,17 @@ public class LevelManager : MonoBehaviour
         {
             for (int i = 0; i < _jr.loadedLevel.points.Length; i++)
             {
-                sprite.spline.InsertPointAt(i, _jr.loadedLevel.points[i]);
+                _sprite.spline.InsertPointAt(i, _jr.loadedLevel.points[i]);
             }
         }
 
-        sprite.spriteShape.fillTexture = textureMat.mainTexture as Texture2D;
-        cbm.TextureSize(textureMat.mainTexture.width);
+        _sprite.spriteShape.fillTexture = _textureMat.mainTexture as Texture2D;
+        _cb.TextureSize(_textureMat.mainTexture.width);
     }  
 
     public void UpdateScore()
     {
-        Score.UpdateCurrentScore(cbm.Area);
+        Score.UpdateCurrentScore(_cb.Area);
         OnScoreChange?.Invoke();
     }
 
@@ -94,7 +94,7 @@ public class LevelManager : MonoBehaviour
                 cube.transform.position = newPosition;
                 cube.AddComponent<LevelObstacle>().SetStartPosition(newPosition);
                 cube.tag = "Obstacle";
-                Obstacles.Add(cube);
+                _obstacles.Add(cube);
             }
         }
         else
@@ -105,11 +105,11 @@ public class LevelManager : MonoBehaviour
                 GameObject cube = Instantiate(prefabcube);
                 cube.name = "object" + i;
                 cube.transform.localScale = Vector3.one;
-                Vector3 newPosition = new Vector3(cbm.PolygonCenter.x, cbm.PolygonCenter.y + i * 6.5f, cbm.PolygonCenter.z);
+                Vector3 newPosition = new Vector3(_cb.PolygonCenter.x, _cb.PolygonCenter.y + i * 6.5f, _cb.PolygonCenter.z);
                 cube.transform.position = newPosition;
                 cube.AddComponent<LevelObstacle>().SetStartPosition(newPosition);
                 cube.tag = "Obstacle";
-                Obstacles.Add(cube);
+                _obstacles.Add(cube);
             }
         }
 
@@ -117,7 +117,7 @@ public class LevelManager : MonoBehaviour
 
     public void AddPieceToList(ref GameObject piece)
     {
-        cuttedObjects.Add(piece);
+        _cuttedObjects.Add(piece);
     }
 
     public void CollidedWithObject()
@@ -127,24 +127,24 @@ public class LevelManager : MonoBehaviour
 
     public void ResetScene()
     {
-        foreach (GameObject go in cuttedObjects)
+        foreach (GameObject go in _cuttedObjects)
         {
             Destroy(go);
         }
 
-        cuttedObjects.Clear();
+        _cuttedObjects.Clear();
 
-        foreach (GameObject go in obstacles)
+        foreach (GameObject go in _obstacles)
         {
             go.GetComponent<LevelObstacle>().Reset();
         }
         OnResetScene?.Invoke();
 
-        cbm.ResetShape();
-        score.Reset();
+        _cb.ResetShape();
+        _score.Reset();
 
         OnScoreChange?.Invoke();
 
-        InputSystem.ReEnable();
+        _inputSystem.ReEnable();
     }
 }

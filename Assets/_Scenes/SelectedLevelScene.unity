@@ -495,8 +495,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 19658bc0cca0736438364ff3c70d0861, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cbm: {fileID: 1707939981}
-  InputSystem: {fileID: 1120229800}
+  _cb: {fileID: 1707939981}
+  _inputSystem: {fileID: 1120229800}
   _jr: {fileID: 11400000, guid: 28c5662f7ac3136438b17f5b07867b91, type: 2}
 --- !u!4 &698130950
 Transform:
@@ -1108,16 +1108,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: be6c4e257841f3b478ee4aa8c1aadc69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  cbm: {fileID: 1707939981}
-  victim: {fileID: 1707939978}
-  capMat: {fileID: 2100000, guid: c794508bb2865374eab5f446dd42cbf4, type: 2}
-  LM: {fileID: 698130949}
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 256
-  polygonLayer:
-    serializedVersion: 2
-    m_Bits: 512
+  _shape: {fileID: 1707939978}
+  _capMat: {fileID: 2100000, guid: d13d0e9987a1db4428b0f7c05d5cf2d6, type: 2}
+  _LM: {fileID: 698130949}
 --- !u!1 &1531121881
 GameObject:
   m_ObjectHideFlags: 0
@@ -1582,9 +1578,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_toCutObject: {fileID: 1707939978}
-  ratio: 0
-  levelMaterial: {fileID: 0}
-  drawNew: 0
 --- !u!68 &1707939982
 EdgeCollider2D:
   m_ObjectHideFlags: 0

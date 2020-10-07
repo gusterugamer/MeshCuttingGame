@@ -7,26 +7,25 @@ public static class MeshGenerator
 {
     public static MeshProperties[] CreateMesh(List<BoundaryPoint> genPoly, Transform objTrans, float spriteSquareSize)
     {
-        const int FRONTOFFSET = 3;
-        const float BACKFACE_OFFSET = 0.5f;
-        const float SCALE_FACTOR = 1.1f;
+        const int _FRONTOFFSET = 3;
+        const float _BACKFACE_OFFSET = 0.5f;
+        const float _SCALE_FACTOR = 1.1f;
 
+        MeshProperties _generatedMesh;
+        MeshProperties _frontFaceMesh;
 
-        MeshProperties generatedMesh;
-        MeshProperties frontFaceMesh;
+        Vector2[] _genPolyArrFront = new Vector2[genPoly.Count];
 
-        Vector2[] genPolyArrFront = new Vector2[genPoly.Count];
+        List<VertexProperties> _verts = new List<VertexProperties>();
+        List<VertexProperties> _frontFaceVerticies = new List<VertexProperties>();
 
-        List<VertexProperties> verts = new List<VertexProperties>();
-        List<VertexProperties> frontFaceVerticies = new List<VertexProperties>();
-
-        List<int> indicies = new List<int>();
-        List<int> frontFaceIndicies = new List<int>();
+        List<int> _indicies = new List<int>();
+        List<int> _frontFaceIndicies = new List<int>();
 
         //ConvertingToArray
         for (int i = 0; i < genPoly.Count; i++)
         {
-            genPolyArrFront[i] = objTrans.TransformPoint(genPoly[i].m_pos);
+            _genPolyArrFront[i] = objTrans.TransformPoint(genPoly[i].Pos);
         }
 
         Vector3 vecSum = Vector3.zero;
@@ -34,34 +33,34 @@ public static class MeshGenerator
         //VerticiesFront
         for (int i = 0; i < genPoly.Count; i++)
         {
-            Vector3 _position = new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, 0.0f);
+            Vector3 _position = new Vector3(_genPolyArrFront[i].x, _genPolyArrFront[i].y, 0.0f);
 
             vecSum += _position;
 
-            verts.Add(new VertexProperties { position = _position });
-            verts.Add(new VertexProperties { position = _position });
-            verts.Add(new VertexProperties { position = _position });
+            _verts.Add(new VertexProperties { position = _position });
+            _verts.Add(new VertexProperties { position = _position });
+            _verts.Add(new VertexProperties { position = _position });
 
-            frontFaceVerticies.Add(new VertexProperties { position = _position });
+            _frontFaceVerticies.Add(new VertexProperties { position = _position });
         }
 
         //Calculating the center of the unscaled polygon
         Vector3 polygonCenter = vecSum / genPoly.Count;
         polygonCenter.z = objTrans.position.z;
 
-        Matrix4x4 scaleMatrix = BlastProof.Mathematics.ScaleMatrix(SCALE_FACTOR);
+        Matrix4x4 scaleMatrix = BlastProof.Mathematics.ScaleMatrix(_SCALE_FACTOR);
 
         Vector3 vecSum2 = Vector3.zero;
 
         //VerticiesBack
         for (int i = 0; i < genPoly.Count; i++)
         {
-            Vector3 _position = scaleMatrix.MultiplyPoint(new Vector3(genPolyArrFront[i].x, genPolyArrFront[i].y, BACKFACE_OFFSET));
+            Vector3 _position = scaleMatrix.MultiplyPoint(new Vector3(_genPolyArrFront[i].x, _genPolyArrFront[i].y, _BACKFACE_OFFSET));
             vecSum2 += _position;
 
-            verts.Add(new VertexProperties { position = _position });
-            verts.Add(new VertexProperties { position = _position });
-            verts.Add(new VertexProperties { position = _position });
+            _verts.Add(new VertexProperties { position = _position });
+            _verts.Add(new VertexProperties { position = _position });
+            _verts.Add(new VertexProperties { position = _position });
         }
 
         Vector3 scaledPolyCenter = vecSum2 / genPoly.Count;
@@ -73,16 +72,16 @@ public static class MeshGenerator
         Matrix4x4 transMatrix = BlastProof.Mathematics.TranslateMatrix(translVec);
 
         //Multiplying each backface polygon position with the translation matrix so the center of backface polygon and frontface polygon matches
-        for (int i = verts.Count / 2; i < verts.Count; i++)
+        for (int i = _verts.Count / 2; i < _verts.Count; i++)
         {
-            verts[i].position = transMatrix.MultiplyPoint(verts[i].position);
+            _verts[i].position = transMatrix.MultiplyPoint(_verts[i].position);
         }
 
         var newGenPolyArrFront = new List<Poly2Tri.PolygonPoint>();
 
-        for(int i = 0; i<genPolyArrFront.Length;i++)
+        for(int i = 0; i<_genPolyArrFront.Length;i++)
         {
-            var point = new Poly2Tri.PolygonPoint(genPolyArrFront[i].x, genPolyArrFront[i].y);
+            var point = new Poly2Tri.PolygonPoint(_genPolyArrFront[i].x, _genPolyArrFront[i].y);
             point.index = i;
             newGenPolyArrFront.Add(point);
         }
@@ -105,72 +104,72 @@ public static class MeshGenerator
 
         indiciesFromTriangulator.Reverse();
 
-        Triangulator tri = new Triangulator(genPolyArrFront);
+        Triangulator tri = new Triangulator(_genPolyArrFront);
         int[] triangledPoly = indiciesFromTriangulator.ToArray();
 
         //FrontFaceIndicies
         for (int i = 0; i < triangledPoly.Length; i++)
         {
-            indicies.Add(triangledPoly[i] * FRONTOFFSET);
-            frontFaceIndicies.Add(triangledPoly[i]);
+            _indicies.Add(triangledPoly[i] * _FRONTOFFSET);
+            _frontFaceIndicies.Add(triangledPoly[i]);
         }
 
         //BackFaceIndicies
         for (int i = triangledPoly.Length - 1; i >= 0; i--)
         {
-            indicies.Add(triangledPoly[i] * FRONTOFFSET + (verts.Count / 2));
+            _indicies.Add(triangledPoly[i] * _FRONTOFFSET + (_verts.Count / 2));
         }
 
         //Front-Back Faces normals
-        for (int i = 0; i < indicies.Count / 2; i += 3)
+        for (int i = 0; i < _indicies.Count / 2; i += 3)
         {
-            int[] v1 = { indicies[i], indicies[(i + 1) % (indicies.Count / 2)], indicies[(i + 2) % (indicies.Count / 2)] };
-            int[] v2 = { indicies[i + (indicies.Count / 2)], indicies[(i + 1) % (indicies.Count / 2) + (indicies.Count / 2)], indicies[(i + 2) % (indicies.Count / 2) + (indicies.Count / 2)] };
+            int[] v1 = { _indicies[i], _indicies[(i + 1) % (_indicies.Count / 2)], _indicies[(i + 2) % (_indicies.Count / 2)] };
+            int[] v2 = { _indicies[i + (_indicies.Count / 2)], _indicies[(i + 1) % (_indicies.Count / 2) + (_indicies.Count / 2)], _indicies[(i + 2) % (_indicies.Count / 2) + (_indicies.Count / 2)] };
 
-            GetNormalsForVerts(verts, v1);
-            GetNormalsForVerts(verts, v2);
-            GetUVsWithSize(verts, v1, Faces.forward, spriteSquareSize);
-            GetUVsWithSize(verts, v2, Faces.forward, spriteSquareSize);
+            GetNormalsForVerts(_verts, v1);
+            GetNormalsForVerts(_verts, v2);
+            GetUVsWithSize(_verts, v1, Faces.forward, spriteSquareSize);
+            GetUVsWithSize(_verts, v2, Faces.forward, spriteSquareSize);
         }     
 
         //Generating Side Triangles
-        for (int i = 1; i < verts.Count / 2; i += 6)
+        for (int i = 1; i < _verts.Count / 2; i += 6)
         {
-            int[] frontFaceVerts = { i, (i + 3) % (verts.Count / 2) };
-            int[] backFaceVerts = { (i + (verts.Count / 2)), (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
+            int[] frontFaceVerts = { i, (i + 3) % (_verts.Count / 2) };
+            int[] backFaceVerts = { (i + (_verts.Count / 2)), (i + 3) % (_verts.Count / 2) + (_verts.Count / 2) };
 
             //verts pos are used as uvs
-            int[] uvCoord = { i, (i + 3) % (verts.Count / 2), (i + (verts.Count / 2)), (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
+            int[] uvCoord = { i, (i + 3) % (_verts.Count / 2), (i + (_verts.Count / 2)), (i + 3) % (_verts.Count / 2) + (_verts.Count / 2) };
 
-            GetQuadIndicies(frontFaceVerts, backFaceVerts, indicies, verts);
+            GetQuadIndicies(frontFaceVerts, backFaceVerts, _indicies, _verts);
 
-            GetUVsWithSize(verts, uvCoord, Faces.left, spriteSquareSize);
+            GetUVsWithSize(_verts, uvCoord, Faces.left, spriteSquareSize);
         }
 
         //Generate Up-Down Verts
-        for (int i = 5; i < verts.Count / 2; i += 6)
+        for (int i = 5; i < _verts.Count / 2; i += 6)
         {
-            int[] frontFaceVerts = { i % (verts.Count / 2), (i + 3) % (verts.Count / 2) };
-            int[] backFaceVerts = { (i % (verts.Count/2) + (verts.Count / 2)),
-                                    (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
+            int[] frontFaceVerts = { i % (_verts.Count / 2), (i + 3) % (_verts.Count / 2) };
+            int[] backFaceVerts = { (i % (_verts.Count/2) + (_verts.Count / 2)),
+                                    (i + 3) % (_verts.Count / 2) + (_verts.Count / 2) };
 
             //verts pos are used as uvs
-            int[] uvCoord = { i % (verts.Count / 2), (i + 3) % (verts.Count / 2), (i % (verts.Count / 2) + (verts.Count / 2)), (i + 3) % (verts.Count / 2) + (verts.Count / 2) };
+            int[] uvCoord = { i % (_verts.Count / 2), (i + 3) % (_verts.Count / 2), (i % (_verts.Count / 2) + (_verts.Count / 2)), (i + 3) % (_verts.Count / 2) + (_verts.Count / 2) };
 
-            GetQuadIndicies(frontFaceVerts, backFaceVerts, indicies, verts);
-            GetUVsWithSize(verts, uvCoord, Faces.up, spriteSquareSize);
+            GetQuadIndicies(frontFaceVerts, backFaceVerts, _indicies, _verts);
+            GetUVsWithSize(_verts, uvCoord, Faces.up, spriteSquareSize);
 
         }
 
-        generatedMesh = new MeshProperties(verts);
-        generatedMesh.mesh_center = polygonCenter;
-        generatedMesh.SetIndicies(indicies.ToArray());
+        _generatedMesh = new MeshProperties(_verts);
+        _generatedMesh.mesh_center = polygonCenter;
+        _generatedMesh.SetIndicies(_indicies.ToArray());
 
-        frontFaceMesh = new MeshProperties(frontFaceVerticies);
-        frontFaceMesh.mesh_center = polygonCenter;
-        frontFaceMesh.SetIndicies(frontFaceIndicies.ToArray());
+        _frontFaceMesh = new MeshProperties(_frontFaceVerticies);
+        _frontFaceMesh.mesh_center = polygonCenter;
+        _frontFaceMesh.SetIndicies(_frontFaceIndicies.ToArray());
 
-        return new MeshProperties[] { generatedMesh, frontFaceMesh };
+        return new MeshProperties[] { _generatedMesh, _frontFaceMesh };
     }
     public static void GetQuadIndicies(int[] frontFaceIndicies, int[] backFaceIndicies, List<int> indicies, List<VertexProperties> verts)
     {

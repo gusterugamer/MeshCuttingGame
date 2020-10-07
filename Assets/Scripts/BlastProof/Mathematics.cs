@@ -402,7 +402,7 @@ namespace BlastProof
            Vector2 intersectionPoint = l1_p1 + u_a * (l1_p2 - l1_p1);
 
             return intersectionPoint;
-        }
+        }       
 
         //Verifies is 2 lines intersect and returns the intersection point in intersectionPoint parameter
         public static bool LineSegmentsIntersection(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, out Vector2 intersectionPoint)
@@ -663,11 +663,11 @@ namespace BlastProof
             int i, j = 0;
             for (i = 0, j = nvert - 1; i < nvert; j = i++)
             {
-                if ((((bp[i].m_pos.y <= testy) && (testy < bp[j].m_pos.y)) ||
+                if ((((bp[i].Pos.y <= testy) && (testy < bp[j].Pos.y)) ||
 
-                     ((bp[j].m_pos.y <= testy) && (testy < bp[i].m_pos.y))) &&
+                     ((bp[j].Pos.y <= testy) && (testy < bp[i].Pos.y))) &&
 
-                    (testx < (bp[j].m_pos.x - bp[i].m_pos.x) * (testy - bp[i].m_pos.y) / (bp[j].m_pos.y - bp[i].m_pos.y) + bp[i].m_pos.x))
+                    (testx < (bp[j].Pos.x - bp[i].Pos.x) * (testy - bp[i].Pos.y) / (bp[j].Pos.y - bp[i].Pos.y) + bp[i].Pos.x))
                     c = !c;
             }
             return c;
@@ -691,7 +691,7 @@ namespace BlastProof
                 {
                     if (minDistance[k] >= margin)
                     {
-                        float distance = DistancePointLine2D(point[k], verts[i].m_pos, verts[j].m_pos);
+                        float distance = DistancePointLine2D(point[k], verts[i].Pos, verts[j].Pos);
                         minDistance[k] = Mathf.Min(minDistance[k], distance);
                     }
                     else
@@ -799,8 +799,8 @@ namespace BlastProof
             int length = points.Count;
             for (int i = 0; i < length; i++)
             {
-                Vector2 point = points[i].m_pos;
-                Vector2 point2 = points[(i + 1) % length].m_pos;
+                Vector2 point = points[i].Pos;
+                Vector2 point2 = points[(i + 1) % length].Pos;
                 f += (point.x * point2.y) - (point2.x * point.y);
             }
             return (Mathf.Abs(f) / 2f);
