@@ -40,8 +40,7 @@ public class NewInputSystem : MonoBehaviour
     {
         _cb = _shape.GetComponent<CustomBoundryBox>();
 
-        _trailrenderer = GetComponent<TrailRenderer>();
-        _trailrenderer.forceRenderingOff = true;
+        _trailrenderer = GetComponent<TrailRenderer>();       
 
         _circle = new Circle(transform.position, _CIRCLE_RADIUS);
 
@@ -79,8 +78,7 @@ public class NewInputSystem : MonoBehaviour
         {
             _LM.CollidedWithObject();
             _isEnabled = false;
-        }
-        _trailrenderer.forceRenderingOff = false;
+        }        
 
         Touch[] touch = Input.touches;
 
@@ -89,6 +87,12 @@ public class NewInputSystem : MonoBehaviour
             _startPos = _endPos;
             _endPos = position;
             _currentPos = position;
+            if (!_trailrenderer.emitting)
+            {
+                _trailrenderer.Clear();
+                _trailrenderer.emitting = true;
+            }
+
 
             if (_startPos != _cb.PolygonCenter && _endPos != _cb.PolygonCenter)
             {
@@ -105,9 +109,8 @@ public class NewInputSystem : MonoBehaviour
         {
             _startPos = _cb.PolygonCenter;
             _endPos = _cb.PolygonCenter;           
-            _lastIntersectionPoint = IntersectionPoint.zero;
-            _trailrenderer.forceRenderingOff = true;
-            _trailrenderer.Clear();
+            _lastIntersectionPoint = IntersectionPoint.zero;            
+            _trailrenderer.emitting = false;
         }
     }   
 
@@ -300,10 +303,10 @@ public class NewInputSystem : MonoBehaviour
     public void ReEnable()
     {      
         _startPos = _cb.PolygonCenter;
-        _endPos = _cb.PolygonCenter;    
-        _trailrenderer.forceRenderingOff = true;
+        _endPos = _cb.PolygonCenter;       
         _intersectionPoints.Clear();
         _lastIntersectionPoint = IntersectionPoint.zero;
+        _trailrenderer.emitting = false;
         _isEnabled = true;
         _polygon = _cb.ToArray();
     }
