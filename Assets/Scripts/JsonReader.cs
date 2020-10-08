@@ -8,16 +8,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewLevel", menuName = "Level")]
 public class JsonReader : ScriptableObject
 {   
-    public LevelData levelsData;
-
-    public LevelData loadedLevel;
+    private LevelData _loadedLevel;
+    public LevelData loadedLevel { get => _loadedLevel; }
    
-    public LevelData Load(int i)
+    public void Load(int i)
     {
         string path = "levels/" + i.ToString();
         string json = Resources.Load<TextAsset>(path).text;
-        levelsData = JsonUtility.FromJson<LevelData>(json);
-        loadedLevel = levelsData;
-        return levelsData;
+        _loadedLevel = JsonUtility.FromJson<LevelData>(json);         
     }  
 }

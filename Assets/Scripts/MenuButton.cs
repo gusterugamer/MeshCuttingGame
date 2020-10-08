@@ -8,8 +8,7 @@ public class MenuButton : MonoBehaviour
     [SerializeField] private JsonReader _jr;
 
     public void LoadLevelsScene()
-    {
-        _jr.loadedLevel = null;
+    {      
         SceneManager.LoadSceneAsync("LevelsScene", LoadSceneMode.Single);
     }
 }

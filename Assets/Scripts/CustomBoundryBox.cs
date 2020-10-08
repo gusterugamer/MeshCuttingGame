@@ -96,8 +96,7 @@ public class CustomBoundryBox : MonoBehaviour
 
         _ratio = _textureSize / Mathf.Max(MaxX, MaxY);
 
-        int pixelPerUnit = Mathf.CeilToInt(_ratio);
-        m_toCutObject.fillPixelsPerUnit = pixelPerUnit; 
+        m_toCutObject.fillPixelsPerUnit = _ratio;
     }
 
     public void UpdateCustomBoundary(List<BoundaryPoint> boundary)
