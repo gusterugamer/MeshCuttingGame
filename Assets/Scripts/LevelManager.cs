@@ -12,6 +12,8 @@ public class LevelManager : MonoBehaviour
 
     private SpriteShapeController _sprite;
 
+    private const float _CAMERA_Z = -40.0f;
+
     private Camera _mainCam;
 
     private static Score _score;
@@ -33,7 +35,7 @@ public class LevelManager : MonoBehaviour
 
     private void Awake()
     {
-        _mainCam = Camera.main;
+        _mainCam = Camera.main;     
         Application.targetFrameRate = 60;
         _textureMat = Resources.Load("Material/random") as Material;
         _inputSystem.UpdateMats(_textureMat);
@@ -43,7 +45,7 @@ public class LevelManager : MonoBehaviour
     {
         _score = new Score(_cb.Area);
         CreateObjectsInScene();
-        _mainCam.transform.position = new Vector3(_cb.PolygonCenter.x, _cb.PolygonCenter.y, -Mathf.Max(_cb.MaxX, _cb.MaxY));               
+        _mainCam.transform.position = new Vector3(_cb.PolygonCenter.x, _cb.PolygonCenter.y, _CAMERA_Z);
     }   
 
     private void CreateSprite()
