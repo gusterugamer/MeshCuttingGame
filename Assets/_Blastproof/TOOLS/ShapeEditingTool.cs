@@ -3,6 +3,7 @@ using GoogleSheetsToUnity;
 using Sirenix.OdinInspector;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.U2D;
 using UnityEngine.UIElements;
@@ -13,12 +14,15 @@ namespace Blastproof.Tools
     public class ShapeEditingTool : ScriptableObject
     {
         public SpriteShapeController _shape;
-
-        public float size = 0;
-
-        public Texture2D tex;
-
         public Camera cam;
+
+        public JsonReader _reader;
+
+        public Material tex;
+
+        private LevelData ld = new LevelData();
+
+        public float size = 0;            
 
         public float marginX = 0;
         public float marginY = 0;
@@ -115,7 +119,7 @@ namespace Blastproof.Tools
 
             if (tex == null)
             {
-                Debug.LogError("NO TEXTURE ATTACHED TO THE TOOL!!!");
+                Debug.LogError("NO MATERIAL ATTACHED TO THE TOOL!!!");
                 return;
             }
             if (_shape == null)
@@ -124,7 +128,8 @@ namespace Blastproof.Tools
                 return;
             }
 
-            _shape.spriteShape.fillTexture = tex;
+            _shape.spriteShape.fillTexture = tex.mainTexture as Texture2D;
+            _shape.GetComponent<SpriteShapeRenderer>().material = tex;
 
             for (int i = 0; i < points.Count; i++)
             {
@@ -150,69 +155,71 @@ namespace Blastproof.Tools
             float tempMaxWidth = _WIDTH - marginX;
             float tempMaxHeight = _HEIGHT - marginY;
 
-            for (int i=0; i<points.Count; i++)
+            for (int i = 0; i < points.Count; i++)
             {
-                maxX = Mathf.Max(maxX, points[i].x);
-                maxY = Mathf.Max(maxY, points[i].y);
-
                 minX = Mathf.Min(minX, points[i].x);
                 minY = Mathf.Min(minY, points[i].y);
             }
 
-            Debug.Log(maxX);
-            Debug.Log(maxY);
-
-            maxX -= minX;
-            maxY -= minY;
+            for (int i = 0; i < points.Count; i++)
+            {
+                points[i] -= new Vector2(minX, minY);
+                maxX = Mathf.Max(maxX, points[i].x);
+                maxY = Mathf.Max(maxY, points[i].y);
+            }           
 
             float scaleFactorX;
             float scaleFactorY;
 
-            if (maxX <= tempMaxWidth)
-            {
-                scaleFactorX = maxX / tempMaxWidth;
-            }
-            else
-            {
-                scaleFactorX = tempMaxWidth / maxX;
-            }
+            scaleFactorX = tempMaxWidth / maxX;
+            scaleFactorY = tempMaxHeight / maxY;
 
-            if (maxY <= tempMaxHeight)
-            {
-                scaleFactorY = maxY / tempMaxHeight;
-            }
-            else
-            {
-                scaleFactorY = tempMaxHeight / maxY;
-            }
+            float scaleFactor = Mathf.Min(scaleFactorX, scaleFactorY);
 
-            for (int i=0;i<points.Count;i++)
-            {
-                points[i] -= new Vector2(minX, minY);
-            }
-            
-            float scaleFactor = Mathf.Min(scaleFactorX, scaleFactorY);            
-            
-            for (int i=0;i<points.Count;i++)
+            for (int i = 0; i < points.Count; i++)
             {
                 points[i] *= scaleFactor;
             }
 
-            int length = _shape.spline.GetPointCount();
+            int length = points.Count;
 
             _shape.spline.Clear();
 
             Vector2 center = Vector2.zero;
 
-            for (int i=0;i<length;i++)
+            maxX = -Mathf.Infinity;
+            maxY = -Mathf.Infinity;
+
+            for (int i = 0; i < length; i++)
             {
                 _shape.spline.InsertPointAt(i, points[i]);
                 center += points[i];
+
+                maxX = Mathf.Max(maxX, points[i].x);
+                maxY = Mathf.Max(maxY, points[i].y);
             }
 
             center /= points.Count;
-
             cam.transform.position = new Vector3(center.x, center.y, cam.transform.position.z);
+            _shape.fillPixelsPerUnit = _shape.spriteShape.fillTexture.width / Mathf.Max(maxX, maxY);
+        }
+
+        [Button]
+        private void SaveModifications()
+        {
+            ld.isClockWise = _reader.loadedLevel.isClockWise;
+            ld.materialName = tex.name;
+            ld.objectsNames = _reader.loadedLevel.objectsNames;
+            ld.objectsPositions = _reader.loadedLevel.objectsPositions;
+            ld.points = points.ToArray();
+
+            string path = Application.persistentDataPath;
+            string jsonFileName = "Modified " + _reader.loadedLevelId.ToString() + ".json";
+
+            var json = JsonUtility.ToJson(ld, true);
+            File.WriteAllText(System.IO.Path.Combine(path, jsonFileName), json);
+
+            Debug.Log("MODIFIED FILE CAN BE FOUND " + path + " with the name " + jsonFileName);
         }
     }
 }

@@ -43,8 +43,10 @@ public class LevelManager : MonoBehaviour
     }
     void Start()
     {
-        _score = new Score(_cb.Area);
         CreateObjectsInScene();
+        UpdateShapeMaterial();
+
+        _score = new Score(_cb.Area);       
         _mainCam.transform.position = new Vector3(_cb.PolygonCenter.x, _cb.PolygonCenter.y, _CAMERA_Z);
     }   
 
@@ -84,15 +86,15 @@ public class LevelManager : MonoBehaviour
 
     private void CreateObjectsInScene()
     {
-        if (_jr.loadedLevel.objectsPosition.Length != 0)
+        if (_jr.loadedLevel.objectsPositions.Length != 0)
         {
             for (int i = 0; i < 3; i++)
             {
-                GameObject prefabcube = Resources.Load("Prefab/Cube") as GameObject;
+                GameObject prefabcube = Resources.Load("Prefab/" + _jr.loadedLevel.objectsNames[i]) as GameObject;
                 GameObject cube = Instantiate(prefabcube);
                 cube.name = "object" + i;
                 cube.transform.localScale = Vector3.one;
-                Vector3 newPosition = _jr.loadedLevel.objectsPosition[i];
+                Vector3 newPosition = _jr.loadedLevel.objectsPositions[i];
                 cube.transform.position = newPosition;
                 cube.AddComponent<LevelObstacle>().SetStartPosition(newPosition);
                 cube.tag = "Obstacle";
@@ -103,7 +105,7 @@ public class LevelManager : MonoBehaviour
         {
             for (int i = -1; i < 2; i++)
             {
-                GameObject prefabcube = Resources.Load("Prefab/Cube") as GameObject;
+                GameObject prefabcube = Resources.Load("Prefab/" + _jr.loadedLevel.objectsNames[i]) as GameObject;
                 GameObject cube = Instantiate(prefabcube);
                 cube.name = "object" + i;
                 cube.transform.localScale = Vector3.one;
@@ -115,6 +117,16 @@ public class LevelManager : MonoBehaviour
             }
         }
 
+    }
+
+    private void UpdateShapeMaterial()
+    {
+        if (_jr.loadedLevel.materialName != null)
+        {
+            Material ShapeMat = Resources.Load("Material/" + _jr.loadedLevel.materialName) as Material;            
+            _cb.GetComponent<SpriteShapeController>().spriteShape.fillTexture = ShapeMat.mainTexture as Texture2D;
+            //_cb.GetComponent<SpriteShapeRenderer>().material = ShapeMat;
+        }
     }
 
     public void AddPieceToList(ref GameObject piece)

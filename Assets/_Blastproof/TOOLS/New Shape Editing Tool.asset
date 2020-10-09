@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: New Shape Editing Tool
   m_EditorClassIdentifier: 
   _shape: {fileID: 0}
-  size: 0
-  tex: {fileID: 0}
+  size: 3.5
+  tex: {fileID: 2100000, guid: d13d0e9987a1db4428b0f7c05d5cf2d6, type: 2}
   cam: {fileID: 0}
-  marginX: 0
-  marginY: 0
+  marginX: 3
+  marginY: 12
