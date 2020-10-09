@@ -1,7 +1,5 @@
 ﻿using BlastProof;
-using GoogleSheetsToUnity;
 using Sirenix.OdinInspector;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -18,9 +16,7 @@ namespace Blastproof.Tools
 
         public JsonReader _reader;       
 
-        public Material tex;
-
-        private LevelData ld = new LevelData();
+        public Material tex;   
 
         public float size = 0;            
 
@@ -31,9 +27,11 @@ namespace Blastproof.Tools
         public const float _HEIGHT = 63f;
 
         public List<GameObject> _go = new List<GameObject>();
-        public List<string> _names = new List<string>();
+        private List<string> _names = new List<string>();
 
         private List<Vector2> points;
+        private LevelData ld = new LevelData();
+        private bool materialChanged = false;
 
         private void ReadPoints()
         {
@@ -101,8 +99,14 @@ namespace Blastproof.Tools
                     }
 
                     center /= points.Count;
-
-                    cam.transform.position = new Vector3(center.x, center.y, cam.transform.position.z);
+                    if (cam != null)
+                    {
+                        cam.transform.position = new Vector3(center.x, center.y, cam.transform.position.z);
+                    }
+                    else
+                    {
+                        Debug.LogError("NO CAMERA ATTACHED TO THE TOOL!");
+                    }
 
                 }
             }
@@ -141,6 +145,8 @@ namespace Blastproof.Tools
             }
 
             _shape.fillPixelsPerUnit = _shape.spriteShape.fillTexture.width / Mathf.Max(maxX, maxY);
+
+            materialChanged = true;
         }
 
         [Button]
@@ -202,23 +208,28 @@ namespace Blastproof.Tools
             }
 
             center /= points.Count;
-            cam.transform.position = new Vector3(center.x, center.y, cam.transform.position.z);
+            if (cam != null)
+            {
+                cam.transform.position = new Vector3(center.x, center.y, cam.transform.position.z);
+            }
+            else
+            {
+                Debug.LogError("NO CAMERA ATTACHED TO THE TOOL!!!");
+            }
             _shape.fillPixelsPerUnit = _shape.spriteShape.fillTexture.width / Mathf.Max(maxX, maxY);
         }
 
         [Button]
         private void SaveModifications()
         {
-            if (points.Count == 0)
-            {
-                ReadPoints();
-            }
-
             List<Vector2> posList = new List<Vector2>();
             List<string> obsNames = new List<string>();
             foreach (var go in _go)
             {
-                posList.Add(go.transform.position);              
+                posList.Add(go.transform.position);
+                name = go.name;
+                name = name.Replace("(Clone)", "");
+                obsNames.Add(name);
             }
 
             foreach (var name in _names)
@@ -226,10 +237,18 @@ namespace Blastproof.Tools
                 obsNames.Add(name);
             }
 
-            ld.isClockWise = _reader.loadedLevel.isClockWise;
-            ld.materialName = tex.name;
-            ld.objectsNames = _reader.loadedLevel.objectsNames;
+            //Material
+            if (materialChanged)
+            {
+                ld.materialName = tex.name;
+            }
+            else
+            {
+                ld.materialName = _reader.loadedLevel.materialName;
+            }          
 
+
+            //ObjectPositions
             if (posList.Count > 0)
             {
                 ld.objectsPositions = posList.ToArray();                
@@ -239,6 +258,7 @@ namespace Blastproof.Tools
                 ld.objectsPositions = _reader.loadedLevel.objectsPositions;               
             }
 
+            //ObjectNames
             if (obsNames.Count > 0)
             {
                 ld.objectsNames = obsNames.ToArray();
@@ -248,7 +268,18 @@ namespace Blastproof.Tools
                 ld.objectsNames = _reader.loadedLevel.objectsNames;
             }
 
-            ld.points = points.ToArray();
+            //ShapePoints
+            if (points.Count > 0)
+            {
+                ld.points = points.ToArray();
+            }
+            else
+            {
+                ld.points = _reader.loadedLevel.points;
+            }
+
+            //isClockWise
+            ld.isClockWise = _reader.loadedLevel.isClockWise;
 
             string path = Application.persistentDataPath;
             string jsonFileName = "Modified " + _reader.loadedLevelId.ToString() + ".json";

@@ -84,8 +84,7 @@ public class LevelManager : MonoBehaviour
             for (int i = 0; i < 3; i++)
             {
                 GameObject prefabcube = Resources.Load("Prefab/" + _jr.loadedLevel.objectsNames[i]) as GameObject;
-                GameObject cube = Instantiate(prefabcube);
-                cube.name = "object" + i;
+                GameObject cube = Instantiate(prefabcube);               
                 cube.transform.localScale = Vector3.one;
                 Vector3 newPosition = _jr.loadedLevel.objectsPositions[i];
                 cube.transform.position = newPosition;
@@ -99,8 +98,7 @@ public class LevelManager : MonoBehaviour
             for (int i = -1; i < 2; i++)
             {
                 GameObject prefabcube = Resources.Load("Prefab/" + _jr.loadedLevel.objectsNames[i]) as GameObject;
-                GameObject cube = Instantiate(prefabcube);
-                cube.name = "object" + i;
+                GameObject cube = Instantiate(prefabcube);               
                 cube.transform.localScale = Vector3.one;
                 Vector3 newPosition = new Vector3(_cb.PolygonCenter.x, _cb.PolygonCenter.y + i * 6.5f, _cb.PolygonCenter.z);
                 cube.transform.position = newPosition;
