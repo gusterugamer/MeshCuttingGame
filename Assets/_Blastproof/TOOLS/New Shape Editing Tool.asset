@@ -15,7 +15,11 @@ MonoBehaviour:
   _shape: {fileID: 0}
   cam: {fileID: 0}
   _reader: {fileID: 11400000, guid: 28c5662f7ac3136438b17f5b07867b91, type: 2}
-  tex: {fileID: 2100000, guid: d13d0e9987a1db4428b0f7c05d5cf2d6, type: 2}
+  tex: {fileID: 2100000, guid: c794508bb2865374eab5f446dd42cbf4, type: 2}
   size: 1
-  marginX: 3
-  marginY: 12
+  marginX: 4
+  marginY: 0
+  _go:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}

@@ -12,39 +12,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11c371cc92895344f849b9df7e566d78, type: 3}
   m_Name: GoogleSheetsToJson
   m_EditorClassIdentifier: 
-  jsonFileName: Level1.json
+  jsonFileName: genFromSheet.json
   sheetId: 1cg9KL1sGNA0HNRy0mBd7smpnCwTKopq6enEuavHJQt8
   worksheetName: altceva
   level:
     points:
-    - {x: 9.72, y: 9.72}
-    - {x: 14.58, y: 14.58}
-    - {x: 14.58, y: 14.58}
-    - {x: 17.5932, y: 17.5932}
-    - {x: 17.5932, y: 17.5932}
-    - {x: 20.655, y: 20.655}
-    - {x: 20.655, y: 20.655}
-    - {x: 23.4009, y: 23.4009}
-    - {x: 23.4009, y: 23.4009}
-    - {x: 20.9709, y: 20.9709}
-    - {x: 20.9709, y: 20.9709}
-    - {x: 14.58, y: 14.58}
-    - {x: 14.58, y: 14.58}
-    - {x: 9.72, y: 9.72}
-    - {x: 9.72, y: 9.72}
-    - {x: 3.3291, y: 3.3291}
-    - {x: 3.3291, y: 3.3291}
-    - {x: 0, y: 0}
-    - {x: 0, y: 0}
-    - {x: 3.3291, y: 3.3291}
-    - {x: 3.3291, y: 3.3291}
-    - {x: 6.7068, y: 6.7068}
-    - {x: 6.7068, y: 6.7068}
-    - {x: 9.72, y: 9.72}
+    - {x: 5.22, y: 0}
+    - {x: 5.22, y: 2.75}
+    - {x: 1.1, y: 2.75}
+    - {x: 3.42, y: 5.35}
+    - {x: 2.14, y: 5.35}
+    - {x: 4.55, y: 8.04}
+    - {x: 3.42, y: 8.04}
+    - {x: 5.845, y: 10.77}
+    - {x: 8.27, y: 8.04}
+    - {x: 7.14, y: 8.04}
+    - {x: 9.42, y: 5.35}
+    - {x: 8.27, y: 5.35}
+    - {x: 10.59, y: 2.75}
+    - {x: 6.47, y: 2.75}
+    - {x: 6.47, y: 0}
     objectsNames:
     - Cube
     - Cube
     - Cube
-    objectsPositions: []
-    materialName: 
+    objectsPositions:
+    - {x: 5, y: 5}
+    - {x: 10, y: 10}
+    - {x: 15, y: 15}
+    materialName: wood
     isClockWise: 1
