@@ -18,9 +18,7 @@ public class LevelManager : MonoBehaviour
 
     private static Score _score;
     private List<GameObject> _obstacles = new List<GameObject>();
-    private List<GameObject> _cuttedObjects = new List<GameObject>();
-
-    private Material _textureMat;
+    private List<GameObject> _cuttedObjects = new List<GameObject>();    
 
     public Score Score { get => _score;}
     public List<GameObject> Obstacles { get => _obstacles; }
@@ -36,16 +34,14 @@ public class LevelManager : MonoBehaviour
     private void Awake()
     {
         _mainCam = Camera.main;     
-        Application.targetFrameRate = 60;
-        _textureMat = Resources.Load("Material/random") as Material;
-        _inputSystem.UpdateMats(_textureMat);
-        CreateSprite();        
+        Application.targetFrameRate = 60;       
+        CreateSprite();
+        UpdateShapeMaterial();
     }
     void Start()
     {
         CreateObjectsInScene();
-        UpdateShapeMaterial();
-
+        
         _score = new Score(_cb.Area);       
         _mainCam.transform.position = new Vector3(_cb.PolygonCenter.x, _cb.PolygonCenter.y, _CAMERA_Z);
     }   
@@ -72,10 +68,7 @@ public class LevelManager : MonoBehaviour
             {
                 _sprite.spline.InsertPointAt(i, _jr.loadedLevel.points[i]);
             }
-        }
-
-        _sprite.spriteShape.fillTexture = _textureMat.mainTexture as Texture2D;
-        _cb.TextureSize(_textureMat.mainTexture.width);
+        }        
     }  
 
     public void UpdateScore()
@@ -125,6 +118,8 @@ public class LevelManager : MonoBehaviour
         {
             Material ShapeMat = Resources.Load("Material/" + _jr.loadedLevel.materialName) as Material;            
             _cb.GetComponent<SpriteShapeController>().spriteShape.fillTexture = ShapeMat.mainTexture as Texture2D;
+            _inputSystem.UpdateMats(ShapeMat);
+            _cb.TextureSize(ShapeMat.mainTexture.width);
             //_cb.GetComponent<SpriteShapeRenderer>().material = ShapeMat;
         }
     }

@@ -16,7 +16,7 @@ namespace Blastproof.Tools
         public SpriteShapeController _shape;
         public Camera cam;
 
-        public JsonReader _reader;
+        public JsonReader _reader;       
 
         public Material tex;
 
@@ -30,6 +30,8 @@ namespace Blastproof.Tools
         public const float _WIDTH = 35f;
         public const float _HEIGHT = 63f;
 
+        public List<GameObject> _go = new List<GameObject>();
+        public List<string> _names = new List<string>();
 
         private List<Vector2> points;
 
@@ -52,7 +54,7 @@ namespace Blastproof.Tools
 
         [Button]
         private void ReSize()
-        {
+        {            
             ReadPoints();
             if (_shape != null)
             {
@@ -207,10 +209,45 @@ namespace Blastproof.Tools
         [Button]
         private void SaveModifications()
         {
+            if (points.Count == 0)
+            {
+                ReadPoints();
+            }
+
+            List<Vector2> posList = new List<Vector2>();
+            List<string> obsNames = new List<string>();
+            foreach (var go in _go)
+            {
+                posList.Add(go.transform.position);              
+            }
+
+            foreach (var name in _names)
+            {
+                obsNames.Add(name);
+            }
+
             ld.isClockWise = _reader.loadedLevel.isClockWise;
             ld.materialName = tex.name;
             ld.objectsNames = _reader.loadedLevel.objectsNames;
-            ld.objectsPositions = _reader.loadedLevel.objectsPositions;
+
+            if (posList.Count > 0)
+            {
+                ld.objectsPositions = posList.ToArray();                
+            }
+            else
+            {
+                ld.objectsPositions = _reader.loadedLevel.objectsPositions;               
+            }
+
+            if (obsNames.Count > 0)
+            {
+                ld.objectsNames = obsNames.ToArray();
+            }
+            else
+            {
+                ld.objectsNames = _reader.loadedLevel.objectsNames;
+            }
+
             ld.points = points.ToArray();
 
             string path = Application.persistentDataPath;
