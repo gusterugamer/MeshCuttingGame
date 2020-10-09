@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 57195d7099011724dbc6daf2cb539245, type: 3}
-  m_Name: New Shape Editing Tool
+  m_Name: Cube
   m_EditorClassIdentifier: 
   _shape: {fileID: 0}
   cam: {fileID: 0}
   _reader: {fileID: 11400000, guid: 28c5662f7ac3136438b17f5b07867b91, type: 2}
-  tex: {fileID: 2100000, guid: c794508bb2865374eab5f446dd42cbf4, type: 2}
+  tex: {fileID: 2100000, guid: 8c3fc67ff6936074ab2523f937af1232, type: 2}
   size: 1
   marginX: 4
   marginY: 0
