@@ -17,6 +17,6 @@ MonoBehaviour:
   _reader: {fileID: 11400000, guid: 28c5662f7ac3136438b17f5b07867b91, type: 2}
   tex: {fileID: 2100000, guid: 8c3fc67ff6936074ab2523f937af1232, type: 2}
   size: 1
-  marginX: 4
-  marginY: 0
+  marginX: 1.5
+  marginY: 10
   _go: []
