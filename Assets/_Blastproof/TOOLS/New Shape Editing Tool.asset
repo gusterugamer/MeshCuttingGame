@@ -19,7 +19,4 @@ MonoBehaviour:
   size: 1
   marginX: 4
   marginY: 0
-  _go:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  _go: []
